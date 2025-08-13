@@ -1,0 +1,169 @@
+import React, { useState } from 'react';
+import { ArrowLeft, Phone, Star } from 'lucide-react';
+
+interface SearchResultsProps {
+  profession: string;
+  onNewSearch: () => void;
+}
+
+interface Professional {
+  id: string;
+  name: string;
+  rating: number;
+  reviews: number;
+  city: string;
+  state: string;
+  phone: string;
+  photo: string;
+}
+
+function SearchResults({ profession, onNewSearch }: SearchResultsProps) {
+  const [showLGPDTerms, setShowLGPDTerms] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
+  const [isBulkRequest, setIsBulkRequest] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showPhoneNumbers, setShowPhoneNumbers] = useState(false);
+  const [showErrorMessage, setShowErrorMessage] = useState(false);  
+  // Mock data for professionals
+  const mockProfessionals: Professional[] = [
+    {
+      id: '1',
+      name: 'João Silva',
+      rating: 4.8,
+      reviews: 156,
+      city: 'São Paulo',
+      state: 'SP',
+      phone: '(11) 99999-9999',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d'
+    },
+    {
+      id: '2',
+      name: 'Maria Santos',
+      rating: 4.9,
+      reviews: 203,
+      city: 'Rio de Janeiro',
+      state: 'RJ',
+      phone: '(21) 98888-8888',
+      photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330'
+    },
+    {
+      id: '3',
+      name: 'Pedro Oliveira',
+      rating: 4.7,
+      reviews: 89,
+      city: 'Belo Horizonte',
+      state: 'MG',
+      phone: '(31) 97777-7777',
+      photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e'
+    }
+  ];
+
+  const handleRequestQuote = (professional: Professional | null = null, bulk = false) => {
+    setSelectedProfessional(professional);
+    setIsBulkRequest(bulk);
+    setShowLGPDTerms(true);
+  };
+
+
+const handleAcceptTerms = () => {
+    setShowLGPDTerms(false);
+    setShowContactForm(true);
+  };
+
+  const handleRejectTerms = () => {
+    setShowLGPDTerms(false);
+    setShowErrorMessage(true);
+    setSelectedProfessional(null);
+    setIsBulkRequest(false);
+    setTimeout(() => {
+      setShowErrorMessage(false);
+    }, 3000);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Form submitted:', formData);
+    setShowContactForm(false);
+    setShowSuccessMessage(true);
+    setShowPhoneNumbers(true);
+    setTimeout(() => {
+      setShowSuccessMessage(false);
+    }, 3000);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };  
+
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {profession}
+              </h1>
+              <p className="text-gray-600 mt-2">
+                {mockProfessionals.length} profissionais encontrados
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={onNewSearch}
+                className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                Nova Pesquisa
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Solicitar Orçamento para Todos
+              </button>
+            </div>
+          </div>
+
+          {/* Professional List */}
+          <div className="space-y-4">
+            {mockProfessionals.map((professional) => (
+              <div key={professional.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {professional.name}
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>•</span>
+                    <span>{professional.city}, {professional.state}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    onClick={() => handleRequestQuote(professional, false)}
+                  >
+                    Solicitar Orçamento
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default SearchResults;
