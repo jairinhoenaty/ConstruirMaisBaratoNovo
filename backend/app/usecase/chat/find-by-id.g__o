@@ -1,0 +1,35 @@
+package chat_usecase
+
+import (
+	pkgchat "construir_mais_barato/app/domain/chat"
+	"fmt"
+)
+
+type FindByIdUC struct {
+	Service pkgchat.ChatService
+	ID      *uint
+}
+
+type FindByIdUCParams struct {
+	Service pkgchat.ChatService
+}
+
+func NewFindByIdUC(params FindByIdUCParams) FindByIdUC {
+	return FindByIdUC{
+		Service: params.Service,
+	}
+}
+
+func (uc *FindByIdUC) Execute() (*ChatPresenter, error) {
+	if uc.ID == nil {
+		return nil, fmt.Errorf("invalid id")
+	}
+
+	chat, err := uc.Service.FindById(*uc.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	chatPresenter := GenerateChatPresenter(chat)
+	return &chatPresenter, nil
+}

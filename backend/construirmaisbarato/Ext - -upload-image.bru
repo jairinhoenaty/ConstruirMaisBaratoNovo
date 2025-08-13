@@ -1,0 +1,15 @@
+meta {
+  name: Ext - /upload/image
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:5000/publica/upload/image
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  myFile: @file(C:\Users\arthur.vieira\Pictures\Screenshot_20230702-120440.png)
+}
