@@ -1,29 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { Building2, MapPin, HardHat } from "lucide-react";
 import { states } from "../data";
-import SearchResults from "./SearchResults";
+// import SearchResults from "./SearchResults";
 import { CityService } from "../services/CityService";
 import { ProfessionalService } from "../services/ProfessionalService";
 import { ProfessionService } from "../services/ProfessionService";
 import { useNavigate } from "react-router-dom";
 import { BannerService } from "../services/BannerService";
 import { RegionService } from "../services";
+import { ICity, IProfissional } from "../interfaces";
+import { IProfession } from "../interfaces/IProfession";
 
 interface SearchProfessionalsProps {
   onNavigate?: (page: string) => void;
 }
 
-function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [selectedProfessional, setSelectedProfessional] = useState("");
-  const [showResults, setShowResults] = useState(false);
-  const [selectedProfessionalName, setSelectedProfessionalName] = useState("");
-  const [citiesByState, setcitiesByState] = useState([{}]);
-  const [professionals, setProfessionals] = useState([{}]);
-  const [professions, setProfessions] = useState([{ id: 1, name: "" }]);
+function SearchProfessionals({onNavigate}: SearchProfessionalsProps){
+  const [selectedState, setSelectedState] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedProfessional, setSelectedProfessional] = useState<string>("");
+  const [showResults ] = useState<boolean>(false); 
+  // const [selectedProfessionalName, setSelectedProfessionalName] = useState<string>("");
+  const [citiesByState, setcitiesByState] = useState<ICity[]>([]);
+  const [professionals, setProfessionals] = useState<IProfissional[]>([]);
+  const [professions, setProfessions] = useState<IProfession[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [imageModal, setImageModal] = useState("");
+  const [imageModal, setImageModal] = useState<string>("");
   const navigate = useNavigate();
 
   function gerarNumeroAleatorio(min: number, max: number): number {
@@ -33,19 +35,19 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
   }
 
 
-  function getScreenSize() {
-    const width = window.innerWidth;
+  // function getScreenSize() {
+  //   const width = window.innerWidth;
 
-    if (width < 768) {
-      return "xs";
-    } else if (width < 992) {
-      return "sm";
-    } else if (width < 1200) {
-      return "md";
-    } else {
-      return "lg"; // ou xl, dependendo da sua necessidade
-    }
-  }
+  //   if (width < 768) {
+  //     return "xs";
+  //   } else if (width < 992) {
+  //     return "sm";
+  //   } else if (width < 1200) {
+  //     return "md";
+  //   } else {
+  //     return "lg"; // ou xl, dependendo da sua necessidade
+  //   }
+  // }
 
   //const screenSize = getScreenSize();
   //console.log("Tamanho da tela:", screenSize);
@@ -60,13 +62,14 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
 
       const json_cities = await citiesByState.data;
       if (citiesByState.status == 200) {
-        setcitiesByState(json_cities);
+        setcitiesByState(json_cities as ICity[]);
       }
 
       const professions = await ProfessionService.getProfessionsPublic();
       const json_professions = await professions.data;
       if (professions.status == 200) {
-        setProfessions(json_professions);
+        // console.log("json_prof:", json_professions);
+        setProfessions(json_professions as IProfession[]);
       }
       //setSelectedCity("3648");
     };
@@ -76,9 +79,9 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("selectedCity:", selectedCity);
+      // console.log("selectedCity:", selectedCity);
       if (!selectedCity) {
-        setcitiesByState([{}]);
+        setcitiesByState([] as ICity[]);
         setShowModal(false);
         setImageModal("");
         return;
@@ -90,7 +93,7 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
         if (resu_region.status == 200) {
           const region_id = await resu_region.data.id;
           //setSelectedRegion(parseInt(resu_region.data.id));
-          console.log("Região selecionada:", region_id);
+          // console.log("Região selecionada:", region_id);
 
           const response_modal = await BannerService.getBannerByPagePublic({
             page: "B",
@@ -98,16 +101,16 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
             regionId: region_id,
           });
           if (response_modal.status == 200) {
-            console.log("response_modal:", response_modal);
+            // console.log("response_modal:", response_modal);
             const json_home = await response_modal.data;
             if (json_home.length > 0) {
               const img_number = gerarNumeroAleatorio(0, json_home.length - 1);
-              console.log("img_number:", img_number);
-              console.log("Imagem selecionada:", json_home[img_number]);
+                // console.log("img_number:", img_number);
+                // console.log("Imagem selecionada:", json_home[img_number]);
               setImageModal(json_home[img_number] || "");
             }
             else {
-              console.log("Nenhuma imagem encontrada para a região selecionada.");
+              // console.log("Nenhuma imagem encontrada para a região selecionada.");
               setImageModal("");
               handleSearch();
             }
@@ -136,11 +139,11 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
         limit: 1000,
         offset: 0,
       });
-    console.log(return_professionals);
+    // console.log(return_professionals);
 
     const json_professionals = await return_professionals.data.profissionais;
 
-    setProfessionals(json_professionals);
+    setProfessionals(json_professionals as IProfissional[]);
     //navigate(`/search-results?${selectedCity}&${selectedProfessional}`, {
     navigate("/search-results", {
       state: {
@@ -148,21 +151,21 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
         selectedProfessional: selectedProfessional,
       },
     });
-    //const professional = professionals.find(p => p.id === selectedProfessional);
-    //setSelectedProfessionalName(professional?.name || '');
-    //setShowResults(true);
+    // const professional = professionals.find(p => p.id === selectedProfessional);
+    // setSelectedProfessionalName(professional?.name || '');
+    // setShowResults(true);
   };
 
   if (showResults) {
-    return (
-      <SearchResults
-      //profession={selectedProfessionalName}
-      //professionals={professionals}
-      //onNewSearch={() => setShowResults(false)}
-      //onNavigate={"login"}
-      />
-    );
-  }
+    //return (
+      // <SearchResults
+      // profession={selectedProfessional}
+      // professionals={professionals}
+      // onNewSearch={() => setShowResults(false)}
+      // onNavigate={onNavigate}
+      // />
+    // );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -183,11 +186,11 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
 
             {/* Imagem */}
             <img
-              src={atob(imageModal?.image)}
+              src={atob(imageModal)} // corrigir esse erro de tipo de imagem imageModal é do tipo string 
               alt="Imagem de Construção"
               onClick={
-                imageModal.link != ""
-                  ? () => window.open(imageModal.link, "_blank")
+                imageModal != ""
+                  ? () => window.open(imageModal, "_blank")
                   : () => {}
               }
               // Garante que a imagem se ajuste à altura máxima do modal e preencha a largura
@@ -196,7 +199,7 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
                    w-auto sm:h-[95vh] xs:h-auto" //Adicionamos w-auto h-auto diretamente aqui"
               //style={{ width: "auto", height: "95vh" }} // Adicionado estilo inline para largura máxima da viewport
               style={{
-                cursor: imageModal.link != "" ? "pointer" : "",
+                cursor: imageModal != "" ? "pointer" : "",
               }}
             />
           </div>
@@ -248,7 +251,7 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
                 >
                   <option value="">Selecione a cidade</option>
                   {selectedState &&
-                    citiesByState.map((city) => (
+                    citiesByState.map((city: ICity) => (
                       <option key={city.id} value={city.id}>
                         {city.name}
                       </option>
@@ -270,7 +273,7 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
                   className="block w-full pl-10 pr-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
                 >
                   <option value="">Selecione o profissional</option>
-                  {professions.map((prof) => (
+                  {professions.map((prof: IProfession) => (
                     <option key={prof.id} value={prof.id}>
                       {prof.name}
                     </option>
@@ -282,10 +285,6 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
 
           <button
             onClick={ () => {
-              console.log("Buscar Profissionais");
-              console.log("selectedState:", selectedState);
-              console.log("selectedCity:", selectedCity);
-              console.log("selectedProfessional:", selectedProfessional);
               setShowModal(true);
             }}
             disabled={!selectedState || !selectedCity || !selectedProfessional}

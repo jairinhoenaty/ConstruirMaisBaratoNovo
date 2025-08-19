@@ -1,2 +1,20 @@
+# Arquivos de ambiente
 .env
+
+# Arquivos de lock (geral)
+*.lock
+
+# VSCode configs
+.vscode/
+
+# Executável
 cmd/main
+
+# Dependências backend
+vendor
+*.sum
+
+# Arquivos de exemplo
+.env.example
+.gitignore
+

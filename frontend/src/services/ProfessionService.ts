@@ -1,5 +1,5 @@
 //import { IGetProfessional } from "../interfaces/IGetProfissional";
-//import { IProfissional } from "../interfaces/IProfissional";
+import { IProfession } from "../interfaces/IProfession";
 import Api from "../providers/Api";
 import ApiPublica from "../providers/ApiPublica";
 

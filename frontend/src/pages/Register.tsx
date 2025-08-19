@@ -35,6 +35,7 @@ import VideoPopup from "../components/VideoPopup";
 
 type UserRole = "client" | "professional" | "store";
 
+
 function Register() {
   const [selectedRole, setSelectedRole] = useState<UserRole>("professional");
   const [isVideoPopupOpen, setIsVideoPopupOpen] = useState(false);

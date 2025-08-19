@@ -3,8 +3,21 @@ import { BannerService } from "../services/BannerService";
 import { useLocation } from "react-router-dom";
 import Slider from "react-slick";
 import { RegionService } from "../services";
+import { ICity } from "../interfaces";
+import { IRegion } from "../interfaces/IRegion";
 
-function CarouselNovo(page: any) {
+interface CarouselNovoProps {
+  page: string;
+}
+
+interface CarrosselImage {
+  city: ICity;
+  region: IRegion;
+  image: string;
+  link: string;
+}
+
+function CarouselNovo({ page }: CarouselNovoProps) {
   const [images, setImages] = useState([]);
   const location = useLocation();
     const [isLoading, setIsLoading] = useState(false);
@@ -18,21 +31,21 @@ function CarouselNovo(page: any) {
     const fetchData = async () => {
       setIsLoading(true);
       region = 0;
-      if (page.page == "/search") {
-        page = "S";
-      } else if (page.page == "/marketplace") {
+      if (page == "/search") {
+        page = "S"; 
+      } else if (page == "/marketplace") {
         page = "M";
-      } else if (page.page == "/privacy") {
+      } else if (page == "/privacy") {
         page = "P";
-      } else if (page.page == "/login") {
+      } else if (page == "/login") {
         page = "L";
-      } else if (page.page == "/register") {
+      } else if (page == "/register") {
         page = "R";
-      } else if (page.page == "/dashboard") {
+      } else if (page == "/dashboard") {
         page = "D";
-      } else if (page.page == "/professional-panel") {
+      } else if (page == "/professional-panel") {
         page = "A";
-      } else if (page.page == "/search-results") {
+      } else if (page == "/search-results") {
         page = "C";
         cityId = parseInt(location.state.selectedCity);
         const cityIdSearch = parseInt(location.state.selectedCity);
@@ -112,15 +125,13 @@ function CarouselNovo(page: any) {
           merge_json = json_images;
         }
         
-      }
-      console.log("merge_json", merge_json);
-      
+      }     
       setImages(merge_json);
       setIsLoading(false);
     };
 
     fetchData();
-  }, [page.page]);
+  }, [page]);
 
   const settings = {
     dots: true,
@@ -182,12 +193,12 @@ function CarouselNovo(page: any) {
           </div>
         )}
 
-        {images.map((image, index) => (
-          <div>
+        {images.map((image: CarrosselImage, index: number) => (
+          <div key={index}>
             <img
               //src={"data:image;base64," + image.image}
               src={atob(image.image)}
-              alt={image.title}
+              alt={"Imagem do Carrossel"}
               onClick={
                 image.link != ""
                   ? () => window.open(image.link, "_blank")

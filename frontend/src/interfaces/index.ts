@@ -7,4 +7,5 @@ export * from "./IClient";
 export * from "./IContact";
 export * from "./IStore";
 export * from "./IUser";
-export * from "./IProduct";
+export * from "./IProduct"; 
+export * from "./ICity";

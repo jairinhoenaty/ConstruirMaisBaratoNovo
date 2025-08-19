@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Star,
+  // Star,
   Phone,
   Mail,
   User,
@@ -11,11 +11,11 @@ import {
   Users,
   Info,
   ShieldCheck,
-  Crown,
-  Trophy,
-  Diamond,
-  Award,
-  BadgeCheck,
+  // Crown,
+  // Trophy,
+  // Diamond,
+  // Award,
+  // BadgeCheck,
 } from "lucide-react";
 import InputMask from "react-input-mask";
 import { BudgetService } from "../services/Budget";
@@ -25,13 +25,8 @@ import Navigation from "../components/Navigation";
 import { ClientService } from "../services/ClientService";
 import { ProfessionalService } from "../services/ProfessionalService";
 import { useLocation, useNavigate } from "react-router-dom";
+import { IProfissional } from "../interfaces";
 //import { useNavigate } from "react-router-dom";
-
-interface SearchResultsProps {
-  profession: string;
-  professionals: [{}];
-  onNewSearch: () => void;
-}
 
 interface Professional {
   id: string;
@@ -51,6 +46,13 @@ interface FormData {
   message: string;
   clientId: number;
 }
+
+// interface SearchResultsProps {
+//   profession: string;
+//   professionals: IProfissional[];
+//   onNewSearch: () => void;
+// }
+
 
 function SearchResults() {
   /*{
@@ -72,13 +74,13 @@ function SearchResults() {
     message: "",
     clientId: 0,
   });
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [showPhoneNumbers, setShowPhoneNumbers] = useState(false);
-  const [showErrorMessage, setShowErrorMessage] = useState(false);
-  const [currentPage, setCurrentPage] = useState("search-results");
-  const [isClient, setIsClient] = useState(false);
-  const [professionals, setProfessionals] = useState([]);
-  const [profession, setProfession] = useState("");
+  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+  const [showPhoneNumbers, setShowPhoneNumbers] = useState<boolean>(false);
+  const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<string>("search-results");
+  const [isClient, setIsClient] = useState<boolean>(false);
+  const [professionals, setProfessionals] = useState<IProfissional[]>([]);
+  const [profession, setProfession] = useState<string>("");
   const isPodeTodos=false;
   const navigate = useNavigate();
   const location = useLocation();
@@ -121,9 +123,9 @@ function SearchResults() {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("Effect");
-      console.log(location);
-      console.log(location.state.selectedProfessional);
+      // console.log("Effect");
+      // console.log(location);
+      // console.log(location.state.selectedProfessional);
       const selectedCity = location.state.selectedCity;
       const selectedProfessional = location.state.selectedProfessional;
       const return_professionals =
@@ -133,7 +135,7 @@ function SearchResults() {
           limit: 1000,
           offset: 0,
         });
-      console.log(return_professionals);
+      // console.log(return_professionals);
 
       const json_professionals = await return_professionals.data.profissionais;
       setProfessionals(json_professionals);
