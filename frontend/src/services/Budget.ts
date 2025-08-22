@@ -7,7 +7,6 @@ import ApiPublica from "../providers/ApiPublica";
 //const getBannerById = (id: number) => Api.get("/banner/" + id);
 //const getBannerByPage = (data: { page: string }) => Api.post("/banners/page", data);
 const saveBudget = (data: IBudget) => {
-  console.log("SALVANDO ORÇAMENTO   ====> ", data);
   return ApiPublica.post("/save/budget", data);
 };
 const deleteBudget = (id: number) => Api.delete("/budget/"+ id);

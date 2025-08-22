@@ -229,8 +229,6 @@ function SearchResults() {
     } else {
       profs = [selectedProfessional.oid.toString()];
     }
-    console.log("Enviando orçamento");
-    console.log(profs);
 
 
     const budget: IBudget = {
@@ -250,7 +248,6 @@ function SearchResults() {
     const postReturn = await BudgetService.saveBudget(budget);
 
     if (postReturn.status == 200) {
-      console.log("Retorno do cadastro de orçamento postReturn  ===> ", postReturn);
       setShowContactForm(false);
       setShowSuccessMessage(true);
       setShowProfessionalSearch(true);
