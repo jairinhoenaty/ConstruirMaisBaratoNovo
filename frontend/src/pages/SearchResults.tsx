@@ -11,6 +11,8 @@ import {
   Users,
   Info,
   ShieldCheck,
+  Building2,
+  MapPin,
   // Crown,
   // Trophy,
   // Diamond,
@@ -21,11 +23,13 @@ import InputMask from "react-input-mask";
 import { BudgetService } from "../services/Budget";
 import Swal from "sweetalert2";
 import Login from "./Login";
+import { states } from "../data";
 import Navigation from "../components/Navigation";
 import { ClientService } from "../services/ClientService";
+import { CityService } from "../services/CityService";
 import { ProfessionalService } from "../services/ProfessionalService";
 import { useLocation, useNavigate } from "react-router-dom";
-import { IProfissional } from "../interfaces";
+import { IBudget, ICitySearchProfessionals, IProfissional } from "../interfaces";
 //import { useNavigate } from "react-router-dom";
 
 interface Professional {
@@ -45,6 +49,7 @@ interface FormData {
   phone: string;
   message: string;
   clientId: number;
+  cityId: number;
 }
 
 // interface SearchResultsProps {
@@ -53,19 +58,21 @@ interface FormData {
 //   onNewSearch: () => void;
 // }
 
-
 function SearchResults() {
   /*{
   profession,
   professionals,
   onNewSearch,
 }: SearchResultsProps*/
+  const [selectedState, setSelectedState] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [citiesByState, setcitiesByState] = useState<ICitySearchProfessionals[]>([]);
   const [showLGPDTerms, setShowLGPDTerms] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
+  // const [showLogin, setShowLogin] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [showProfessionalSearch, setShowProfessionalSearch] = useState(true);
   const [selectedProfessional, setSelectedProfessional] =
-    useState<Professional | null>(null);
+    useState<IProfissional | null>(null);
   const [isBulkRequest, setIsBulkRequest] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -73,15 +80,16 @@ function SearchResults() {
     phone: "",
     message: "",
     clientId: 0,
+    cityId: 0,
   });
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [showPhoneNumbers, setShowPhoneNumbers] = useState<boolean>(false);
   const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<string>("search-results");
-  const [isClient, setIsClient] = useState<boolean>(false);
+  // const [isClient, setIsClient] = useState<boolean>(false);
   const [professionals, setProfessionals] = useState<IProfissional[]>([]);
-  const [profession, setProfession] = useState<string>("");
-  const isPodeTodos=false;
+  // const [profession, setProfession] = useState<string>("");
+  const isPodeTodos = false;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -135,51 +143,69 @@ function SearchResults() {
           limit: 1000,
           offset: 0,
         });
-      // console.log(return_professionals);
 
       const json_professionals = await return_professionals.data.profissionais;
       setProfessionals(json_professionals);
-      setProfession(selectedProfessional);
+      // setProfession(selectedProfessional);
     };
 
     fetchData();
   }, []);
 
+
+
+    // Busca cidades e profissões ao mudar estado
+    useEffect(() => {
+      setSelectedCity("");
+      const fetchData = async () => {
+        if (!selectedState) return;
+  
+        try {
+          const citiesRes = await CityService.citiesByStatePublic({ uf: selectedState });
+          if (citiesRes.status === 200) setcitiesByState(citiesRes.data);
+  
+        } catch (error) {
+          console.error("Erro ao buscar cidades ou profissões:", error);
+        }
+      };
+  
+      fetchData();
+    }, [selectedState]);
+
   const handleRequestQuote = async (
-    professional: Professional | null = null,
+    professional: IProfissional | null = null,
     bulk = false
   ) => {
-    if (localStorage.getItem("id") != null) {
-      setSelectedProfessional(professional);
-      setIsBulkRequest(bulk);
-      setShowLGPDTerms(true);
-      const result = await ClientService.getClientbyID(
-        parseInt(localStorage.getItem("id") ?? "0")
-      );
-      console.log(result);
+    // if (localStorage.getItem("id") != null) {
+    setSelectedProfessional(professional as IProfissional | null);
+    setIsBulkRequest(bulk);
+    // setShowLGPDTerms(true);
+    // const result = await ClientService.getClientbyID(
+    //   parseInt(localStorage.getItem("id") ?? "0")
+    // );
+    // console.log(result);
 
-      if ((result.status == 200)) {
-        const json = await result.data;
-        formData.name = json.nome;
-        formData.email = json.email;
-        formData.phone = json.telefone;
-        formData.clientId = json.oid;
-      }
-      setIsClient(true);
-    } else {
-      setShowProfessionalSearch(false);
-      setShowLogin(true);
-      //      setCurrentPage("login");
-      //onNavigate && onNavigate("login");
-    }
+    // if ((result.status == 200)) {
+    //   const json = await result.data;
+    //   formData.name = json.nome;
+    //   formData.email = json.email;
+    //   formData.phone = json.telefone;
+    //   formData.clientId = json.oid;
+    // }
+    // setIsClient(true);
+    // } else {
+    setShowProfessionalSearch(false);
+    // setShowLogin(true);
+    //      setCurrentPage("login");
+    //onNavigate && onNavigate("login");
   };
 
   const handleAcceptTerms = () => {
     setShowLGPDTerms(false);
     setShowContactForm(true);
-    console.log("Selected_Professionals");
-    console.log(selectedProfessional);
-    console.log("------");
+    // console.log("Selected_Professionals");
+    // console.log(selectedProfessional);
+    // console.log("------");
   };
 
   const handleRejectTerms = () => {
@@ -194,34 +220,40 @@ function SearchResults() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    console.log(selectedProfessional);
+    // console.log("Form submitted:", formData);
+    // console.log(selectedProfessional);
     let profs: string[];
     if (selectedProfessional == null) {
-      console.log(professionals);
-      profs = professionals.map((prof) => prof.oid);
+      // console.log(professionals);
+      profs = professionals.map((prof) => prof.oid.toString());
     } else {
-      profs = [selectedProfessional.oid];
+      profs = [selectedProfessional.oid.toString()];
     }
     console.log("Enviando orçamento");
-    console.log(selectedProfessional);
     console.log(profs);
 
-    const postReturn = await BudgetService.saveBudget({
+
+    const budget: IBudget = {
       name: formData.name,
       email: formData.email,
       telephone: formData.phone,
-      cityId: 3648, //parseInt(''),
-      id: 0,
-      clientId: formData.clientId,
+      // clientId: formData.clientId,
       description: formData.message,
-      professionalsId: profs,
       termResponsabilityAccepted: true,
-    });
+      cityId: parseInt(selectedCity),
+      professionalsId:[]
+    };
+    // adicionar na lista o id do profissional selecionado
+    //  profs é um array de string, preciso converter para number
+    budget.professionalsId = profs.map(Number);
+
+    const postReturn = await BudgetService.saveBudget(budget);
 
     if (postReturn.status == 200) {
+      console.log("Retorno do cadastro de orçamento postReturn  ===> ", postReturn);
       setShowContactForm(false);
       setShowSuccessMessage(true);
+      setShowProfessionalSearch(true);
       //setShowPhoneNumbers(true);
       setTimeout(() => {
         setShowSuccessMessage(false);
@@ -281,7 +313,7 @@ function SearchResults() {
         </div>
       )}
       {/* LGPD Terms Modal */}
-      {showLogin && (
+      {/* {showLogin && (
         /*
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -298,9 +330,10 @@ function SearchResults() {
             </div>
           </div>
         </div>
-*/
-        <Login onNavigate={setCurrentPage}></Login>
-      )}
+
+        // <Login onNavigate={setCurrentPage}></Login>
+      )} 
+      */}
       {/* LGPD Terms Modal */}
       {showLGPDTerms && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -408,7 +441,10 @@ function SearchResults() {
                   Recusar
                 </button>
                 <button
-                  onClick={handleAcceptTerms}
+                  onClick={() => {
+                    handleRequestQuote(selectedProfessional, false);
+                    handleAcceptTerms();
+                  }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Concordo
@@ -441,19 +477,27 @@ function SearchResults() {
                   )}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {isBulkRequest
+                      {/* {isBulkRequest
                         ? "Solicitar Orçamento"
-                        : selectedProfessional?.nome}
+                        : selectedProfessional?.nome} */}
+                        
+                        Solicitar Orçamento
+
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {isBulkRequest
-                        ? `${professionals.length} profissionais`
+                      {selectedProfessional && selectedProfessional.nome
+                        ? `${selectedProfessional.nome}`
                         : `${selectedProfessional?.cidade.nome}, ${selectedProfessional?.cidade.uf}`}
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowContactForm(false)}
+                  onClick={() => {
+                    setShowContactForm(false)
+                    setSelectedProfessional(null);
+                    setShowProfessionalSearch(true);
+
+                  }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X className="w-5 h-5" />
@@ -467,7 +511,7 @@ function SearchResults() {
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Nome Completo
-                    {isClient}
+                    {/* {isClient} */}
                   </label>
 
                   <div className="relative">
@@ -478,7 +522,7 @@ function SearchResults() {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      disabled={isClient}
+                      // disabled={isClient}
                       required
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500  disabled:bg-gray-50"
                     />
@@ -500,7 +544,7 @@ function SearchResults() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      disabled={isClient}
+                      // disabled={isClient}
                       required
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
                     />
@@ -523,10 +567,67 @@ function SearchResults() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      disabled={isClient}
+                      // disabled={isClient}
                       required
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
                     />
+                  </div>
+                </div>
+
+               
+
+                <div>
+                  {/* Estado */}
+                  <div>
+                    <label
+                      htmlFor="state"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Estado
+                    </label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <select
+                        id="state"
+                        value={selectedState}
+                        onChange={(e) => setSelectedState(e.target.value)}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white mb-4" 
+                      >
+                        <option value="">Selecione o estado</option>
+                        {states.map((state) => (
+                          <option key={state.id} value={state.id}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Cidade */}
+                  <div>
+                    <label
+                      htmlFor="city"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Cidade
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <select
+                        id="city"
+                        value={selectedCity}
+                        onChange={(e) => setSelectedCity(e.target.value)}
+                        disabled={!selectedState}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Selecione a cidade</option>
+                        {citiesByState.map((city: ICitySearchProfessionals) => (
+                          <option key={city.id} value={city.id}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -592,9 +693,9 @@ function SearchResults() {
 
           {/* Professional List */}
           <div className="space-y-4">
-            {professionals.map((professional: any) => (
+            {professionals.map((professional: IProfissional) => (
               <div
-                key={professional.id}
+                key={professional.oid}
                 className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 transition-colors"
               >
                 {professional.verified && (
@@ -610,7 +711,7 @@ function SearchResults() {
                     </span>
                   </div>
                 )}
-                
+
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900">
                     {professional.nome}
@@ -623,11 +724,11 @@ function SearchResults() {
                   </div>
                   {showPhoneNumbers &&
                     (isBulkRequest ||
-                      selectedProfessional?.id === professional.id) && (
+                      selectedProfessional?.oid === professional.oid) && (
                       <div className="mt-2 flex items-center gap-2 text-green-600">
                         <Phone className="w-4 h-4" />
                         <a
-                          href={`https://wa.me/${professional.telefone.replace(
+                          href={`https://wa.me/${professional.telephone.replace(
                             /\D/g,
                             ""
                           )}`}
@@ -635,13 +736,17 @@ function SearchResults() {
                           rel="noopener noreferrer"
                           className="hover:text-green-700 transition-colors"
                         >
-                          {professional.telefone}
+                          {professional.telephone}
                         </a>
                       </div>
                     )}
                 </div>
                 <button
-                  onClick={() => handleRequestQuote(professional, false)}
+                  onClick={() => {
+                    setShowLGPDTerms(true);
+                    setSelectedProfessional(professional);
+                    
+                  }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Solicitar Orçamento

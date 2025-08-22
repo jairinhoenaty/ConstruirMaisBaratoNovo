@@ -9,7 +9,7 @@ type BudgetAssembler struct {
 	ProfessionalsId            *[]uint `json:"professionalsId"`
 	CityID                     *uint   `json:"cityId"`
 	TermResponsabilityAccepted bool    `json:"termResponsabilityAccepted"`
-	ClientID                   *uint   `json:"clientId"`
+	// ClientID                   *uint   `json:"clientId"`
 	Approved                   bool    `json:"approved"`
 }
 

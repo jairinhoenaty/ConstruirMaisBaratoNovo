@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 
 	pkgcity "construir_mais_barato/app/domain/city"
-	pkgclient "construir_mais_barato/app/domain/client"
+	// pkgclient "construir_mais_barato/app/domain/client"
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 )
 
@@ -21,8 +21,8 @@ type Budget struct {
 	CityID                     *uint
 	City                       pkgcity.City `gorm:"foreignKey:CityID"`
 	TermResponsabilityAccepted bool
-	ClientID                   *uint
-	Client                     pkgclient.Client `gorm:"foreignKey:ClientID"`
+	// ClientID                   *uint `gorm:"default:null"`
+	// Client                     pkgclient.Client `gorm:"-"`
 	Approved                   bool
 	CreatedAt                  time.Time `gorm:"<-:create"`
 }

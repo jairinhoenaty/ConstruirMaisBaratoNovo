@@ -13,8 +13,8 @@ type BudgetPresenter struct {
 	CityID                     *uint                    `json:"cityId"`
 	City                       CityPresenter            `json:"city"`
 	TermResponsabilityAccepted bool                     `json:"termResponsabilityAccepted"`
-	ClientID                   *uint                    `json:"clientId"`
-	Client                     ClientPresenter          `json:"client"`
+	// ClientID                   *uint                    `json:"clientId"`
+	// Client                     ClientPresenter          `json:"client"`
 	Approved                   bool                     `json:"approved"`
 }
 
@@ -37,10 +37,10 @@ type ProfessionPresenter struct {
 	Name string `json:"name"`
 }
 
-type ClientPresenter struct {
-	ID        uint          `json:"id,omitempty"`
-	Name      string        `json:"name"`
-	Email     string        `json:"email"`
-	Telephone string        `json:"telephone"`
-	City      CityPresenter `json:"city"`
-}
+// type ClientPresenter struct {
+// 	ID        uint          `json:"id,omitempty"`
+// 	Name      string        `json:"name"`
+// 	Email     string        `json:"email"`
+// 	Telephone string        `json:"telephone"`
+// 	City      CityPresenter `json:"city"`
+// }

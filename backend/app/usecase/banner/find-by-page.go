@@ -2,7 +2,6 @@ package banner_usecase
 
 import (
 	pkgbanner "construir_mais_barato/app/domain/banner"
-	"encoding/json"
 	"fmt"
 )
 
@@ -26,8 +25,8 @@ func (uc FindByPageUC) Execute() ([]*BannerPresenter, error) {
 		return nil, fmt.Errorf("invalid data")
 	}
 	
-	assemblerJson, _ := json.Marshal(uc.Assembler)
-	fmt.Println("uc.Assembler ===> ", string(assemblerJson))
+	// assemblerJson, _ := json.Marshal(uc.Assembler)
+	// fmt.Println("uc.Assembler ===> ", string(assemblerJson))
 
 	banners, err := uc.Service.FindByPage(uc.Assembler.Page,*uc.Assembler.CityId,*uc.Assembler.RegionId)
 

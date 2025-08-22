@@ -20,7 +20,7 @@ func GenerateBudget(assembler *BudgetAssembler) pkgbudget.Budget {
 		budget.ProfessionalIDs = assembler.ProfessionalsId
 		budget.CityID = assembler.CityID
 		budget.TermResponsabilityAccepted = assembler.TermResponsabilityAccepted
-		budget.ClientID = assembler.ClientID
+		// budget.ClientID = assembler.ClientID
 		budget.Approved = assembler.Approved
 	}
 	return budget
@@ -81,16 +81,16 @@ func GenerateBudgetPresenter(budget *pkgbudget.Budget) BudgetPresenter {
 			UF:   budget.City.UF,
 		}
 		presenter.TermResponsabilityAccepted = budget.TermResponsabilityAccepted
-		presenter.ClientID = budget.ClientID
-		presenter.Client = ClientPresenter{
-			Name:      budget.Client.Name,
-			Email:     budget.Client.Email,
-			Telephone: budget.Client.Telephone,
-			City: CityPresenter{
-				Name: budget.Client.City.Name,
-				UF:   budget.Client.City.UF,
-			},
-		}
+		// presenter.ClientID = budget.ClientID
+		// presenter.Client = ClientPresenter{
+		// 	Name:      budget.Client.Name,
+		// 	Email:     budget.Client.Email,
+		// 	Telephone: budget.Client.Telephone,
+		// 	City: CityPresenter{
+		// 		Name: budget.Client.City.Name,
+		// 		UF:   budget.Client.City.UF,
+		// 	},
+		// }
 		presenter.Approved = budget.Approved
 
 	}

@@ -1,14 +1,17 @@
+import { ICity } from "./ICity";
+
 export interface IProfissional {
   oid: number;
-  Name: string;
-  Email: string;
-  Telephone: string;
+  nome: string;
+  email: string;
+  telephone: string;
   //LgpdAceito: string;
   cep: string;
   street: string;
   neighborhood: string;
-  Password: string | null;
+  password: string | null;
   cityId: number;
+  cidade: ICity;
   professionIds: string[];
   image: string | null;
   verified: boolean|null;

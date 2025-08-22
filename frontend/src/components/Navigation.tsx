@@ -86,7 +86,6 @@ function Navigation({
         ]),
   ];
   const location = useLocation();
-  console.log("Current location:", location.pathname);
   setCurrentPage(location.pathname.substring(1, 100));
 
   const handleMenuClick = (pageId: string) => {

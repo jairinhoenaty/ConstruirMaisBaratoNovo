@@ -1,11 +1,11 @@
 export interface IBudget {
-  id: number;
+  id?: number;
   name: string;
   email: string;
   telephone: string;
   description: string;
-  professionalsId: string[];
+  professionalsId: number[];
   cityId: number;
   termResponsabilityAccepted: boolean;
-  clientId: number;
+  // clientId: number;
 }
