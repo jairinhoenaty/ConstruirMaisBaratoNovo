@@ -62,14 +62,7 @@ function Home() {
             <main className="max-w-7xl mx-auto px-4 py-8">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    Encontre os Melhores Profissionais da Construção Civil
-                  </h1>
-                  <p className="text-lg text-gray-600 mb-6">
-                    Conectamos você aos melhores profissionais do mercado, com
-                    preços justos e qualidade garantida.
-                  </p>
-                  <button
+                   <button
                     onClick={() => {
                       setCurrentPage("search");
                       setCarouselPage("S");
@@ -78,6 +71,13 @@ function Home() {
                   >
                     Encontrar Profissionais
                   </button>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                    Encontre os Melhores Profissionais da Construção Civil
+                  </h1>
+                  <p className="text-lg text-gray-600 mb-6">
+                    Conectamos você aos melhores profissionais do mercado, com
+                    preços justos e qualidade garantida.
+                  </p>
                 </div>
                 <div className="relative h-[300px] md:h-[400px]">
                   <img

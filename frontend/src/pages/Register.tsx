@@ -75,6 +75,7 @@ function Register() {
       icon: HardHat,
       description: "Ofereço serviços profissionais",
     },
+    /*
     {
       id: "client",
       name: "Cliente",
@@ -86,7 +87,7 @@ function Register() {
       name: "Lojista Parceiro",
       icon: ShoppingBag,
       description: "Vendo produtos e materiais",
-    },
+    },*/
   ];
 
   React.useEffect(() => {
@@ -596,7 +597,7 @@ function Register() {
             <label className="block text-sm font-medium text-gray-700 mb-4">
               Como você deseja se cadastrar?
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
               {roles.map((role) => {
                 const Icon = role.icon;
                 return (
