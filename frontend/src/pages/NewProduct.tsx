@@ -1,16 +1,12 @@
 import React, { useState } from "react";
+import { Upload, Tag, DollarSign, FileText, Package, Info } from "lucide-react";
 import {
-  Upload,
-  Tag,
-  DollarSign,
-  FileText,
-  Package,
-  Info,
-} from "lucide-react";
-import { ProductCategoryService, ProductService, ProfessionService } from "../services";
+  ProductCategoryService,
+  ProductService,
+  ProfessionService,
+} from "../services";
 import { IProduct } from "../interfaces/IProduct";
 import CurrencyInput from "react-currency-input-field";
-
 
 function NewProduct() {
   const [formData, setFormData] = useState({
@@ -25,7 +21,6 @@ function NewProduct() {
   const [professions, setProfessions] = useState([{}]);
   const [subcategories, setSubcategories] = useState([{}]);
 
-
   const handleChange = async (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -35,7 +30,8 @@ function NewProduct() {
 
     if (name == "mainCategory") {
       const result = await ProductCategoryService.productCategoriesByProfession(
-        parseInt(value));
+        parseInt(value)
+      );
       if (result.status == 200) {
         const json_categories = await result.data;
 
@@ -49,8 +45,6 @@ function NewProduct() {
     }));
   };
 
-
-
   React.useEffect(() => {
     const fetchData = async () => {
       const result = await ProfessionService.getProfessionsPublic();
@@ -58,20 +52,17 @@ function NewProduct() {
       if (result.status == 200) {
         setProfessions(json_professions);
       }
-  }
- fetchData();
+    };
+    fetchData();
   }),
-  [];
+    [];
 
-
-  const handleChangePrice = (value:any
-  ) => {
+  const handleChangePrice = (value: any) => {
     setFormData((prev) => ({
       ...prev,
       price: value,
     }));
   };
-
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -113,9 +104,10 @@ function NewProduct() {
     };
 
     const result = await ProductService.saveProduct(product);
-    if ((result.status == 200)) {
+    if (result.status == 200) {
       alert("Produto cadastrado com sucesso!");
-      setFormData((prev) => ({ ...prev, 
+      setFormData((prev) => ({
+        ...prev,
         title: "",
         mainCategory: "",
         subcategory: "",
@@ -126,7 +118,6 @@ function NewProduct() {
     }
   };
 
-  
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center gap-3 mb-6">
@@ -219,7 +210,7 @@ function NewProduct() {
               <option value="">Selecione a categoria principal</option>
               {professions.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {"Produtos para "+category.name}
+                  {"Produtos para " + category.name}
                 </option>
               ))}
             </select>

@@ -8,9 +8,7 @@ function BannerHeader() {
     <div>
       {" "}
       {location.pathname != "/dashboard" && (
-        <CarouselNovo
-          page={location.pathname}
-        />
+        <CarouselNovo  page={location.pathname as string} />  
       )}
     </div>
   );

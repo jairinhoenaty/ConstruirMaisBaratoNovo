@@ -18,7 +18,7 @@ import Dashboard from "./Dashboard";
 import PrivacyPolicy from "./PrivacyPolicy";
 import CookieBanner from "../components/CookieBanner";
 import VideoPopup from "../components/VideoPopup";
-import Carousel from "../components/Carousel";
+// import Carousel from "../components/Carousel";
 
 function Home() {
   const [currentPage, setCurrentPage] = useState(() => {

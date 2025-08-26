@@ -24,6 +24,9 @@ func (uc FindByPageUC) Execute() ([]*BannerPresenter, error) {
 	if uc.Assembler.Page == "" {
 		return nil, fmt.Errorf("invalid data")
 	}
+	
+	// assemblerJson, _ := json.Marshal(uc.Assembler)
+	// fmt.Println("uc.Assembler ===> ", string(assemblerJson))
 
 	banners, err := uc.Service.FindByPage(uc.Assembler.Page,*uc.Assembler.CityId,*uc.Assembler.RegionId)
 
