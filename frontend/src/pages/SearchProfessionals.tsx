@@ -153,9 +153,9 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
 
       {/* Formulário de seleção */}
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            Encontre Profissionais da Construção Civil
+        <div className="bg-white rounded-xl shadow-lg p-3">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Encontrar Profissional
           </h1>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
