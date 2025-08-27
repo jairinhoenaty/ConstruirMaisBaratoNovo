@@ -7,7 +7,6 @@ import {
   User,
   MessageSquare,
   X,
-  Check,
   Users,
   Info,
   ShieldCheck,
@@ -82,7 +81,7 @@ function SearchResults() {
     clientId: 0,
     cityId: 0,
   });
-  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+
   const [showPhoneNumbers, setShowPhoneNumbers] = useState<boolean>(false);
   const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<string>("search-results");
@@ -249,17 +248,36 @@ function SearchResults() {
 
     if (postReturn.status == 200) {
       setShowContactForm(false);
-      setShowSuccessMessage(true);
       setShowProfessionalSearch(true);
       //setShowPhoneNumbers(true);
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 3000);
+      
+      // Limpar os campos do formulário após envio bem-sucedido
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        message: "",
+        clientId: 0,
+        cityId: 0,
+      });
+      setSelectedState("");
+      setSelectedCity("");
+      setcitiesByState([]);
+      
+      // Mostrar mensagem de sucesso com SweetAlert2
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "Solicitação enviada com sucesso!",
+        text: "Os profissionais entrarão em contato em breve.",
+        showConfirmButton: false,
+        timer: 3000,
+      });
     } else {
       Swal.fire({
         position: "center",
         icon: "error",
-        title: "Erro ao enviar orçamentos",
+        title: "Erro ao enviar orçamento",
         showConfirmButton: false,
         timer: 1500,
       });
@@ -286,18 +304,7 @@ function SearchResults() {
           throw new Error("Function not implemented.");
         }}
       />
-      {/* Success Message */}
-      {showSuccessMessage && (
-        <div className="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up">
-          <div className="flex items-center gap-2">
-            <Check className="w-5 h-5" />
-            <p>
-              Solicitação enviada com sucesso! Os profissionais entrarão em
-              contato.
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Success Message - Removido pois agora usa SweetAlert2 */}
       {/* Error Message */}
       {showErrorMessage && (
         <div className="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up">
