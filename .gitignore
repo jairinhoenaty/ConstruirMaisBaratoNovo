@@ -3,6 +3,9 @@ mariaDB/
 *.sql
 *.db
 
+#Albert Machine
+CLAUDE.md
+
 # IDE and editor files
 .vscode/
 .idea/
@@ -37,9 +40,11 @@ temp-*/
 dist/
 build/
 out/
+main
 
 # Dependencies
 node_modules/
+go.mod
 
 # Lock files
 *.lock
