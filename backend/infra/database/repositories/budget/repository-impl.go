@@ -107,8 +107,8 @@ func (r *repository) FindAll(limit, offset int) ([]*pkgpbudget.Budget, int64, er
 		Preload("Professionals.Professions").
 		Preload("Professionals.City").
 		Preload("City").
-		Preload("Client").
-		Preload("Client.City").
+		// Preload("Client").
+		// Preload("Client.City").
 		Where("deleted_at IS NULL").
 		Limit(limit).
 		Offset(offset).

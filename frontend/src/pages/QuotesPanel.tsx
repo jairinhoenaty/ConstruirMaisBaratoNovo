@@ -165,9 +165,9 @@ function QuotesPanel() {
                   <span className="block text-sm text-gray-500">
                     UF/Cidade:
                   </span>
-                  <p className="text-gray-900 font-medium">
+                  {/* <p className="text-gray-900 font-medium">
                     {message.client.city.name + "/" + message.client.city.uf}
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </div>
