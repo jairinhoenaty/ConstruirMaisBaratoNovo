@@ -63,8 +63,8 @@ func (r *repository) FindBudgetsByMonthAndProfessionalID(month string, professio
 		Where(filtro).
 		Where("approved", true).
 		Preload("City").
-		Preload("Client").
-		Preload("Client.City").
+		// Preload("Client").
+		// Preload("Client.City").
 		Preload("Professionals").
 		Preload("Professionals.Professions").
 		Preload("Professionals.City").
