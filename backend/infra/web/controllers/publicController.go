@@ -36,7 +36,7 @@ type PublicController struct {
 	FindDayofferProductUCParams                         pkgproductuc.FindDayofferProductUCParams
 	FindAllProductUCParams                              pkgproductuc.FindAllProductUCParams
 	FindByUFUCParams                                    pkgcityuc.FindByUFUCParams
-	FindRegionByCityIdUCParams							pkgregionuc.FindByCityUCParams
+	FindRegionByCityIdUCParams                          pkgregionuc.FindByCityUCParams
 	SaveBudgetUCParams                                  pkgbudgetuc.SaveBudgetUCParams
 	UserSendEmailUCParams                               pkguseruc.UserSendEmailUCParams
 	ResetPasswordUCParams                               pkguseruc.ResetPasswordUCParams
@@ -58,7 +58,7 @@ type PublicControllerParams struct {
 	SaveContactUCParams                                 pkgpcontactuc.SaveContactUCParams
 	FindByCityProductUCParams                           pkgproductuc.FindByCityUCParams
 	FindDayofferProductUCParams                         pkgproductuc.FindDayofferProductUCParams
-	FindRegionByCityIdUCParams							pkgregionuc.FindByCityUCParams
+	FindRegionByCityIdUCParams                          pkgregionuc.FindByCityUCParams
 	FindAllProductUCParams                              pkgproductuc.FindAllProductUCParams
 	FindByUFUCParams                                    pkgcityuc.FindByUFUCParams
 	SaveBudgetUCParams                                  pkgbudgetuc.SaveBudgetUCParams
@@ -83,7 +83,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 		SaveContactUCParams:                                 params.SaveContactUCParams,
 		FindByCityProductUCParams:                           params.FindByCityProductUCParams,
 		FindDayofferProductUCParams:                         params.FindDayofferProductUCParams,
-		FindRegionByCityIdUCParams:							 params.FindRegionByCityIdUCParams,
+		FindRegionByCityIdUCParams:                          params.FindRegionByCityIdUCParams,
 		FindAllProductUCParams:                              params.FindAllProductUCParams,
 		FindByUFUCParams:                                    params.FindByUFUCParams,
 		SaveBudgetUCParams:                                  params.SaveBudgetUCParams,
@@ -440,7 +440,6 @@ func (c *PublicController) FindRegionByCityId(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, region)
 }
 
-
 func (c *PublicController) SaveContact(ctx echo.Context) error {
 	defer ctx.Request().Body.Close()
 	usecase := pkgpcontactuc.NewSaveContactUC(c.SaveContactUCParams)
@@ -462,16 +461,16 @@ func (c *PublicController) SaveContact(ctx echo.Context) error {
 func (c *PublicController) FindBannerbyPage(ctx echo.Context) error {
 
 	defer ctx.Request().Body.Close()
-	
+
 	assembler := pkgbanneruc.FindByPageAssembler{}
 	if err := ctx.Bind(&assembler); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
-	
+
 	uc := pkgbanneruc.NewFindByPageUC(c.FindByPageUCParams)
 	uc.Assembler = &assembler
 	banners, err := uc.Execute()
-	
+
 	if err != nil {
 		return ctx.JSON(http.StatusPreconditionFailed, nil)
 	}
@@ -566,7 +565,7 @@ func (c *PublicController) uploadFile(ctx echo.Context) error {
 
 	dir_frontend := os.Getenv("DIR_FRONTEND")
 	if dir_frontend == "" {
-		dir_frontend = "/frontend/images/upload/"	
+		dir_frontend = "/frontend/public/images/upload"
 	}
 
 	// Parse our multipart form, 10 << 20 specifies a maximum
