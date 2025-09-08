@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import { Building2, MapPin, HardHat } from "lucide-react";
 import { states } from "../data";
@@ -9,7 +7,11 @@ import { ProfessionService } from "../services/ProfessionService";
 import { BannerService } from "../services/BannerService";
 import { RegionService } from "../services";
 import { useNavigate } from "react-router-dom";
-import { IBannerSearchProfessionals, ICitySearchProfessionals, IProfissional } from "../interfaces";
+import {
+  IBannerSearchProfessionals,
+  ICitySearchProfessionals,
+  IProfissional,
+} from "../interfaces";
 import { IProfessionSearchProfessionals } from "../interfaces/IProfession";
 
 interface SearchProfessionalsProps {
@@ -23,11 +25,16 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
   const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [selectedProfessional, setSelectedProfessional] = useState<string>("");
-  const [citiesByState, setcitiesByState] = useState<ICitySearchProfessionals[]>([]);
+  const [citiesByState, setcitiesByState] = useState<
+    ICitySearchProfessionals[]
+  >([]);
   const [professionals, setProfessionals] = useState<IProfissional[]>([]);
-  const [professions, setProfessions] = useState<IProfessionSearchProfessionals[]>([]);
+  const [professions, setProfessions] = useState<
+    IProfessionSearchProfessionals[]
+  >([]);
   const [showModal, setShowModal] = useState(false);
-  const [imageModal, setImageModal] = useState<IBannerSearchProfessionals | null>(null);
+  const [imageModal, setImageModal] =
+    useState<IBannerSearchProfessionals | null>(null);
   const navigate = useNavigate();
 
   // Função para gerar número aleatório
@@ -38,15 +45,40 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
   // Função para construir URL da imagem
   function getImageUrl(encodedPath: string) {
     try {
+      if (!encodedPath || encodedPath.trim() === "") return "";
+
       // decodifica o Base64 para obter o path real
       const decodedPath = atob(encodedPath); // ex: "/images/upload/upload-3341225764.png"
+
+      if (!decodedPath || decodedPath.trim() === "") return "";
+
       const baseUrl = URL_IMAGES_WEB?.replace(/\/$/, ""); // remove barra final
-      return `${baseUrl}${decodedPath.startsWith("/") ? "" : "/"}${decodedPath}`;
+
+      if (!baseUrl) return "";
+
+      return `${baseUrl}${
+        decodedPath.startsWith("/") ? "" : "/"
+      }${decodedPath}`;
     } catch (error) {
       console.error("Erro ao decodificar path da imagem:", error);
       return "";
     }
   }
+
+  // Função para validar se a imagem existe
+  const validateImageExists = (imageUrl: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (!imageUrl) {
+        resolve(false);
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = imageUrl;
+    });
+  };
 
   // Busca cidades e profissões ao mudar estado
   useEffect(() => {
@@ -55,13 +87,13 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
       if (!selectedState) return;
 
       try {
-        const citiesRes = await CityService.citiesByStatePublic({ uf: selectedState });
+        const citiesRes = await CityService.citiesByStatePublic({
+          uf: selectedState,
+        });
         if (citiesRes.status === 200) setcitiesByState(citiesRes.data);
 
         const professionsRes = await ProfessionService.getProfessionsPublic();
         if (professionsRes.status === 200) setProfessions(professionsRes.data);
-
-
       } catch (error) {
         console.error("Erro ao buscar cidades ou profissões:", error);
       }
@@ -73,41 +105,52 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
   // Função para abrir modal e buscar imagem
   const handleOpenModal = async () => {
     if (!selectedCity) return;
-  
-    setShowModal(true); // abre o modal imediatamente
-  
+
     try {
-      const regionRes = await RegionService.getRegionbyCity(parseInt(selectedCity));
+      const regionRes = await RegionService.getRegionbyCity(
+        parseInt(selectedCity)
+      );
       if (regionRes.status !== 200) return handleSearch();
-  
+
       const bannerRes = await BannerService.getBannerByPagePublic({
         page: "B",
         cityId: 0,
         regionId: regionRes.data.id,
       });
-  
+
       if (bannerRes.status === 200 && bannerRes.data.length > 0) {
         const randomIndex = gerarNumeroAleatorio(0, bannerRes.data.length - 1);
-        setImageModal(bannerRes.data[randomIndex]);
-      } else {
-        setImageModal(null); // modal ainda abre, mas sem imagem
+        const selectedBanner = bannerRes.data[randomIndex];
+        const imageUrl = getImageUrl(selectedBanner.image);
+
+        if (imageUrl) {
+          const imageExists = await validateImageExists(imageUrl);
+          if (imageExists) {
+            setShowModal(true);
+            setImageModal(selectedBanner);
+            return;
+          }
+        }
       }
     } catch (error) {
       console.error("Erro ao abrir modal:", error);
-      setImageModal(null); // modal ainda abre
     }
+
+    // Default: sempre executa a busca de profissionais se não conseguir mostrar o modal
+    handleSearch();
   };
 
   // Função de busca de profissionais
   const handleSearch = async () => {
     localStorage.setItem("search_city", selectedCity);
     try {
-      const return_professionals = await ProfessionalService.getProfessionalByCityAndProfession({
-        cityID: parseInt(selectedCity),
-        professionID: parseInt(selectedProfessional),
-        limit: 1000,
-        offset: 0,
-      });
+      const return_professionals =
+        await ProfessionalService.getProfessionalByCityAndProfession({
+          cityID: parseInt(selectedCity),
+          professionID: parseInt(selectedProfessional),
+          limit: 1000,
+          offset: 0,
+        });
 
       setProfessionals(return_professionals.data.profissionais || []);
 
@@ -142,7 +185,9 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
               src={getImageUrl(imageModal?.image || "")}
               alt="Imagem de Construção"
               onClick={() =>
-                imageModal?.link ? window.open(imageModal.link, "_blank") : undefined
+                imageModal?.link
+                  ? window.open(imageModal.link, "_blank")
+                  : undefined
               }
               className="max-h-full object-contain max-w-[100vw] sm:max-w-[90vw] lg:max-w-[80vw] xl:max-w-[70vw] w-auto sm:h-[95vh] xs:h-auto"
               style={{ cursor: imageModal ? "pointer" : undefined }}
@@ -161,7 +206,9 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Estado */}
             <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Estado
+              </label>
               <div className="relative">
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <select
@@ -181,7 +228,9 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
 
             {/* Cidade */}
             <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cidade
+              </label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <select
@@ -202,7 +251,9 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
 
             {/* Profissional */}
             <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Profissional</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Profissional
+              </label>
               <div className="relative">
                 <HardHat className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <select
