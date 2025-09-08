@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
@@ -80,7 +82,7 @@ type dependenceParams struct {
 	ProfessionService      pkgprofession.ProfessionService
 	CityService            pkgcity.CityService
 	ContactService         pkgcontact.ContactService
-	ChatService         pkgchat.ChatService
+	ChatService            pkgchat.ChatService
 	ProfessionalService    pkgprofessional.ProfessionalService
 	BudgetService          pkgbudget.BudgetService
 	BannerService          pkgbanner.BannerService
@@ -88,8 +90,7 @@ type dependenceParams struct {
 	ProductCategoryService pkgproductCategory.ProductCategoryService
 	StoreService           pkgstore.StoreService
 	ClientService          pkgclient.ClientService
-	RegionService      pkgregion.RegionService
-
+	RegionService          pkgregion.RegionService
 }
 
 func buildDependenciesParams(db *gorm.DB) dependenceParams {
@@ -175,7 +176,6 @@ func buildProfessionEndPoint(dependency *dependenceParams, g *echo.Group) {
 	pkgcontrollers.NewProfessionController(&professionControllerParams, g)
 }
 
-
 func buildRegionEndPoint(dependency *dependenceParams, g *echo.Group) {
 	// parametros do caso de uso FindAll
 	findAllParams := pkgregionuc.FindAllRegionUCParams{
@@ -196,7 +196,7 @@ func buildRegionEndPoint(dependency *dependenceParams, g *echo.Group) {
 	// parametros do userController
 	regionControllerParams := pkgcontrollers.RegionControllerParams{
 		FindAllRegionUCParams: findAllParams,
-		FindByIdUCParams:          findByIdParams,
+		FindByIdUCParams:      findByIdParams,
 		SaveRegionUCParams:    saveParams,
 		DeleteRegionUCParams:  deleteParams,
 	}
@@ -271,7 +271,6 @@ func buildContactEndPoint(dependency *dependenceParams, g *echo.Group) {
 	pkgcontrollers.NewContactController(&contactControllerParams, g)
 }
 
-
 func buildChatEndPoint(dependency *dependenceParams, g *echo.Group) {
 	// parametros do caso de uso FindAll
 	findAllParams := pkgchatuc.FindAllChatUCParams{
@@ -299,13 +298,12 @@ func buildChatEndPoint(dependency *dependenceParams, g *echo.Group) {
 		FindAllChatUCParams:    findAllParams,
 		FindByUserChatUCParams: findByUserParams,
 		//FindByIdUCParams:          findByIdParams,
-		SaveChatUCParams:       saveParams,
-		DeleteChatUCParams:     deleteParams,
+		SaveChatUCParams:   saveParams,
+		DeleteChatUCParams: deleteParams,
 	}
 
 	pkgcontrollers.NewChatController(&chatControllerParams, g)
 }
-
 
 func buildProfessionalEndPoint(dependency *dependenceParams, g *echo.Group) {
 	// parametros do caso de uso FindAll
@@ -646,7 +644,7 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 
 	// parametros do userController
 	publicControllerParams := pkgcontrollers.PublicControllerParams{
-		FindRegionByCityIdUCParams:  						 findRegionByCityUCParams,
+		FindRegionByCityIdUCParams:                          findRegionByCityUCParams,
 		FindByEmailUCParams:                                 FindByEmailUCParams,
 		SaveClientUCParams:                                  SaveClientUCParams,
 		SaveStoreUCParams:                                   SaveStoreUCParams,
@@ -750,6 +748,9 @@ func Start(db *gorm.DB) {
 		AllowHeaders: []string{echo.HeaderContentType, echo.HeaderAuthorization},
 	}))
 
+	// **************************************** Servir arquivos estáticos de upload
+	setupStaticFileRoutes(router)
+
 	// **************************************** Rotas públicas
 	publicRouter := router.Group("/publica")
 	buildLoginEndPoint(&dependency, publicRouter)
@@ -807,6 +808,42 @@ func (s *Server) ListenAndServe() {
 		}
 	}()
 
+}
+
+func setupStaticFileRoutes(router *echo.Echo) {
+	// Carrega variáveis de ambiente
+	err := godotenv.Load(".env")
+	if err != nil {
+		fmt.Printf("Warning: Error loading .env file: %s\n", err)
+	}
+
+	// Obtém o diretório de upload do .env
+	dirUpload := os.Getenv("DIR_UPLOAD")
+	if dirUpload == "" {
+		dirUpload = "/files/images/upload"
+	}
+
+	// Converte para caminho absoluto
+	absUploadDir, err := filepath.Abs(dirUpload)
+	if err != nil {
+		fmt.Printf("Error getting absolute path for upload directory: %v\n", err)
+		return
+	}
+
+	// Verifica se o diretório existe, se não existir, cria
+	if _, err := os.Stat(absUploadDir); os.IsNotExist(err) {
+		fmt.Printf("Upload directory does not exist, creating: %s\n", absUploadDir)
+		err := os.MkdirAll(absUploadDir, 0755)
+		if err != nil {
+			fmt.Printf("Error creating upload directory: %v\n", err)
+			return
+		}
+		fmt.Printf("Upload directory created successfully: %s\n", absUploadDir)
+	}
+
+	// Serve arquivos estáticos da pasta de upload
+	router.Static("/images/upload", absUploadDir)
+	fmt.Printf("Static files being served from: %s at /images/upload\n", absUploadDir)
 }
 
 func deactivateExpiredBudgetsRoutine(budgetService pkgbudget.BudgetService) {

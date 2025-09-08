@@ -10,33 +10,29 @@ import (
 )
 
 type BannerController struct {
-	SaveBannerUCParams pkgbanneruc.SaveBannerUCParams
-	DeleteBannerUCParams  pkgbanneruc.DeleteBannerUCParams
-	FindByPageUCParams pkgbanneruc.FindByPageUCParams
-
+	SaveBannerUCParams   pkgbanneruc.SaveBannerUCParams
+	DeleteBannerUCParams pkgbanneruc.DeleteBannerUCParams
+	FindByPageUCParams   pkgbanneruc.FindByPageUCParams
 }
 
 type BannerControllerParams struct {
-	SaveBannerUCParams pkgbanneruc.SaveBannerUCParams
+	SaveBannerUCParams   pkgbanneruc.SaveBannerUCParams
 	DeleteBannerUCParams pkgbanneruc.DeleteBannerUCParams
-	FindByPageUCParams pkgbanneruc.FindByPageUCParams
+	FindByPageUCParams   pkgbanneruc.FindByPageUCParams
 }
 
 func NewBannerController(params *BannerControllerParams, g *echo.Group) {
 	controller := BannerController{
-		SaveBannerUCParams: params.SaveBannerUCParams,
-		DeleteBannerUCParams:  params.DeleteBannerUCParams,
-		FindByPageUCParams: params.FindByPageUCParams,
+		SaveBannerUCParams:   params.SaveBannerUCParams,
+		DeleteBannerUCParams: params.DeleteBannerUCParams,
+		FindByPageUCParams:   params.FindByPageUCParams,
 	}
 
 	g.POST("/banner", controller.Save)
 	g.POST("/banners/page", controller.FindbyPage)
 	g.DELETE("/banner/:id", controller.Delete)
 
-
 }
-
-
 
 func (c *BannerController) FindbyPage(ctx echo.Context) error {
 
@@ -53,7 +49,7 @@ func (c *BannerController) FindbyPage(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusPreconditionFailed, nil)
 	}
-	return ctx.JSON(http.StatusOK, banners)	
+	return ctx.JSON(http.StatusOK, banners)
 }
 
 func (c *BannerController) Save(ctx echo.Context) error {
@@ -68,7 +64,7 @@ func (c *BannerController) Save(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bannerId"})
 	}
 	accessLink := ctx.FormValue("accessLink")
-*/
+	*/
 	professionsStr := ctx.Request().PostForm["professions"]
 
 	// Convert professions to a slice of ints
@@ -80,26 +76,26 @@ func (c *BannerController) Save(ctx echo.Context) error {
 		}
 		professions = append(professions, uint(professionID))
 	}
-/*
-	// Get the file(s)
-	file, err := ctx.FormFile("file")
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid file upload"})
-	}
+	/*
+		// Get the file(s)
+		file, err := ctx.FormFile("file")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid file upload"})
+		}
 
-	// Open the file
-	src, err := file.Open()
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err)
-	}
-	defer src.Close()
+		// Open the file
+		src, err := file.Open()
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, err)
+		}
+		defer src.Close()
 
-	// Read the file into a byte slice
-	fileBytes, err := io.ReadAll(src)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err)
-	}
-*/
+		// Read the file into a byte slice
+		fileBytes, err := io.ReadAll(src)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, err)
+		}
+	*/
 	/*assembler := pkgbanneruc.BannerAssembler{
 		ID:      uint(bannerId),
 		AccessLink:  accessLink,
@@ -116,12 +112,11 @@ func (c *BannerController) Save(ctx echo.Context) error {
 	usecase.Assembler = &assembler
 	banner, err := usecase.Execute()
 	if err != nil {
-		return ctx.JSON(http.StatusPreconditionFailed,err)
+		return ctx.JSON(http.StatusPreconditionFailed, err)
 	}
 	return ctx.JSON(http.StatusOK, banner)
 
 }
-
 
 func (c *BannerController) Delete(ctx echo.Context) error {
 
@@ -142,4 +137,3 @@ func (c *BannerController) Delete(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, nil)
 
 }
-

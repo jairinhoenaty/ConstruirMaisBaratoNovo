@@ -17,6 +17,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"net/http"
@@ -563,60 +564,82 @@ func (c *PublicController) uploadFile(ctx echo.Context) error {
 		log.Fatalf("Error loading .env file: %s", err)
 	}
 
-	dir_frontend := os.Getenv("DIR_FRONTEND")
-	if dir_frontend == "" {
-		dir_frontend = "/frontend/public/images/upload"
+	dir_upload := os.Getenv("DIR_UPLOAD")
+	if dir_upload == "" {
+		dir_upload = "../files/images/upload"
 	}
 
-	// Parse our multipart form, 10 << 20 specifies a maximum
-	// upload of 10 MB files.
-	//r.ParseMultipartForm(10 << 20)
-	// FormFile returns the first file for the given key `myFile`
-	// it also returns the FileHeader so we can get the Filename,
-	// the Header and the size of the file
+	if _, err := os.Stat(dir_upload); os.IsNotExist(err) {
+		fmt.Println("Dir not exist " + dir_upload + ", creating")
+		err := os.MkdirAll(dir_upload, 0755)
+		if err != nil {
+			fmt.Printf("Error creating upload directory: %v\n", err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to create upload directory",
+			})
+		}
+	}
+
 	file, err := ctx.FormFile("myFile")
 	if err != nil {
 		fmt.Println("Error Retrieving the File")
 		fmt.Println(err)
-		return ctx.JSON(http.StatusInternalServerError, err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to retrieve uploaded file",
+		})
 	}
 	fmt.Printf("Uploaded File: %+v\n", file.Filename)
 	fmt.Printf("File Size: %+v\n", file.Size)
 	fmt.Printf("MIME Header: %+v\n", file.Header)
 
-	// Create a temporary file within our temp-images directory that follows
-	// a particular naming pattern
-	tempFile, err := os.CreateTemp(dir_frontend, "upload-*.png")
-	//tempFile, err := os.CreateTemp("public/images/upload/", "upload-*.png")
+	ext := filepath.Ext(file.Filename)
+	if ext == "" {
+		ext = ".png" // fallback extension
+	}
+
+	tempFile, err := os.CreateTemp(dir_upload, "upload-*"+ext)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error creating temporary file: %v\n", err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to create temporary file",
+		})
 	}
 	defer tempFile.Close()
+
 	fileData, err := file.Open()
 	if err != nil {
-		//file.Close()
+		fmt.Printf("Error opening uploaded file: %v\n", err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to open uploaded file",
+		})
 	}
+	defer fileData.Close()
 
-	// read all of the contents of our uploaded file into a
-	// byte array
 	fileBytes, err := io.ReadAll(fileData)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error reading file contents: %v\n", err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to read file contents",
+		})
 	}
-	// write this byte array to our temporary file
-	tempFile.Write(fileBytes)
 
-	// Define as novas permissões
-	novoPermissoes := os.FileMode(0755)
-	// Altera as permissões
-	err = os.Chmod(tempFile.Name(), novoPermissoes)
+	_, err = tempFile.Write(fileBytes)
 	if err != nil {
-		fmt.Println("Erro ao alterar permissões:", err)
-		return ctx.JSON(http.StatusInternalServerError, err)
+		fmt.Printf("Error writing file: %v\n", err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to write file",
+		})
 	}
-	uri := "/images/upload/" + strings.Replace(tempFile.Name(), dir_frontend, "", -1)
-	// return that we have successfully uploaded our file
-	//fmt.Fprintf(w, "Successfully Uploaded File\n")
+
+	err = os.Chmod(tempFile.Name(), 0755)
+	if err != nil {
+		fmt.Printf("Error setting file permissions: %v\n", err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to set file permissions",
+		})
+	}
+
+	uri := "/images/upload" + strings.Replace(tempFile.Name(), dir_upload, "", -1)
 	return ctx.JSON(http.StatusCreated, map[string]string{
 		"message": "Successfully Uploaded File",
 		"uri":     uri})
