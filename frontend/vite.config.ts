@@ -15,6 +15,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/images/upload': {
+        target: 'http://localhost:5000',
+        // target: 'https://construirmaisbarato.com.br',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   }
 });

@@ -9,6 +9,9 @@ import { RegionService, UploadFileService } from "../services";
 import LoadingText from "../components/LoadingText";
 import { IRegion } from "../interfaces/IRegion";
 
+// URL_IMAGES_WEB do .env
+const URL_IMAGES_WEB = import.meta.env.VITE_URL_IMAGES_WEB;
+
 function Banner() {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newImageTitle, setNewImageTitle] = useState("");
@@ -33,6 +36,19 @@ function Banner() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [regions, setRegions] = useState([]);
+
+  // Função para construir URL da imagem
+  function getImageUrl(encodedPath: string) {
+    try {
+      // decodifica o Base64 para obter o path real
+      const decodedPath = atob(encodedPath); // ex: "/images/upload/upload-847083928.jpeg"
+      const baseUrl = URL_IMAGES_WEB?.replace(/\/$/, ""); // remove barra final
+      return `${baseUrl}${decodedPath.startsWith("/") ? "" : "/"}${decodedPath}`;
+    } catch (error) {
+      console.error("Erro ao decodificar path da imagem:", error);
+      return "";
+    }
+  }
 
 
   React.useEffect(() => {
@@ -444,8 +460,8 @@ function Banner() {
           {carouselImagesList.map((image, index) => (
             <div key={index} className="relative group">
               <img
-                src={atob(image.image)}
-                alt={image.title}
+                src={getImageUrl(image.image)}
+                alt={image.title || "Banner"}
                 className="w-full h-48 object-cover rounded-lg"
               />
               <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
