@@ -17,10 +17,6 @@ import {
   UserCircle,
   ShoppingBag,
   Youtube,
-  Camera,
-  Upload,
-  Shield,
-  Building,
 } from "lucide-react";
 import { states } from "../data";
 import {
@@ -39,6 +35,7 @@ import VideoPopup from "../components/VideoPopup";
 
 type UserRole = "client" | "professional" | "store";
 
+
 function Register() {
   const [selectedRole, setSelectedRole] = useState<UserRole>("professional");
   const [isVideoPopupOpen, setIsVideoPopupOpen] = useState(false);
@@ -54,19 +51,11 @@ function Register() {
     acceptTerms: false,
     photo: "",
     company: "",
-    // Campos Premium
-    dataNascimento: "",
-    experiencia: "",
-    codigoVerificacao: "",
-    meiCnpj: "",
-    isPremium: false,
   });
   const [showProfessions, setShowProfessions] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const [premiumForm, setPremiumForm] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [citiesByState, setcitiesByState] = useState([{}]);
@@ -75,11 +64,7 @@ function Register() {
   ]);
   const [error, setError] = useState("");
   const [errorPass, setErrorPass] = useState("");
-  const [errorAge, setErrorAge] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [codigoEnviado, setCodigoEnviado] = useState(false);
-  const [loadingSMS, setLoadingSMS] = useState(false);
-  const [choose, setChoose] = useState(false);
 
   const navigate = useNavigate();
 
@@ -197,113 +182,11 @@ function Register() {
   const closeErrorPass = () => {
     setErrorPass("");
   };
-  const closeErrorAge = () => {
-    setErrorAge("");
-  };
-
-  // Função para calcular idade
-  const calculateAge = (birthDate: string): number => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-
-    return age;
-  };
-
-  // Função para validar CPF
-  const validateCPF = (cpf: string): boolean => {
-    const cleanCPF = cpf.replace(/[^\d]/g, '');
-
-    if (cleanCPF.length !== 11) return false;
-    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
-
-    let sum = 0;
-    for (let i = 0; i < 9; i++) {
-      sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
-    }
-    let checkDigit = 11 - (sum % 11);
-    if (checkDigit === 10 || checkDigit === 11) checkDigit = 0;
-    if (checkDigit !== parseInt(cleanCPF.charAt(9))) return false;
-
-    sum = 0;
-    for (let i = 0; i < 10; i++) {
-      sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
-    }
-    checkDigit = 11 - (sum % 11);
-    if (checkDigit === 10 || checkDigit === 11) checkDigit = 0;
-    if (checkDigit !== parseInt(cleanCPF.charAt(10))) return false;
-
-    return true;
-  };
-
-  // Função para validar CNPJ/MEI
-  const validateCNPJ = (cnpj: string): boolean => {
-    const cleanCNPJ = cnpj.replace(/[^\d]/g, '');
-
-    if (cleanCNPJ.length !== 14) return false;
-    if (/^(\d)\1{13}$/.test(cleanCNPJ)) return false;
-
-    // Validação dos dígitos verificadores do CNPJ
-    let length = cleanCNPJ.length - 2;
-    let numbers = cleanCNPJ.substring(0, length);
-    let digits = cleanCNPJ.substring(length);
-    let sum = 0;
-    let pos = length - 7;
-
-    for (let i = length; i >= 1; i--) {
-      sum += parseInt(numbers.charAt(length - i)) * pos--;
-      if (pos < 2) pos = 9;
-    }
-
-    let result = sum % 11 < 2 ? 0 : 11 - sum % 11;
-    if (result !== parseInt(digits.charAt(0))) return false;
-
-    length = length + 1;
-    numbers = cleanCNPJ.substring(0, length);
-    sum = 0;
-    pos = length - 7;
-
-    for (let i = length; i >= 1; i--) {
-      sum += parseInt(numbers.charAt(length - i)) * pos--;
-      if (pos < 2) pos = 9;
-    }
-
-    result = sum % 11 < 2 ? 0 : 11 - sum % 11;
-    return result === parseInt(digits.charAt(1));
-  };
-
-  // Função para enviar código SMS
-  const enviarCodigoSMS = async () => {
-    if (!formData.phone) {
-      setError("Preencha o telefone antes de solicitar o código");
-      return;
-    }
-
-    setLoadingSMS(true);
-    try {
-      // Simular envio de SMS (substituir pela API real)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setCodigoEnviado(true);
-      setError("");
-      // Aqui você faria a chamada real para sua API de SMS
-      console.log("Código enviado para:", formData.phone);
-    } catch (error) {
-      setError("Erro ao enviar código SMS. Tente novamente.");
-    } finally {
-      setLoadingSMS(false);
-    }
-  };
 
   const validateForm = () => {
     let isValid = true;
     setErrorPass("");
     setError("");
-    setErrorAge("");
 
     // Validate password
     if (formData.password != formData.confirmPassword) {
@@ -311,65 +194,14 @@ function Register() {
       isValid = false;
     }
 
-    // Validações específicas para premium
-    if (premiumForm) {
-      // Validar idade (maior de 18 anos)
-      if (formData.dataNascimento) {
-        const age = calculateAge(formData.dataNascimento);
-        if (age < 18) {
-          setErrorAge("Você deve ser maior de 18 anos para o cadastro premium");
-          isValid = false;
-        }
-      }
-
-      // Validar código de verificação SMS
-      if (!formData.codigoVerificacao) {
-        setError("Código de verificação SMS é obrigatório");
-        isValid = false;
-      } else if (formData.codigoVerificacao.length < 4 || formData.codigoVerificacao.length > 6) {
-        setError("Código deve ter entre 4 e 6 dígitos");
-        isValid = false;
-      }
-
-      // Validar CNPJ/MEI (opcional, mas se preenchido deve ser válido)
-      if (formData.meiCnpj && !validateCNPJ(formData.meiCnpj)) {
-        setError("CNPJ/MEI inválido");
-        isValid = false;
-      }
-
-      // Validar foto (obrigatória para premium)
-      // if (!formData.photo) {
-      //   setError("Foto é obrigatória para cadastro premium");
-      //   isValid = false;
-      // }
-    }
-
     return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setIsLoading(true);
     e.preventDefault();
 
-    // Se ainda não escolheu o tipo de cadastro, mostra o modal
-    if (!choose) {
-      setShowPremiumModal(true);
-      return;
-    }
-
-    // Validar formulário
-    if (!validateForm()) {
-      return;
-    }
-
-    // Marcar como premium se escolheu o formulário premium
-    if (premiumForm) {
-      setFormData(prev => ({ ...prev, isPremium: true }));
-    }
-
-    console.log("Iniciando cadastro:", premiumForm ? "PREMIUM" : "GRATUITO");
-    setIsLoading(true);
-
-    try {
+    if (validateForm()) {
       console.info("Validade" + formData.email);
       try {
         const emailReturn = await UserService.findbyemailPublic({
@@ -414,31 +246,21 @@ function Register() {
             let postReturn: any;
             if (selectedRole == "professional") {
               try {
-                // Preparar dados base
-                const professionalData = {
+                postReturn = await ProfessionalService.postProfessionalPublic({
                   oid: parseInt(localStorage.getItem("id") ?? "0"),
                   Name: formData.name,
                   Email: formData.email,
                   Telephone: formData.phone,
                   Password: formData.password,
+                  //LgpdAceito: "S",
+                  //created_at:  "time.Date(2025, time.March, 16, 19, 41, 30, 309000000, time.Local)",
                   cep: "",
                   street: "",
                   neighborhood: "",
                   cityId: parseInt(formData.city),
                   professionIds: formData.professions,
                   image: base64image,
-                  // Campos Premium
-                  isPremium: premiumForm,
-                  ...(premiumForm && {
-                    dataNascimento: formData.dataNascimento,
-                    experiencia: formData.experiencia,
-                    meiCnpj: formData.meiCnpj,
-                    telefoneVerificado: !!formData.codigoVerificacao,
-                  })
-                };
-
-                console.log("Dados do profissional:", professionalData);
-                postReturn = await ProfessionalService.postProfessionalPublic(professionalData);
+                });
               } catch (error) {
                 Swal.fire({
                   position: "center",
@@ -447,7 +269,7 @@ function Register() {
                   text: "Por favor, tente novamente mais tarde." + error,
                   showConfirmButton: true,
                 });
-                return;
+                setIsLoading(false);
               }
             } else if (selectedRole == "client") {
               try {
@@ -473,7 +295,7 @@ function Register() {
                   text: "Por favor, tente novamente mais tarde." + error,
                   showConfirmButton: true,
                 });
-                return;
+                setIsLoading(false);
               }
             } else if (selectedRole == "store") {
               try {
@@ -492,6 +314,7 @@ function Register() {
                   image: base64image,
                 });
               } catch (error) {
+                setIsLoading(false);
                 Swal.fire({
                   position: "center",
                   icon: "error",
@@ -499,64 +322,51 @@ function Register() {
                   text: "Por favor, tente novamente mais tarde." + error,
                   showConfirmButton: true,
                 });
-                return;
+
               }
             }
 
             if (postReturn.status == 200) {
+              //setShowSuccessModal(true);
               Swal.fire({
                 position: "center",
                 icon: "success",
-                title: premiumForm ? "🚀 Cadastro Premium Realizado!" : "Cadastro Realizado!",
-                text: "Redirecionando para o login...",
+                title: "Cadastro Realizado!",
+                text: "Redirecionado para o login...",
                 showConfirmButton: false,
                 timer: 3000,
               });
               setTimeout(() => {
+                setShowSuccessModal(false);
                 navigate("/login");
               }, 2000);
+              setIsLoading(false);
             } else {
+              // if (postReturn.status == 412) {
+              setIsLoading(false);
               Swal.fire({
                 position: "center",
                 icon: "error",
                 title: "Ocorreu um erro na inclusão",
-                text: `Erro: ${postReturn.status}`,
+                text: postReturn.status,
                 showConfirmButton: false,
                 timer: 1500,
               });
             }
+
+            setIsLoading(false);
           }
-        } else {
-          console.log("status != 200");
-          Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Erro Verificação Cliente",
-            showConfirmButton: false,
-            timer: 1500,
-          });
+          setIsLoading(false);
         }
       } catch (error) {
-        console.error("Erro no cadastro:", error);
         Swal.fire({
           position: "center",
           icon: "error",
           title: "Erro ao verificar e-mail",
-          text: "Por favor, tente novamente mais tarde.",
+          text: "Por favor, tente novamente mais tarde." + error,
           showConfirmButton: true,
         });
-      } finally {
-        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Erro geral:", error);
-      Swal.fire({
-        position: "center",
-        icon: "error",
-        title: "Erro interno",
-        text: "Por favor, tente novamente mais tarde.",
-        showConfirmButton: true,
-      });
       setIsLoading(false);
     }
   };
@@ -569,127 +379,9 @@ function Register() {
           .join(", ")
       : "Selecione suas profissões";
 
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      {showPremiumModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
-          <div className="relative max-w-4xl w-full max-h-[95vh] rounded-lg overflow-hidden shadow-xl bg-white">
-            <button
-              onClick={() => {
-                setShowPremiumModal(false);
-              }}
-              className="absolute top-4 right-4 z-10 text-gray-600 hover:text-gray-800 text-2xl bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full w-10 h-10 flex items-center justify-center shadow-lg"
-            >
-              ✕
-            </button>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
-              {/* Lado esquerdo - Imagem */}
-              <div className="relative bg-black flex items-center justify-center min-h-[300px] lg:min-h-[500px]">
-                <img
-                  src="images/premiumBanner.jpeg"
-                  alt="Construir Mais Barato Premium"
-                  className="max-h-full object-cover w-full h-full lg:object-contain"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent lg:hidden"></div>
-              </div>
-
-              {/* Lado direito - Conteúdo */}
-              <div className="p-6 lg:p-8 flex flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                    🚀 Torne-se Premium
-                  </h2>
-                  <p className="text-gray-600 text-sm lg:text-base">
-                    Destaque-se da concorrência e conquiste mais clientes
-                  </p>
-                </div>
-
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Perfil Destacado</h4>
-                      <p className="text-sm text-gray-600">Apareça nas primeiras posições das buscas</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Informações Completas</h4>
-                      <p className="text-sm text-gray-600">Endereço, especialidades e faixa de preços</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Maior Credibilidade</h4>
-                      <p className="text-sm text-gray-600">Perfil verificado com CPF e documentos</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Suporte Prioritário</h4>
-                      <p className="text-sm text-gray-600">Atendimento especializado para membros premium</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <button
-                    onClick={() => {
-                      setPremiumForm(true);
-                      setChoose(true);
-                      setShowPremiumModal(false);
-                    }}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
-                  >
-                    ✨ Quero ser Premium
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setPremiumForm(false);
-                      setChoose(true);
-                      setShowPremiumModal(false);
-                      // Limpar campos premium ao escolher gratuito
-                      setFormData(prev => ({
-                        ...prev,
-                        dataNascimento: "",
-                        experiencia: "",
-                        codigoVerificacao: "",
-                        meiCnpj: "",
-                        isPremium: false
-                      }));
-                      setCodigoEnviado(false);
-                    }}
-                    className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-                  >
-                    Continuar com cadastro gratuito
-                  </button>
-                </div>
-
-                <p className="text-xs text-gray-500 text-center mt-4">
-                  * Você pode migrar para premium a qualquer momento
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* loading */}
       {isLoading && <LoadingText />}
 
@@ -895,36 +587,6 @@ function Register() {
         <p className="mt-2 text-center text-sm text-gray-600">
           Preencha seus dados para criar sua conta
         </p>
-        {choose && (
-          <div className="mt-4 text-center">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-              premiumForm
-                ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                : 'bg-gray-100 text-gray-800 border border-gray-300'
-            }`}>
-              {premiumForm ? '🚀 Cadastro Premium' : '👤 Cadastro Gratuito'}
-            </span>
-            <button
-              onClick={() => {
-                setChoose(false);
-                setPremiumForm(false);
-                // Limpar campos premium
-                setFormData(prev => ({
-                  ...prev,
-                  dataNascimento: "",
-                  experiencia: "",
-                  codigoVerificacao: "",
-                  meiCnpj: "",
-                  isPremium: false
-                }));
-                setCodigoEnviado(false);
-              }}
-              className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
-            >
-              Alterar
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
@@ -1324,201 +986,6 @@ function Register() {
               </div>
             )}
 
-            {premiumForm && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                    🚀 Cadastro Premium Verificado
-                  </h3>
-                  <p className="text-sm text-blue-700">
-                    Complete os campos abaixo para ter um perfil verificado e confiável
-                  </p>
-                </div>
-
-                {/* Foto de Perfil */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Foto de Perfil 
-                  </label>
-                  <div className="flex items-center justify-center">
-                    <div className="relative">
-                      <div
-                        className={`w-32 h-32 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-50 ${
-                          previewUrl ? "" : "border-dashed"
-                        }`}
-                      >
-                        {previewUrl ? (
-                          <img
-                            src={previewUrl}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Camera className="w-8 h-8 text-gray-400" />
-                        )}
-                      </div>
-                      <label
-                        htmlFor="photo-upload"
-                        className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors"
-                      >
-                        <Upload className="w-4 h-4" />
-                      </label>
-                      <input
-                        id="photo-upload"
-                        name="photo"
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoChange}
-                        className="hidden"
-                      />
-                      {previewUrl && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPreviewUrl("");
-                            setFormData((prev) => ({ ...prev, photo: "" }));
-                          }}
-                          className="absolute -top-2 -right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 text-center mt-2">
-                    Uma foto profissional aumenta sua credibilidade
-                  </p>
-                </div>
-
-                {/* Data de Nascimento */}
-                <div className="mb-4">
-                  <label
-                    htmlFor="dataNascimento"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Data de Nascimento *
-                  </label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="dataNascimento"
-                      name="dataNascimento"
-                      type="date"
-                      required
-                      value={formData.dataNascimento}
-                      onChange={handleChange}
-                      className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  {errorAge && (
-                    <p className="mt-1 text-sm text-red-600">{errorAge}</p>
-                  )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    Necessário para confirmar maioridade e identidade
-                  </p>
-                </div>
-
-                {/* Experiência */}
-                <div className="mb-4">
-                  <label
-                    htmlFor="experiencia"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Qual sua experiência? (Opcional)
-                  </label>
-                  <textarea
-                    id="experiencia"
-                    name="experiencia"
-                    rows={3}
-                    value={formData.experiencia}
-                    onChange={handleChange}
-                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Conte sobre sua experiência, projetos anteriores, certificações..."
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Ajude os clientes a conhecerem melhor seu trabalho
-                  </p>
-                </div>
-
-                {/* Verificação do Telefone */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    🔒 Verificação do Telefone *
-                  </label>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
-                    <div className="flex items-center">
-                      <Shield className="w-5 h-5 text-yellow-600 mr-2" />
-                      <p className="text-sm text-yellow-800">
-                        Um código de 4 a 6 dígitos será enviado para seu telefone para garantir que é real
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={enviarCodigoSMS}
-                      disabled={loadingSMS || !formData.phone}
-                      className="flex-shrink-0 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      {loadingSMS ? "Enviando..." : codigoEnviado ? "Reenviar" : "Enviar Código"}
-                    </button>
-
-                    <div className="flex-1">
-                      <input
-                        id="codigoVerificacao"
-                        name="codigoVerificacao"
-                        type="text"
-                        required
-                        maxLength={6}
-                        value={formData.codigoVerificacao}
-                        onChange={handleChange}
-                        disabled={!codigoEnviado}
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-                        placeholder="Digite o código recebido"
-                      />
-                    </div>
-                  </div>
-
-                  {codigoEnviado && (
-                    <p className="text-xs text-green-600 mt-1">
-                      ✓ Código enviado para {formData.phone}
-                    </p>
-                  )}
-                </div>
-
-                {/* MEI ou CNPJ */}
-                <div className="mb-4">
-                  <label
-                    htmlFor="meiCnpj"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    MEI ou CNPJ (Opcional)
-                  </label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Building className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <InputMask
-                      mask="99.999.999/9999-99"
-                      id="meiCnpj"
-                      name="meiCnpj"
-                      type="text"
-                      value={formData.meiCnpj}
-                      onChange={handleChange}
-                      className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="00.000.000/0000-00"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Permite consulta pública na Receita Federal e aumenta a confiança
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* Termos de Uso */}
             <div className="flex items-center">
               <input
@@ -1553,16 +1020,11 @@ function Register() {
                 disabled={
                   !formData.acceptTerms ||
                   (selectedRole === "professional" &&
-                    formData.professions.length === 0) ||
-                  (premiumForm && (
-                    !formData.dataNascimento ||
-                    !formData.codigoVerificacao 
-                    // !formData.photo
-                  ))
+                    formData.professions.length === 0)
                 }
                 className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                {premiumForm ? "🚀 Cadastrar Premium" : "Cadastrar"}
+                Cadastrar
                 <ArrowRight className="ml-2 h-4 w-4" />
               </button>
             </div>
