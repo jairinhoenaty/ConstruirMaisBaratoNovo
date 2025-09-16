@@ -55,9 +55,9 @@ function Register() {
     photo: "",
     company: "",
     // Campos Premium
-    dataNascimento: "",
-    experiencia: "",
-    codigoVerificacao: "",
+    dateOfBirth: "",
+    experience: "",
+    codeVerification: "",
     meiCnpj: "",
     isPremium: false,
   });
@@ -314,8 +314,8 @@ function Register() {
     // Validações específicas para premium
     if (premiumForm) {
       // Validar idade (maior de 18 anos)
-      if (formData.dataNascimento) {
-        const age = calculateAge(formData.dataNascimento);
+      if (formData.dateOfBirth) {
+        const age = calculateAge(formData.dateOfBirth);
         if (age < 18) {
           setErrorAge("Você deve ser maior de 18 anos para o cadastro premium");
           isValid = false;
@@ -323,10 +323,10 @@ function Register() {
       }
 
       // Validar código de verificação SMS
-      if (!formData.codigoVerificacao) {
+      if (!formData.codeVerification) {
         setError("Código de verificação SMS é obrigatório");
         isValid = false;
-      } else if (formData.codigoVerificacao.length < 4 || formData.codigoVerificacao.length > 6) {
+      } else if (formData.codeVerification.length < 4 || formData.codeVerification.length > 6) {
         setError("Código deve ter entre 4 e 6 dígitos");
         isValid = false;
       }
@@ -430,10 +430,10 @@ function Register() {
                   // Campos Premium
                   isPremium: premiumForm,
                   ...(premiumForm && {
-                    dataNascimento: formData.dataNascimento,
-                    experiencia: formData.experiencia,
+                    dateOfBirth: formData.dateOfBirth,
+                    experience: formData.experience,
                     meiCnpj: formData.meiCnpj,
-                    telefoneVerificado: !!formData.codigoVerificacao,
+                    telefoneVerificado: !!formData.codeVerification,
                   })
                 };
 
@@ -667,9 +667,9 @@ function Register() {
                       // Limpar campos premium ao escolher gratuito
                       setFormData(prev => ({
                         ...prev,
-                        dataNascimento: "",
-                        experiencia: "",
-                        codigoVerificacao: "",
+                        dateOfBirth: "",
+                        experience: "",
+                        codeVerification: "",
                         meiCnpj: "",
                         isPremium: false
                       }));
@@ -911,9 +911,9 @@ function Register() {
                 // Limpar campos premium
                 setFormData(prev => ({
                   ...prev,
-                  dataNascimento: "",
-                  experiencia: "",
-                  codigoVerificacao: "",
+                  dateOfBirth: "",
+                  experience: "",
+                  codeVerification: "",
                   meiCnpj: "",
                   isPremium: false
                 }));
@@ -1393,7 +1393,7 @@ function Register() {
                 {/* Data de Nascimento */}
                 <div className="mb-4">
                   <label
-                    htmlFor="dataNascimento"
+                    htmlFor="dateOfBirth"
                     className="block text-sm font-medium text-gray-700"
                   >
                     Data de Nascimento *
@@ -1403,11 +1403,11 @@ function Register() {
                       <User className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
-                      id="dataNascimento"
-                      name="dataNascimento"
+                      id="dateOfBirth"
+                      name="dateOfBirth"
                       type="date"
                       required
-                      value={formData.dataNascimento}
+                      value={formData.dateOfBirth}
                       onChange={handleChange}
                       className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -1423,16 +1423,16 @@ function Register() {
                 {/* Experiência */}
                 <div className="mb-4">
                   <label
-                    htmlFor="experiencia"
+                    htmlFor="experience"
                     className="block text-sm font-medium text-gray-700"
                   >
                     Qual sua experiência? (Opcional)
                   </label>
                   <textarea
-                    id="experiencia"
-                    name="experiencia"
+                    id="experience"
+                    name="experience"
                     rows={3}
-                    value={formData.experiencia}
+                    value={formData.experience}
                     onChange={handleChange}
                     className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Conte sobre sua experiência, projetos anteriores, certificações..."
@@ -1468,12 +1468,12 @@ function Register() {
 
                     <div className="flex-1">
                       <input
-                        id="codigoVerificacao"
-                        name="codigoVerificacao"
+                        id="codeVerification"
+                        name="codeVerification"
                         type="text"
                         required
                         maxLength={6}
-                        value={formData.codigoVerificacao}
+                        value={formData.codeVerification}
                         onChange={handleChange}
                         disabled={!codigoEnviado}
                         className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
@@ -1555,8 +1555,8 @@ function Register() {
                   (selectedRole === "professional" &&
                     formData.professions.length === 0) ||
                   (premiumForm && (
-                    !formData.dataNascimento ||
-                    !formData.codigoVerificacao 
+                    !formData.dateOfBirth ||
+                    !formData.codeVerification 
                     // !formData.photo
                   ))
                 }

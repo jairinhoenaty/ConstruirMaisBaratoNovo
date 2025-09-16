@@ -30,6 +30,11 @@ type Professional struct {
 	OnLine        *bool
 	CreatedAt     time.Time `gorm:"<-:create"`
 	Distance      float64   `gorm:"->"` //`gorm:"-"`
+	IsPremium     *bool     `gorm:"default:false"`
+	DateOfBirth   string
+	Experience    string
+	// CodeVerification string
+	MeiCnpj string
 }
 
 type ProfessionCount struct {
