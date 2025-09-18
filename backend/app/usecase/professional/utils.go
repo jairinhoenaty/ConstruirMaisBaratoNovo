@@ -38,6 +38,8 @@ func GenerateProfessional(assembler *ProfessionalAssembler) pkgprofessional.Prof
 		professional.DateOfBirth = assembler.DateOfBirth
 		professional.Experience = assembler.Experience
 		professional.MeiCnpj = assembler.MeiCnpj
+		professional.CodeVerification = assembler.CodeVerification
+		professional.NegativeCertificateNumber = assembler.NegativeCertificateNumber
 
 	}
 	return professional

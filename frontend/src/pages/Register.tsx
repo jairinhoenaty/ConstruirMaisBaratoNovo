@@ -21,6 +21,7 @@ import {
   Upload,
   Shield,
   Building,
+  ExternalLink,
 } from "lucide-react";
 import { states } from "../data";
 import {
@@ -59,6 +60,7 @@ function Register() {
     experience: "",
     codeVerification: "",
     meiCnpj: "",
+    negativeCertificate: "",
     isPremium: false,
   });
   const [showProfessions, setShowProfessions] = useState(false);
@@ -67,6 +69,7 @@ function Register() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumForm, setPremiumForm] = useState(false);
+  const [clickedCertificateButton, setclickedCertificateButton] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [citiesByState, setcitiesByState] = useState([{}]);
@@ -169,6 +172,13 @@ function Register() {
     }));
   };
 
+  const handleGerarCertidao = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    e.preventDefault();
+    window.open('https://servicos.pf.gov.br/epol-sinic-publico/validar-cac', '_blank');
+    setclickedCertificateButton(true)
+
+  };
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -208,7 +218,10 @@ function Register() {
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
 
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
 
@@ -217,7 +230,7 @@ function Register() {
 
   // Função para validar CPF
   const validateCPF = (cpf: string): boolean => {
-    const cleanCPF = cpf.replace(/[^\d]/g, '');
+    const cleanCPF = cpf.replace(/[^\d]/g, "");
 
     if (cleanCPF.length !== 11) return false;
     if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
@@ -243,7 +256,7 @@ function Register() {
 
   // Função para validar CNPJ/MEI
   const validateCNPJ = (cnpj: string): boolean => {
-    const cleanCNPJ = cnpj.replace(/[^\d]/g, '');
+    const cleanCNPJ = cnpj.replace(/[^\d]/g, "");
 
     if (cleanCNPJ.length !== 14) return false;
     if (/^(\d)\1{13}$/.test(cleanCNPJ)) return false;
@@ -260,7 +273,7 @@ function Register() {
       if (pos < 2) pos = 9;
     }
 
-    let result = sum % 11 < 2 ? 0 : 11 - sum % 11;
+    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
     if (result !== parseInt(digits.charAt(0))) return false;
 
     length = length + 1;
@@ -273,7 +286,7 @@ function Register() {
       if (pos < 2) pos = 9;
     }
 
-    result = sum % 11 < 2 ? 0 : 11 - sum % 11;
+    result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
     return result === parseInt(digits.charAt(1));
   };
 
@@ -287,7 +300,7 @@ function Register() {
     setLoadingSMS(true);
     try {
       // Simular envio de SMS (substituir pela API real)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       setCodigoEnviado(true);
       setError("");
       // Aqui você faria a chamada real para sua API de SMS
@@ -326,7 +339,10 @@ function Register() {
       if (!formData.codeVerification) {
         setError("Código de verificação SMS é obrigatório");
         isValid = false;
-      } else if (formData.codeVerification.length < 4 || formData.codeVerification.length > 6) {
+      } else if (
+        formData.codeVerification.length < 4 ||
+        formData.codeVerification.length > 6
+      ) {
         setError("Código deve ter entre 4 e 6 dígitos");
         isValid = false;
       }
@@ -338,10 +354,10 @@ function Register() {
       }
 
       // Validar foto (obrigatória para premium)
-      // if (!formData.photo) {
-      //   setError("Foto é obrigatória para cadastro premium");
-      //   isValid = false;
-      // }
+      if (!formData.photo) {
+        setError("Foto é obrigatória para cadastro premium");
+        isValid = false;
+      }
     }
 
     return isValid;
@@ -363,7 +379,7 @@ function Register() {
 
     // Marcar como premium se escolheu o formulário premium
     if (premiumForm) {
-      setFormData(prev => ({ ...prev, isPremium: true }));
+      setFormData((prev) => ({ ...prev, isPremium: true }));
     }
 
     console.log("Iniciando cadastro:", premiumForm ? "PREMIUM" : "GRATUITO");
@@ -434,11 +450,13 @@ function Register() {
                     experience: formData.experience,
                     meiCnpj: formData.meiCnpj,
                     telefoneVerificado: !!formData.codeVerification,
-                  })
+                  }),
                 };
 
                 console.log("Dados do profissional:", professionalData);
-                postReturn = await ProfessionalService.postProfessionalPublic(professionalData);
+                postReturn = await ProfessionalService.postProfessionalPublic(
+                  professionalData
+                );
               } catch (error) {
                 Swal.fire({
                   position: "center",
@@ -507,7 +525,9 @@ function Register() {
               Swal.fire({
                 position: "center",
                 icon: "success",
-                title: premiumForm ? "🚀 Cadastro Premium Realizado!" : "Cadastro Realizado!",
+                title: premiumForm
+                  ? "🚀 Cadastro Premium Realizado!"
+                  : "Cadastro Realizado!",
                 text: "Redirecionando para o login...",
                 showConfirmButton: false,
                 timer: 3000,
@@ -583,109 +603,162 @@ function Register() {
               ✕
             </button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
-              {/* Lado esquerdo - Imagem */}
-              <div className="relative bg-black flex items-center justify-center min-h-[300px] lg:min-h-[500px]">
+            {/* <div className="grid grid-cols-1 lg:grid-cols-2 h-full"> */}
+            {/* Lado esquerdo - Imagem */}
+            {/* <div className="relative bg-black flex items-center justify-center min-h-[300px] lg:min-h-[500px]">
                 <img
                   src="images/premiumBanner.jpeg"
                   alt="Construir Mais Barato Premium"
                   className="max-h-full object-cover w-full h-full lg:object-contain"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent lg:hidden"></div>
-              </div>
+              </div> */}
 
-              {/* Lado direito - Conteúdo */}
-              <div className="p-6 lg:p-8 flex flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                    🚀 Torne-se Premium
-                  </h2>
-                  <p className="text-gray-600 text-sm lg:text-base">
-                    Destaque-se da concorrência e conquiste mais clientes
-                  </p>
-                </div>
-
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Perfil Destacado</h4>
-                      <p className="text-sm text-gray-600">Apareça nas primeiras posições das buscas</p>
-                    </div>
+            {/* Lado direito - Conteúdo */}
+            <div className="p-6 lg:p-8 flex flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                  🚀 Torne-se Premium
+                  {/* Torne-se Premium */}
+                </h2>
+                <div className="mb-3">
+                    <span className="text-3xl font-bold text-[#FF6B35]">R$ 19,90</span>
+                    <span className="text-gray-500 text-sm ml-1">/mês</span>
                   </div>
-
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Informações Completas</h4>
-                      <p className="text-sm text-gray-600">Endereço, especialidades e faixa de preços</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Maior Credibilidade</h4>
-                      <p className="text-sm text-gray-600">Perfil verificado com CPF e documentos</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Suporte Prioritário</h4>
-                      <p className="text-sm text-gray-600">Atendimento especializado para membros premium</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <button
-                    onClick={() => {
-                      setPremiumForm(true);
-                      setChoose(true);
-                      setShowPremiumModal(false);
-                    }}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
-                  >
-                    ✨ Quero ser Premium
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setPremiumForm(false);
-                      setChoose(true);
-                      setShowPremiumModal(false);
-                      // Limpar campos premium ao escolher gratuito
-                      setFormData(prev => ({
-                        ...prev,
-                        dateOfBirth: "",
-                        experience: "",
-                        codeVerification: "",
-                        meiCnpj: "",
-                        isPremium: false
-                      }));
-                      setCodigoEnviado(false);
-                    }}
-                    className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-                  >
-                    Continuar com cadastro gratuito
-                  </button>
-                </div>
-
-                <p className="text-xs text-gray-500 text-center mt-4">
-                  * Você pode migrar para premium a qualquer momento
+                <p className="text-gray-600 text-sm lg:text-base">
+                  Destaque-se da concorrência e conquiste mais clientes
                 </p>
               </div>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">
+                      Perfil Destacado
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Apareça nas primeiras posições das buscas
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">
+                      Portifólio do profissional
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Permite que o cliente veja vídeos e fotos dos seus
+                      trabalhos
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">
+                      Recebimento dos orçamentos em primeira mão
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Quando um cliente quiser solicitar um orçamento, o nome do
+                      profissional premium apareçe primeiro
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                  {/* <div>
+                    <h4 className="font-semibold text-gray-900">
+                      Selo de premium
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Passa confiança no seu trabalho
+                    </p>
+                  </div> */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">
+                          Selo de premium
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          Passa confiança no seu trabalho
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-[#FF6B35]">
+                          R$ 19,90
+                        </span>
+                        <span className="text-gray-500 text-sm ml-1">/mês</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/*                 
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                  <div>
+                    <span className="text-3xl font-bold text-blue-600">
+                      R$ 19,90
+                    </span>
+                    <span className="text-gray-500 text-sm ml-1">/mês</span>
+                  </div>
+                </div> */}
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setPremiumForm(true);
+                    setChoose(true);
+                    setShowPremiumModal(false);
+                  }}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+                >
+                  ✨ Quero ser Premium
+                </button>
+
+                <button
+                  onClick={() => {
+                    setPremiumForm(false);
+                    setChoose(true);
+                    setShowPremiumModal(false);
+                    // Limpar campos premium ao escolher gratuito
+                    setFormData((prev) => ({
+                      ...prev,
+                      dateOfBirth: "",
+                      experience: "",
+                      codeVerification: "",
+                      meiCnpj: "",
+                      isPremium: false,
+                    }));
+                    setCodigoEnviado(false);
+                  }}
+                  className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                >
+                  Continuar com cadastro gratuito
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-500 text-center mt-4">
+                * Você pode migrar para premium a qualquer momento
+              </p>
             </div>
+            {/* </div> */}
           </div>
         </div>
       )}
@@ -897,25 +970,27 @@ function Register() {
         </p>
         {choose && (
           <div className="mt-4 text-center">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-              premiumForm
-                ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                : 'bg-gray-100 text-gray-800 border border-gray-300'
-            }`}>
-              {premiumForm ? '🚀 Cadastro Premium' : '👤 Cadastro Gratuito'}
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                premiumForm
+                  ? "bg-blue-100 text-blue-800 border border-blue-300"
+                  : "bg-gray-100 text-gray-800 border border-gray-300"
+              }`}
+            >
+              {premiumForm ? "🚀 Cadastro Premium" : "👤 Cadastro Gratuito"}
             </span>
             <button
               onClick={() => {
                 setChoose(false);
                 setPremiumForm(false);
                 // Limpar campos premium
-                setFormData(prev => ({
+                setFormData((prev) => ({
                   ...prev,
                   dateOfBirth: "",
                   experience: "",
                   codeVerification: "",
                   meiCnpj: "",
-                  isPremium: false
+                  isPremium: false,
                 }));
                 setCodigoEnviado(false);
               }}
@@ -1331,14 +1406,15 @@ function Register() {
                     🚀 Cadastro Premium Verificado
                   </h3>
                   <p className="text-sm text-blue-700">
-                    Complete os campos abaixo para ter um perfil verificado e confiável
+                    Complete os campos abaixo para ter um perfil verificado e
+                    confiável
                   </p>
                 </div>
 
                 {/* Foto de Perfil */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Foto de Perfil 
+                    Foto de Perfil *
                   </label>
                   <div className="flex items-center justify-center">
                     <div className="relative">
@@ -1451,7 +1527,8 @@ function Register() {
                     <div className="flex items-center">
                       <Shield className="w-5 h-5 text-yellow-600 mr-2" />
                       <p className="text-sm text-yellow-800">
-                        Um código de 4 a 6 dígitos será enviado para seu telefone para garantir que é real
+                        Um código de 4 a 6 dígitos será enviado para seu
+                        telefone para garantir que é real
                       </p>
                     </div>
                   </div>
@@ -1463,7 +1540,11 @@ function Register() {
                       disabled={loadingSMS || !formData.phone}
                       className="flex-shrink-0 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                      {loadingSMS ? "Enviando..." : codigoEnviado ? "Reenviar" : "Enviar Código"}
+                      {loadingSMS
+                        ? "Enviando..."
+                        : codigoEnviado
+                        ? "Reenviar"
+                        : "Enviar Código"}
                     </button>
 
                     <div className="flex-1">
@@ -1513,8 +1594,43 @@ function Register() {
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Permite consulta pública na Receita Federal e aumenta a confiança
+                    Permite consulta pública na Receita Federal e aumenta a
+                    confiança
                   </p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Certidão Negativa *
+                  </label>
+
+                  {/* Card para gerar certidão */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                    <p className="text-sm text-gray-700 mb-3">
+                      Gere sua certidão no site oficial:
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleGerarCertidao}
+                      className="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Gerar Certidão
+                    </button>
+                  </div>
+
+                  {/* Input separado para número da certidão */}
+                  <input
+                    id="negativeCertificate"
+                    name="negativeCertificate"
+                    type="number"
+                    required
+                    value={formData.negativeCertificate}
+                    onChange={handleChange}
+                    disabled={!clickedCertificateButton}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Digite o número da certidão"
+                  />
                 </div>
               </div>
             )}
@@ -1554,11 +1670,10 @@ function Register() {
                   !formData.acceptTerms ||
                   (selectedRole === "professional" &&
                     formData.professions.length === 0) ||
-                  (premiumForm && (
-                    !formData.dateOfBirth ||
-                    !formData.codeVerification 
-                    // !formData.photo
-                  ))
+                  (premiumForm &&
+                    (!formData.dateOfBirth ||
+                      !formData.codeVerification ||
+                      !formData.photo))
                 }
                 className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >

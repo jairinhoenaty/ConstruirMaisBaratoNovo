@@ -1,25 +1,26 @@
 package professional_usecase
 
 type ProfessionalAssembler struct {
-	ID               uint   `json:"oid,omitempty"`
-	Name             string `json:"name"`
-	Email            string `json:"email"`
-	Telephone        string `json:"telephone"`
-	LgpdAceito       string `json:"lgpdAceito"`
-	Password         string `json:"password"`
-	CityID           uint   `json:"cityId"`
-	ProfessionIDs    []uint `json:"professionIds"`
-	Cep              string `json:"cep"`
-	Street           string `json:"street"`
-	Neighborhood     string `json:"neighborhood"`
-	Image            []byte `json:"image"`
-	Verified         *bool  `json:"verified"`
-	OnLine           *bool  `json:"online"`
-	IsPremium        *bool  `json:"isPremium"`
-	DateOfBirth      string `json:"dateOfBirth"`
-	Experience       string `json:"experience"`
-	CodeVerification string `json:"codeVerification"`
-	MeiCnpj          string `json:"meiCnpj"`
+	ID                        uint   `json:"oid,omitempty"`
+	Name                      string `json:"name"`
+	Email                     string `json:"email"`
+	Telephone                 string `json:"telephone"`
+	LgpdAceito                string `json:"lgpdAceito"`
+	Password                  string `json:"password"`
+	CityID                    uint   `json:"cityId"`
+	ProfessionIDs             []uint `json:"professionIds"`
+	Cep                       string `json:"cep"`
+	Street                    string `json:"street"`
+	Neighborhood              string `json:"neighborhood"`
+	Image                     []byte `json:"image"`
+	Verified                  *bool  `json:"verified"`
+	OnLine                    *bool  `json:"online"`
+	IsPremium                 *bool  `json:"isPremium"`
+	DateOfBirth               string `json:"dateOfBirth"`
+	Experience                string `json:"experience"`
+	CodeVerification          string `json:"codeVerification"`
+	NegativeCertificateNumber int64  `json:"negativeCertificateNumber"`
+	MeiCnpj                   string `json:"meiCnpj"`
 }
 
 type CityAssembler struct {
