@@ -29,6 +29,7 @@ import {
   ProfessionalService,
   ProfessionService,
   UserService,
+  LoginService,
 } from "../services";
 import { StoreService } from "../services/StoreService";
 import { ClientService } from "../services/ClientService";
@@ -69,7 +70,8 @@ function Register() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumForm, setPremiumForm] = useState(false);
-  const [clickedCertificateButton, setclickedCertificateButton] = useState(false);
+  const [clickedCertificateButton, setclickedCertificateButton] =
+    useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [citiesByState, setcitiesByState] = useState([{}]);
@@ -172,11 +174,15 @@ function Register() {
     }));
   };
 
-  const handleGerarCertidao = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleGerarCertidao = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     e.preventDefault();
-    window.open('https://servicos.pf.gov.br/epol-sinic-publico/validar-cac', '_blank');
-    setclickedCertificateButton(true)
-
+    window.open(
+      "https://servicos.pf.gov.br/epol-sinic-publico/validar-cac",
+      "_blank"
+    );
+    setclickedCertificateButton(true);
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -290,7 +296,57 @@ function Register() {
     return result === parseInt(digits.charAt(1));
   };
 
-  // Função para enviar código SMS
+  const handleClosePremiumModal = async () => {
+    setShowPremiumModal(false);
+    setChoose(true);
+    setPremiumForm(false);
+
+    setFormData((prev) => ({
+      ...prev,
+      dateOfBirth: "",
+      experience: "",
+      codeVerification: "",
+      meiCnpj: "",
+      negativeCertificate: "",
+      isPremium: false,
+    }));
+    setCodigoEnviado(false);
+
+    const registrationSuccess = await processBasicRegistration();
+
+    if (registrationSuccess) {
+      LoginService.login({
+        email: formData.email,
+        password: formData.password,
+      })
+        .then((response) => {
+          if (response.data.isLoged == true) {
+            localStorage.setItem("isLoggedIn", response.data.isLoged);
+            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("user", response.data.user);
+            localStorage.setItem("id", response.data.user.id);
+            localStorage.setItem("name", response.data.user.name);
+            localStorage.setItem("profile", response.data.user.profile);
+            localStorage.setItem("email", response.data.user.email);
+
+            if (response.data.user.profile === "admin") {
+              navigate("/dashboard");
+              //onNavigate && onNavigate("dashboard");
+            } else {
+              navigate("/professional-panel");
+              //onNavigate && onNavigate("professional-panel");
+            }
+          } else {
+            setError("Login Inválido!!");
+          }
+        })
+        .catch((err) => {
+          setError("Login Inválido!!");
+          console.error("ops! ocorreu um erro" + err);
+        });
+    }
+  };
+
   const enviarCodigoSMS = async () => {
     if (!formData.phone) {
       setError("Preencha o telefone antes de solicitar o código");
@@ -310,6 +366,21 @@ function Register() {
     } finally {
       setLoadingSMS(false);
     }
+  };
+
+  const validateBasicForm = () => {
+    let isValid = true;
+    setErrorPass("");
+    setError("");
+
+    // Validate password
+    if (formData.password != formData.confirmPassword) {
+      setErrorPass("Senhas não estão iguais!!!!");
+      isValid = false;
+    }
+
+    // Validações básicas apenas (sem campos premium)
+    return isValid;
   };
 
   const validateForm = () => {
@@ -363,26 +434,230 @@ function Register() {
     return isValid;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const processBasicRegistration = async () => {
+    // Validar apenas campos básicos
+    if (!validateBasicForm()) {
+      return false;
+    }
 
-    // Se ainda não escolheu o tipo de cadastro, mostra o modal
+    // Configurar como usuário básico
+    setFormData((prev) => ({ ...prev, isPremium: false }));
+
+    setIsLoading(true);
+
+    try {
+      console.info("Validade" + formData.email);
+      try {
+        const emailReturn = await UserService.findbyemailPublic({
+          email: formData.email,
+        });
+        if (emailReturn.status != 200) {
+          console.log("status != 200");
+          Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Erro Verificação Cliente",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+          setIsLoading(false);
+          return false;
+        } else if (emailReturn.status == 200) {
+          console.log("status == 200");
+          const userData = await emailReturn.data;
+          console.log("userData");
+          console.log(userData);
+          if (userData) {
+            console.log("ifuserData");
+
+            Swal.fire({
+              position: "center",
+              icon: "error",
+              title: "Já existe uma conta <br> com esse e-mail!!",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+            setIsLoading(false);
+            return false;
+          } else {
+            console.log("Passou tudo");
+
+            let base64image = previewUrl;
+            console.log(base64image);
+            base64image = base64image
+              .replace("data:image/png;base64,", "")
+              .replace("data:image/jpg;base64,", "")
+              .replace("data:image/jpeg;base64,", "");
+
+            let postReturn: any;
+            if (selectedRole == "professional") {
+              try {
+                const professionalData = {
+                  oid: parseInt(localStorage.getItem("id") ?? "0"),
+                  Name: formData.name,
+                  Email: formData.email,
+                  Telephone: formData.phone,
+                  Password: formData.password,
+                  cep: "",
+                  street: "",
+                  neighborhood: "",
+                  cityId: parseInt(formData.city),
+                  professionIds: formData.professions,
+                  image: base64image,
+                  isPremium: false,
+                };
+
+                console.log("Dados do profissional:", professionalData);
+                postReturn = await ProfessionalService.postProfessionalPublic(
+                  professionalData
+                );
+              } catch (error) {
+                Swal.fire({
+                  position: "center",
+                  icon: "error",
+                  title: "Erro ao cadastrar profissional",
+                  text: "Por favor, tente novamente mais tarde." + error,
+                  showConfirmButton: true,
+                });
+                return false;
+              }
+            } else if (selectedRole == "client") {
+              try {
+                postReturn = await ClientService.postClientPublic({
+                  oid: parseInt(localStorage.getItem("id") ?? "0"),
+                  Name: formData.name,
+                  Email: formData.email,
+                  Telephone: formData.phone,
+                  LgpdAceito: "S",
+                  Password: formData.password,
+                  cep: "",
+                  street: "",
+                  neighborhood: "",
+                  cityId: parseInt(formData.city),
+                  image: base64image,
+                });
+              } catch (error) {
+                Swal.fire({
+                  position: "center",
+                  icon: "error",
+                  title: "Erro ao cadastrar cliente",
+                  text: "Por favor, tente novamente mais tarde." + error,
+                  showConfirmButton: true,
+                });
+                return false;
+              }
+            } else if (selectedRole == "store") {
+              try {
+                postReturn = await StoreService.postStorePublic({
+                  oid: parseInt(localStorage.getItem("id") ?? "0"),
+                  Name: formData.name,
+                  Email: formData.email,
+                  Telephone: formData.phone,
+                  LgpdAceito: "S",
+                  Password: formData.password,
+                  cep: "",
+                  street: "",
+                  neighborhood: "",
+                  cityId: parseInt(formData.city),
+                  image: base64image,
+                });
+              } catch (error) {
+                Swal.fire({
+                  position: "center",
+                  icon: "error",
+                  title: "Erro ao cadastrar logista",
+                  text: "Por favor, tente novamente mais tarde." + error,
+                  showConfirmButton: true,
+                });
+                return false;
+              }
+            }
+
+            if (postReturn.status == 200) {
+              setShowSuccessModal(true);
+              Swal.fire({
+                position: "center",
+                icon: "success",
+                title: "Cadastro Realizado!",
+                text: "Logando...",
+                showConfirmButton: false,
+                timer: 3000,
+              });
+              return true; // Cadastro bem-sucedido
+            } else {
+              Swal.fire({
+                position: "center",
+                icon: "error",
+                title: "Ocorreu um erro na inclusão",
+                text: `Erro: ${postReturn.status}`,
+                showConfirmButton: false,
+                timer: 1500,
+              });
+              return false; // Cadastro falhou
+            }
+          }
+        } else {
+          console.log("status != 200");
+          Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Erro Verificação Cliente",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+          return false;
+        }
+      } catch (error) {
+        console.error("Erro no cadastro:", error);
+        Swal.fire({
+          position: "center",
+          icon: "error",
+          title: "Erro ao verificar e-mail",
+          text: "Por favor, tente novamente mais tarde.",
+          showConfirmButton: true,
+        });
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Erro geral:", error);
+      Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "Erro interno",
+        text: "Por favor, tente novamente mais tarde.",
+        showConfirmButton: true,
+      });
+      setIsLoading(false);
+      return false; // General error
+    }
+  };
+
+  const processFormSubmission = async () => {
     if (!choose) {
       setShowPremiumModal(true);
-      return;
+      return false;
     }
-
-    // Validar formulário
     if (!validateForm()) {
-      return;
+      return false;
     }
 
-    // Marcar como premium se escolheu o formulário premium
     if (premiumForm) {
       setFormData((prev) => ({ ...prev, isPremium: true }));
     }
 
-    console.log("Iniciando cadastro:", premiumForm ? "PREMIUM" : "GRATUITO");
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const shouldContinue = await processFormSubmission();
+    if (!shouldContinue) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -465,7 +740,7 @@ function Register() {
                   text: "Por favor, tente novamente mais tarde." + error,
                   showConfirmButton: true,
                 });
-                return;
+                return false;
               }
             } else if (selectedRole == "client") {
               try {
@@ -491,7 +766,7 @@ function Register() {
                   text: "Por favor, tente novamente mais tarde." + error,
                   showConfirmButton: true,
                 });
-                return;
+                return false;
               }
             } else if (selectedRole == "store") {
               try {
@@ -517,7 +792,7 @@ function Register() {
                   text: "Por favor, tente novamente mais tarde." + error,
                   showConfirmButton: true,
                 });
-                return;
+                return false;
               }
             }
 
@@ -555,6 +830,7 @@ function Register() {
             showConfirmButton: false,
             timer: 1500,
           });
+          return false; // Email verification failed
         }
       } catch (error) {
         console.error("Erro no cadastro:", error);
@@ -565,6 +841,7 @@ function Register() {
           text: "Por favor, tente novamente mais tarde.",
           showConfirmButton: true,
         });
+        return false; // Error during registration
       } finally {
         setIsLoading(false);
       }
@@ -595,9 +872,7 @@ function Register() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
           <div className="relative max-w-4xl w-full max-h-[95vh] rounded-lg overflow-hidden shadow-xl bg-white">
             <button
-              onClick={() => {
-                setShowPremiumModal(false);
-              }}
+              onClick={handleClosePremiumModal}
               className="absolute top-4 right-4 z-10 text-gray-600 hover:text-gray-800 text-2xl bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full w-10 h-10 flex items-center justify-center shadow-lg"
             >
               ✕
@@ -622,9 +897,11 @@ function Register() {
                   {/* Torne-se Premium */}
                 </h2>
                 <div className="mb-3">
-                    <span className="text-3xl font-bold text-[#FF6B35]">R$ 19,90</span>
-                    <span className="text-gray-500 text-sm ml-1">/mês</span>
-                  </div>
+                  <span className="text-3xl font-bold text-[#FF6B35]">
+                    R$ 19,90
+                  </span>
+                  <span className="text-gray-500 text-sm ml-1">/mês</span>
+                </div>
                 <p className="text-gray-600 text-sm lg:text-base">
                   Destaque-se da concorrência e conquiste mais clientes
                 </p>
@@ -734,19 +1011,7 @@ function Register() {
 
                 <button
                   onClick={() => {
-                    setPremiumForm(false);
-                    setChoose(true);
-                    setShowPremiumModal(false);
-                    // Limpar campos premium ao escolher gratuito
-                    setFormData((prev) => ({
-                      ...prev,
-                      dateOfBirth: "",
-                      experience: "",
-                      codeVerification: "",
-                      meiCnpj: "",
-                      isPremium: false,
-                    }));
-                    setCodigoEnviado(false);
+                    handleClosePremiumModal();
                   }}
                   className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
                 >
@@ -943,7 +1208,7 @@ function Register() {
       )}
 
       {/* Success Modal */}
-      {showSuccessModal && (
+      {/* {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 max-w-sm w-full mx-4 transform transition-all">
             <div className="flex flex-col items-center">
@@ -959,7 +1224,7 @@ function Register() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="sm:mx-auto sm:w-full sm:max-w-2xl">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
