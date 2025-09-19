@@ -179,7 +179,7 @@ function Register() {
   ) => {
     e.preventDefault();
     window.open(
-      "https://servicos.pf.gov.br/epol-sinic-publico/validar-cac",
+      "https://servicos.pf.gov.br/epol-sinic-publico/",
       "_blank"
     );
     setclickedCertificateButton(true);
