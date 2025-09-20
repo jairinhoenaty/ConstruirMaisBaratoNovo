@@ -405,3 +405,58 @@ func (r *repository) Remove(id uint) error {
 	}
 	return nil
 }
+
+func (r *repository) FindRandom(
+    professionID *uint,
+    professionName *string,
+    verified *bool,
+    online *bool,
+    seed *int64,
+    limit, offset int,
+) ([]*pkgprofessional.Professional, int64, error) {
+
+    var professionals []*pkgprofessional.Professional
+
+    q := r.DB.
+        Joins("JOIN professional_professions pp ON pp.professional_id = professionals.id").
+        Joins("JOIN professions ON professions.id = pp.profession_id").
+        Where("professionals.deleted_at IS NULL").
+        Preload("City").
+        Preload("Professions")
+
+    // Filtro por profissão: ID tem prioridade; se não tiver, usa nome (LIKE)
+    if professionID != nil && *professionID > 0 {
+        q = q.Where("pp.profession_id = ?", *professionID)
+    } else if professionName != nil && *professionName != "" {
+        q = q.Where("UPPER(professions.name) LIKE CONCAT('%', UPPER(?), '%')", *professionName)
+    }
+
+    // Filtros opcionais de flags
+    if verified != nil {
+        q = q.Where("professionals.verified = ?", *verified)
+    }
+    if online != nil {
+        q = q.Where("professionals.on_line = ?", *online)
+    }
+
+    // Ordenação aleatória com seed (se informado)
+    if seed != nil {
+        q = q.Order(fmt.Sprintf("RAND(%d)", *seed))
+    } else {
+        q = q.Order("RAND()")
+    }
+
+    // Paginação
+    if limit > 0 {
+        q = q.Limit(limit)
+    }
+    if offset > 0 {
+        q = q.Offset(offset)
+    }
+
+    if err := q.Find(&professionals).Error; err != nil {
+        return nil, 0, err
+    }
+    return professionals, int64(len(professionals)), nil
+}
+

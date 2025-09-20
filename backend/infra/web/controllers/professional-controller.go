@@ -12,6 +12,7 @@ import (
 )
 
 type ProfessionalController struct {
+	FindRandomUCParams 							 pkgprofessionaluc.FindRandomUCParams
 	FindAllProfessionalUCParams                  pkgprofessionaluc.FindAllProfessionalUCParams
 	FindByIdUCParams                             pkgprofessionaluc.FindByIdUCParamns
 	FindByNamedUCParams                          pkgprofessionaluc.FindByNamedUCParams
@@ -27,6 +28,7 @@ type ProfessionalController struct {
 }
 
 type ProfessionalControllerParams struct {
+	FindRandomUCParams 							 pkgprofessionaluc.FindRandomUCParams
 	FindAllProfessionalUCParams                  pkgprofessionaluc.FindAllProfessionalUCParams
 	FindByIdUCParams                             pkgprofessionaluc.FindByIdUCParamns
 	FindByNamedUCParams                          pkgprofessionaluc.FindByNamedUCParams
@@ -43,7 +45,8 @@ type ProfessionalControllerParams struct {
 
 func NewProfessionalController(params *ProfessionalControllerParams, g *echo.Group) {
 	controller := ProfessionalController{
-		FindAllProfessionalUCParams:                  params.FindAllProfessionalUCParams,
+		FindRandomUCParams: 						  params.FindRandomUCParams,
+		//FindAllProfessionalUCParams:                  params.FindAllProfessionalUCParams,
 		FindByIdUCParams:                             params.FindByIdUCParams,
 		FindByNamedUCParams:                          params.FindByNamedUCParams,
 		FindByProfessionAndLocationUCParams:          params.FindByProfessionAndLocationUCParams,
@@ -58,6 +61,7 @@ func NewProfessionalController(params *ProfessionalControllerParams, g *echo.Gro
 
 	g.POST("/professional", controller.Save)
 	g.GET("/professionals", controller.FindAll)
+	g.GET("/professionals/random", controller.FindRandomByProfession)
 	g.GET("/professional/:id", controller.FindById)
 	g.POST("/professionals/name", controller.FindByName)
 	g.POST("/professionals/profession-location", controller.PublicFindByProfessionAndLocation)
@@ -382,3 +386,77 @@ func (c *ProfessionalController) PublicFindByProfessionAndLocation(ctx echo.Cont
 
 	return ctx.JSON(http.StatusOK, response)
 }
+
+func (c *ProfessionalController) FindRandomByProfession(ctx echo.Context) error {
+    // Query params
+    profName := strings.TrimSpace(ctx.QueryParam("profession"))
+    profIDStr := strings.TrimSpace(ctx.QueryParam("professionId"))
+    limitStr := strings.TrimSpace(ctx.QueryParam("limit"))
+    offsetStr := strings.TrimSpace(ctx.QueryParam("offset"))
+    verifiedStr := strings.TrimSpace(ctx.QueryParam("verified"))
+    onlineStr := strings.TrimSpace(ctx.QueryParam("online"))
+    seedStr := strings.TrimSpace(ctx.QueryParam("seed"))
+
+    var profID *uint
+    if profIDStr != "" {
+        if v, err := strconv.ParseUint(profIDStr, 10, 64); err == nil {
+            vv := uint(v)
+            profID = &vv
+        }
+    }
+
+    var limit, offset int
+    if limitStr != "" {
+        if v, err := strconv.Atoi(limitStr); err == nil {
+            limit = v
+        }
+    }
+    if offsetStr != "" {
+        if v, err := strconv.Atoi(offsetStr); err == nil {
+            offset = v
+        }
+    }
+
+    var verified *bool
+    if verifiedStr != "" {
+        if v, err := strconv.ParseBool(verifiedStr); err == nil {
+            verified = &v
+        }
+    }
+
+    var online *bool
+    if onlineStr != "" {
+        if v, err := strconv.ParseBool(onlineStr); err == nil {
+            online = &v
+        }
+    }
+
+    var seed *int64
+    if seedStr != "" {
+        if v, err := strconv.ParseInt(seedStr, 10, 64); err == nil {
+            seed = &v
+        }
+    }
+
+    assembler := &pkgprofessionaluc.FindRandomAssembler{
+        ProfessionID:   profID,
+        ProfessionName: profName,
+        Verified:       verified,
+        Online:         online,
+        Seed:           seed,
+        Limit:          limit,
+        Offset:         offset,
+    }
+
+    uc := pkgprofessionaluc.NewFindRandomUC(c.FindRandomUCParams)
+    uc.Assembler = assembler
+
+    result, total, err := uc.Execute()
+    if err != nil {
+        return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+    }
+
+    ctx.Response().Header().Set("X-Total-Count", strconv.FormatInt(total, 10))
+    return ctx.JSON(http.StatusOK, result)
+}
+

@@ -43,6 +43,8 @@ import (
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgprofessionaluc "construir_mais_barato/app/usecase/professional"
 	pkgprofessionalinfra "construir_mais_barato/infra/database/repositories/professional"
+	//pkgprofessionaluc "construir_mais_barato/app/usecase/professional"
+
 
 	pkgstore "construir_mais_barato/app/domain/store"
 	pkgstoreuc "construir_mais_barato/app/usecase/store"
@@ -71,6 +73,7 @@ import (
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
 
 	pkgcontrollers "construir_mais_barato/infra/web/controllers"
+
 )
 
 type Server struct {
@@ -353,6 +356,10 @@ func buildProfessionalEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.ProfessionalService,
 	}
 
+	findRandomUCParams := pkgprofessionaluc.FindRandomUCParams{
+    Service: dependency.ProfessionalService,
+	}
+
 	exportXLSXProfessionalUCParams := pkgprofessionaluc.ExportXLSXProfessionalUCParams{
 		Service: dependency.ProfessionalService,
 	}
@@ -371,6 +378,7 @@ func buildProfessionalEndPoint(dependency *dependenceParams, g *echo.Group) {
 		CountProfessionalsByStateUCParams:            countProfessionalsByStateUCParams,
 		CountProfessionalsByProfessionInCityUCParams: countProfessionalsByProfessionInCityUCParams,
 		CountCityProfessionalsByStateUCParams:        countCityProfessionalsByStateUCParams,
+		FindRandomUCParams: 						  findRandomUCParams,
 	}
 
 	pkgcontrollers.NewProfessionalController(&professionalControllerParams, g)
@@ -642,6 +650,8 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.ProductService,
 	}
 
+	
+
 	// parametros do userController
 	publicControllerParams := pkgcontrollers.PublicControllerParams{
 		FindRegionByCityIdUCParams:                          findRegionByCityUCParams,
@@ -668,6 +678,21 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	pkgcontrollers.NewPublicController(&publicControllerParams, g)
+
+	// ===== Profissionais aleatórios (rota pública, só essa) =====
+	{
+    findRandomParams := pkgprofessionaluc.FindRandomUCParams{
+        Service: dependency.ProfessionalService,
+    }
+
+    controller := &pkgcontrollers.ProfessionalController{
+        FindRandomUCParams: findRandomParams,
+    }
+
+    g.GET("/professionals/random", controller.FindRandomByProfession)
+}
+
+
 }
 
 func buildBannerEndPoint(dependenceParams *dependenceParams, g *echo.Group) {
