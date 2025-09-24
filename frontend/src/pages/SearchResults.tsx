@@ -128,29 +128,49 @@ function SearchResults() {
   ];
   */
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     // console.log("Effect");
+  //     // console.log(location);
+  //     // console.log(location.state.selectedProfessional);
+  //     const selectedCity = location.state.selectedCity;
+  //     const selectedProfessional = location.state.selectedProfessional;
+  //     const return_professionals =
+  //       await ProfessionalService.getProfessionalByCityAndProfession({
+  //         cityID: parseInt(selectedCity),
+  //         professionID: parseInt(selectedProfessional),
+  //         limit: 1000,
+  //         offset: 0,
+  //       });
+
+  //     const json_professionals = await return_professionals.data.profissionais;
+  //     setProfessionals(json_professionals);
+  //     // setProfession(selectedProfessional);
+  //   };
+
+  //   fetchData();
+  // }, []);
+
   useEffect(() => {
     const fetchData = async () => {
-      // console.log("Effect");
-      // console.log(location);
-      // console.log(location.state.selectedProfessional);
       const selectedCity = location.state.selectedCity;
       const selectedProfessional = location.state.selectedProfessional;
-      const return_professionals =
-        await ProfessionalService.getProfessionalByCityAndProfession({
-          cityID: parseInt(selectedCity),
-          professionID: parseInt(selectedProfessional),
-          limit: 1000,
-          offset: 0,
-        });
-
-      const json_professionals = await return_professionals.data.profissionais;
-      setProfessionals(json_professionals);
-      // setProfession(selectedProfessional);
+  
+      const res = await ProfessionalService.getProfessionalsRandomPublic({
+        professionId: parseInt(selectedProfessional), 
+        limit: 1000,
+        offset: 0,
+      });
+      const all = res.data as IProfissional[];
+      const filtered =
+        selectedCity && String(selectedCity).length > 0
+          ? all.filter((p) => p.cidade?.oid === parseInt(selectedCity))
+          : all;
+      setProfessionals(filtered);
     };
-
+  
     fetchData();
   }, []);
-
 
 
     // Busca cidades e profissões ao mudar estado

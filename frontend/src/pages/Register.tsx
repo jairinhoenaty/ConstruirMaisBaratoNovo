@@ -61,7 +61,7 @@ function Register() {
     experience: "",
     codeVerification: "",
     meiCnpj: "",
-    negativeCertificate: "",
+    negativeCertificateNumber: "",
     isPremium: false,
   });
   const [showProfessions, setShowProfessions] = useState(false);
@@ -391,7 +391,7 @@ function Register() {
 
     // Validate password
     if (formData.password != formData.confirmPassword) {
-      setErrorPass("Senhas não estão iguais!!!!");
+      setErrorPass("Senhas não coincidem");
       isValid = false;
     }
 
@@ -427,6 +427,12 @@ function Register() {
       // Validar foto (obrigatória para premium)
       if (!formData.photo) {
         setError("Foto é obrigatória para cadastro premium");
+        isValid = false;
+      }
+
+      // Validar certificado negativo (obrigatória para premium)
+      if (!formData.negativeCertificateNumber) {
+        setError("Certificado negativo é obrigatório");
         isValid = false;
       }
     }
@@ -725,6 +731,7 @@ function Register() {
                     experience: formData.experience,
                     meiCnpj: formData.meiCnpj,
                     telefoneVerificado: !!formData.codeVerification,
+                    negativeCertificateNumber: parseInt(formData.negativeCertificateNumber)
                   }),
                 };
 
@@ -1886,11 +1893,11 @@ function Register() {
 
                   {/* Input separado para número da certidão */}
                   <input
-                    id="negativeCertificate"
-                    name="negativeCertificate"
+                    id="negativeCertificateNumber"
+                    name="negativeCertificateNumber"
                     type="number"
                     required
-                    value={formData.negativeCertificate}
+                    value={formData.negativeCertificateNumber}
                     onChange={handleChange}
                     disabled={!clickedCertificateButton}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"

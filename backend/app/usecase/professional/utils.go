@@ -83,6 +83,14 @@ func GenerateProfessionalPresenter(professional *pkgprofessional.Professional) P
 		presenter.Distance = professional.Distance
 		presenter.OnLine = professional.OnLine
 		presenter.Verified = professional.Verified
+		if professional.IsPremium != nil && *professional.IsPremium {
+			presenter.IsPremium = professional.IsPremium
+			presenter.Image = professional.Image
+			presenter.MeiCnpj = professional.MeiCnpj
+			presenter.NegativeCertificateNumber = professional.NegativeCertificateNumber
+			presenter.DateOfBirth = professional.DateOfBirth
+			presenter.Experience = professional.Experience
+		}
 
 	}
 	return presenter
