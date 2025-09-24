@@ -34,6 +34,12 @@ func GenerateProfessional(assembler *ProfessionalAssembler) pkgprofessional.Prof
 		professional.Image = assembler.Image
 		professional.Verified = assembler.Verified
 		professional.OnLine = assembler.OnLine
+		professional.IsPremium = assembler.IsPremium
+		professional.DateOfBirth = assembler.DateOfBirth
+		professional.Experience = assembler.Experience
+		professional.MeiCnpj = assembler.MeiCnpj
+		professional.CodeVerification = assembler.CodeVerification
+		professional.NegativeCertificateNumber = assembler.NegativeCertificateNumber
 
 	}
 	return professional
@@ -77,6 +83,14 @@ func GenerateProfessionalPresenter(professional *pkgprofessional.Professional) P
 		presenter.Distance = professional.Distance
 		presenter.OnLine = professional.OnLine
 		presenter.Verified = professional.Verified
+		if professional.IsPremium != nil && *professional.IsPremium {
+			presenter.IsPremium = professional.IsPremium
+			presenter.Image = professional.Image
+			presenter.MeiCnpj = professional.MeiCnpj
+			presenter.NegativeCertificateNumber = professional.NegativeCertificateNumber
+			presenter.DateOfBirth = professional.DateOfBirth
+			presenter.Experience = professional.Experience
+		}
 
 	}
 	return presenter

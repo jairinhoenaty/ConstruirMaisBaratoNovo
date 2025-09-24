@@ -3,21 +3,27 @@ package professional_usecase
 import "time"
 
 type ProfessionalPresenter struct {
-	ID           uint                  `json:"oid,omitempty"`
-	Name         string                `json:"nome"`
-	Email        string                `json:"email"`
-	Telephone    string                `json:"telefone"`
-	LgpdAceito   string                `json:"lgpdaceito"`
-	CreatedAt    time.Time             `json:"created_at"`
-	Cep          string                `json:"cep"`
-	Street       string                `json:"endereco"`
-	Neighborhood string                `json:"bairro"`
-	Cidade       CidadePresenter       `json:"cidade"`
-	Professions  []ProfissionPresenter `json:"profissoes"`
-	Image        []byte                `json:"image"`
-	Distance     float64               `json:"distance"`
-	OnLine       *bool                 `json:"online"`
-	Verified     *bool                 `json:"verified"`
+	ID                        uint                  `json:"oid,omitempty"`
+	Name                      string                `json:"nome"`
+	Email                     string                `json:"email"`
+	Telephone                 string                `json:"telefone"`
+	LgpdAceito                string                `json:"lgpdaceito"`
+	CreatedAt                 time.Time             `json:"created_at"`
+	Cep                       string                `json:"cep"`
+	Street                    string                `json:"endereco"`
+	Neighborhood              string                `json:"bairro"`
+	Cidade                    CidadePresenter       `json:"cidade"`
+	Professions               []ProfissionPresenter `json:"profissoes"`
+	Image                     []byte                `json:"image"`
+	Distance                  float64               `json:"distance"`
+	OnLine                    *bool                 `json:"online"`
+	Verified                  *bool                 `json:"verified"`
+	IsPremium                 *bool                 `json:"isPremium"`
+	DateOfBirth               string                `json:"dateOfBirth"`
+	Experience                string                `json:"experience"`
+	CodeVerification          string                `json:"codeVerification"`
+	NegativeCertificateNumber int64                 `json:"negativeCertificateNumber"`
+	MeiCnpj                   string                `json:"meiCnpj"`
 }
 
 type CidadePresenter struct {

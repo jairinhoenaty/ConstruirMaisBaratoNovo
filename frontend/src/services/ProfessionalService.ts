@@ -93,10 +93,20 @@ const postProfessionalPublic = (data: IProfissional) =>
 
 const deleteProfessional = (id: Number) => Api.delete("/professional/" + id);
 
+const getProfessionalsRandomPublic = (params: {
+  professionId?: number;      
+  profession?: string;        
+  verified?: boolean;         
+  online?: boolean;           
+  seed?: number;              
+  limit?: number;             
+  offset?: number;            
+}) => ApiPublica.get("/professionals/random", { params });
+
 export const ProfessionalService = {
   getProfessionalbyID,
   getProfessionals,
-  postProfessional,
+  getProfessionalsRandomPublic,
   postProfessionalPublic,
   changePassword,
   saveProfessional,
