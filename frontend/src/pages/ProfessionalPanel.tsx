@@ -829,7 +829,7 @@ function ProfessionalPanel() {
                   <div className="flex items-center gap-3 mb-6">
                     <div className="flex items-center gap-2">
                       <Star className="w-6 h-6 text-yellow-500" />
-                      <h3 className="text-xl font-bold text-[#FF6B35]">
+                      <h3 className="text-base font-bold text-[#FF6B35] sm:text-xl">
                         Profissional Premium
                       </h3>
                       <Shield className="w-6 h-6 text-green-600" />
