@@ -1259,7 +1259,11 @@ function ProfessionalPanel() {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#FF6B35] text-white rounded-lg hover:bg-[#f76029] transition-colors"
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${
+                    formData.isPremium
+                      ? "bg-[#FF6B35] hover:bg-[#f76029]"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
                 >
                   <Save className="w-5 h-5" />
                   Atualizar Conta
