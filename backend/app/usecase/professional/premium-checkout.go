@@ -10,9 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type CheckoutPremiumUC struct{}
-
-type CheckoutPremiumInput struct {
+type CheckoutPremiumUC struct {
+	Assembler PayerAssembler
+}
+type PayerAssembler struct {
 	UserID uint              `json:"userId"`
 	Payer  mercadopago.Payer `json:"payer"`
 }
@@ -29,24 +30,24 @@ func NewCheckoutPremiumUC() *CheckoutPremiumUC {
 	return &CheckoutPremiumUC{}
 }
 
-func (uc *CheckoutPremiumUC) Execute(in CheckoutPremiumInput) (*CheckoutPremiumOutput, error) {
-	mpClient := mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN_TESTE"))
+func (uc *CheckoutPremiumUC) Execute() (*CheckoutPremiumOutput, error) {
+	mpClient := mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN_TESTE"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
 
 	price := 19.90
-	appURL := os.Getenv("APP_PUBLIC_URL")
-	notificationURL := fmt.Sprintf("%s/webhooks/mercadopago", appURL)
+	// appURL := os.Getenv("APP_PUBLIC_URL")
+	// notificationURL := fmt.Sprintf("%s/webhooks/mercadopago", appURL)
 
 	idem := uuid.NewString()
 	desc := "Assinatura Premium mensal"
-	extRef := fmt.Sprintf("user:%d:%d", in.UserID, time.Now().Unix())
+	extRef := fmt.Sprintf("user:%d:%d", uc.Assembler.UserID, time.Now().Unix())
 
 	paymentInput := mercadopago.PixPaymentInput{
-		Amount:          price,
-		Description:     desc,
-		ExternalRef:     extRef,
-		NotificationURL: notificationURL,
-		IdempotencyKey:  idem,
-		Payer:           in.Payer,
+		Amount:      price,
+		Description: desc,
+		ExternalRef: extRef,
+		// NotificationURL: notificationURL,
+		IdempotencyKey: idem,
+		Payer:          uc.Assembler.Payer,
 	}
 
 	res, err := mpClient.CreatePixPayment(paymentInput)

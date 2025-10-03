@@ -85,8 +85,7 @@ const CountProfessionalsByProfessionByCitie = (data: { cityID: string }) =>
   Api.post("count/professionals/city", data);
 
 const checkoutUserPremium = (data: CheckoutPremiumInput) =>
-  Api.post<CheckoutPremiumOutput>("/professional/checkout/premium", data);
-
+  ApiPublica.post<CheckoutPremiumOutput>("/professional/checkout/premium", data);
 
 const lastProfessionals = (data: { quantity: number }) =>
   Api.post("/last/professionals", data);

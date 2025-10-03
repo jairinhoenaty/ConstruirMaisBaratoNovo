@@ -73,7 +73,7 @@ func NewProfessionalController(params *ProfessionalControllerParams, g *echo.Gro
 	g.POST("/export-professionals-XLSX", controller.ExportProfessionalsXLSX)
 	g.POST("/count/professional/profession", controller.CountProfessionalByProfession)
 	g.POST("/count/professionals/city", controller.CountProfessionalsByProfessionInCity)
-	g.POST("/professional/checkout/premium", controller.CheckoutProfissionalPremium)
+	// g.POST("/professional/checkout/premium", controller.CheckoutProfissionalPremium)
 
 }
 
@@ -461,19 +461,20 @@ func (c *ProfessionalController) FindRandomByProfession(ctx echo.Context) error 
 	ctx.Response().Header().Set("X-Total-Count", strconv.FormatInt(total, 10))
 	return ctx.JSON(http.StatusOK, result)
 }
-func (c *ProfessionalController) CheckoutProfissionalPremium(ctx echo.Context) error {
-	defer ctx.Request().Body.Close()
 
-	var assembler pkgprofessionaluc.CheckoutPremiumInput
-	if err := ctx.Bind(&assembler); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
-	}
+// func (c *ProfessionalController) CheckoutProfissionalPremium(ctx echo.Context) error {
+// 	defer ctx.Request().Body.Close()
 
-	checkoutUC := pkgprofessionaluc.NewCheckoutPremiumUC()
-	result, err := checkoutUC.Execute(assembler)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+// 	var assembler pkgprofessionaluc.CheckoutPremiumInput
+// 	if err := ctx.Bind(&assembler); err != nil {
+// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+// 	}
 
-	return ctx.JSON(http.StatusOK, result)
-}
+// 	checkoutUC := pkgprofessionaluc.NewCheckoutPremiumUC()
+// 	result, err := checkoutUC.Execute(assembler)
+// 	if err != nil {
+// 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+// 	}
+
+// 	return ctx.JSON(http.StatusOK, result)
+// }

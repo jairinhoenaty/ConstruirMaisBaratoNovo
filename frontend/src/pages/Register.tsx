@@ -816,35 +816,41 @@ function Register() {
                 showConfirmButton: false,
                 timer: 3000,
               });
-              setTimeout(() => {
-                const payer: Payer = {
-                  first_name: formData.name.split(' ')[0],
-                  last_name: formData.name.split(' ').slice(1).join(' '),
-                  email: formData.email,
-                  identification: {
-                    type: "CPF",
-                    number: formData.meiCnpj || ""
-                  },
-                  address: {
-                    zip_code: "",
-                    street_name: "",
-                    street_number: "",
-                    neighborhood: "",
-                    city: formData.city,
-                    federal_unit: formData.state
-                  }
-                };
+              if(premiumForm){
+                setTimeout(() => {
+                  const payer: Payer = {
+                    first_name: formData.name.split(' ')[0],
+                    last_name: formData.name.split(' ').slice(1).join(' '),
+                    email: formData.email,
+                    identification: {
+                      type: "CPF",
+                      number: formData.meiCnpj || ""
+                    },
+                    address: {
+                      zip_code: "",
+                      street_name: "",
+                      street_number: "",
+                      neighborhood: "",
+                      city: formData.city,
+                      federal_unit: formData.state
+                    }
+                  };
+  
+                  const checkoutState: CheckoutState = {
+                    userId: professionalId,
+                    userName: formData.name,
+                    userEmail: formData.email,
+                    planPrice: 19.90,
+                    payer: payer
+                  };
+  
+                  navigate("/checkout", { state: checkoutState });
+                }, 2000);
 
-                const checkoutState: CheckoutState = {
-                  userId: professionalId,
-                  userName: formData.name,
-                  userEmail: formData.email,
-                  planPrice: 19.90,
-                  payer: payer
-                };
+              }else{
+                navigate("/")
 
-                navigate("/checkout", { state: checkoutState });
-              }, 2000);
+              }
             } else {
               Swal.fire({
                 position: "center",
@@ -1927,7 +1933,7 @@ function Register() {
                     required
                     value={formData.negativeCertificateNumber}
                     onChange={handleChange}
-                    disabled={!clickedCertificateButton}
+                    // disabled={!clickedCertificateButton}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Digite o número da certidão"
                   />

@@ -76,25 +76,25 @@ function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 py-12">
+    <div className="min-h-screen  bg-gray-50 p-4 py-6">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
-          <h1 className="text-2xl font-bold mb-2">🚀 Pagamento Premium</h1>
-          <p className="text-blue-100">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
+          <h1 className="text-xl font-bold mb-1">Pagamento</h1>
+          <p className="text-sm text-blue-100">
             Último passo para ativar seus benefícios exclusivos!
           </p>
         </div>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-6">
           {/* Plano Info */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Plano Premium Mensal
+                  <h2 className="text-lg font-semibold text-[#FF6B35]">
+                    Plano Profissional Premium Mensal
                   </h2>
                   <p className="text-sm text-gray-600">
                     Assinatura recorrente
@@ -132,16 +132,16 @@ function Checkout() {
             {checkoutData.qr_code_base64 && (
               <div className="flex flex-col items-center">
                 {/* QR Code Image */}
-                <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+                <div className="bg-white p-3 rounded-lg shadow-md mb-4">
                   <img
                     src={`data:image/png;base64,${checkoutData.qr_code_base64}`}
                     alt="QR Code PIX"
-                    className="w-64 h-64"
+                    className="w-48 h-48"
                   />
                 </div>
 
                 {/* Divider */}
-                <div className="flex items-center w-full mb-4">
+                <div className="flex items-center w-full mb-3">
                   <div className="flex-1 border-t border-gray-300"></div>
                   <span className="px-4 text-sm text-gray-500">ou</span>
                   <div className="flex-1 border-t border-gray-300"></div>
@@ -180,11 +180,11 @@ function Checkout() {
           </div>
 
           {/* Instructions */}
-          <div className="mt-8 bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-900 mb-3">
+          <div className="mt-6 bg-gray-50 rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">
               Como pagar com PIX:
             </h4>
-            <ol className="space-y-2 text-sm text-gray-600">
+            <ol className="space-y-1.5 text-sm text-gray-600">
               <li className="flex">
                 <span className="font-semibold mr-2">1.</span>
                 <span>
@@ -212,7 +212,7 @@ function Checkout() {
           </div>
 
           {/* Footer Info */}
-          <div className="mt-6 text-center">
+          <div className="mt-4 text-center">
             <p className="text-xs text-gray-500">
               O pagamento PIX é processado instantaneamente.
               <br />

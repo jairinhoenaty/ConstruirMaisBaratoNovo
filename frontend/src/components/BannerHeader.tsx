@@ -7,7 +7,7 @@ function BannerHeader() {
   return (
     <div>
       {" "}
-      {location.pathname != "/dashboard" && (
+      {location.pathname != "/dashboard" && location.pathname !="/checkout" &&  (
         <CarouselNovo  page={location.pathname as string} />  
       )}
     </div>

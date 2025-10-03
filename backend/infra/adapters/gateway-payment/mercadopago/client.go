@@ -2,7 +2,6 @@ package mercadopago
 
 import (
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -12,10 +11,10 @@ type MPClient struct {
 	HttpClient  *http.Client
 }
 
-func NewMPClient(accessToken string) *MPClient {
+func NewMPClient(accessToken, baseURL string) *MPClient {
 	return &MPClient{
 		AccessToken: accessToken,
-		BaseURL:     os.Getenv("MERCADOPAGO_BASE_URL_API"),
+		BaseURL:     baseURL,
 		HttpClient:  &http.Client{Timeout: 15 * time.Second},
 	}
 }

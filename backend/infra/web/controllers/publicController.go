@@ -110,6 +110,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.GET("/professions/:quantityProfession", controller.FindProfessions)
 	g.POST("/find/professions-with-count", controller.FindProfessionsWithCount)
 	g.POST("/find-banner-city-and-profession", controller.FindByCityAndProfession)
+	g.POST("/professional/checkout/premium", controller.CheckoutProfissionalPremium)
 	g.POST("/search-all-professionals-and-city-and-profession", controller.PublicFindAllProfessionalsByCityAndProfession)
 	g.POST("/search-professionals-by-name-and-city-and-profession", controller.FindByNameProfessinalsAndCityAndProfession)
 	g.POST("/products/dayoffer", controller.FindProductsByDayOffer)
@@ -125,6 +126,24 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.POST("/save/client", controller.SaveClient)
 	g.POST("/upload/image", controller.uploadFile)
 
+}
+
+func (c *PublicController) CheckoutProfissionalPremium(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+
+	var assembler pkgprofessionaluc.PayerAssembler
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	checkoutUC := pkgprofessionaluc.NewCheckoutPremiumUC()
+	checkoutUC.Assembler = assembler
+	result, err := checkoutUC.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, result)
 }
 
 func (c *PublicController) FindByCityAndProfession(ctx echo.Context) error {

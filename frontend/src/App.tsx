@@ -3,6 +3,7 @@ import Marketplace from "./pages/Marketplace";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProfessionalPanel from "./pages/ProfessionalPanel";
+import Checkout from "./pages/Checkout";
 import Dashboard from "./pages/Dashboard";
 import Footer from "./components/Footer";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -27,6 +28,7 @@ function App() {
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/search" element={<SearchProfessionals />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/checkout" element={<Checkout />} />
 
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/search-results" element={<SearchResults />} />
