@@ -43,7 +43,6 @@ import (
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgprofessionaluc "construir_mais_barato/app/usecase/professional"
 	pkgprofessionalinfra "construir_mais_barato/infra/database/repositories/professional"
-	//pkgprofessionaluc "construir_mais_barato/app/usecase/professional"
 
 
 	pkgstore "construir_mais_barato/app/domain/store"
@@ -378,7 +377,7 @@ func buildProfessionalEndPoint(dependency *dependenceParams, g *echo.Group) {
 		CountProfessionalsByStateUCParams:            countProfessionalsByStateUCParams,
 		CountProfessionalsByProfessionInCityUCParams: countProfessionalsByProfessionInCityUCParams,
 		CountCityProfessionalsByStateUCParams:        countCityProfessionalsByStateUCParams,
-		FindRandomUCParams: 						  findRandomUCParams,
+		FindRandomUCParams:                           findRandomUCParams,
 	}
 
 	pkgcontrollers.NewProfessionalController(&professionalControllerParams, g)
