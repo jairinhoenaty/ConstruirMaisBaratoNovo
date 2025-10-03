@@ -33,6 +33,7 @@ import {
 } from "../services";
 import { StoreService } from "../services/StoreService";
 import { ClientService } from "../services/ClientService";
+import { CheckoutState, Payer } from "../interfaces";
 import ErrorAlert from "../components/ErrorAlert";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
@@ -804,18 +805,45 @@ function Register() {
             }
 
             if (postReturn.status == 200) {
+              const professionalId = postReturn.data.oid;
               Swal.fire({
                 position: "center",
                 icon: "success",
                 title: premiumForm
                   ? "🚀 Cadastro Premium Realizado!"
                   : "Cadastro Realizado!",
-                text: "Redirecionando para o login...",
+                text: "Redirecionando para o pagamento...",
                 showConfirmButton: false,
                 timer: 3000,
               });
               setTimeout(() => {
-                navigate("/login");
+                const payer: Payer = {
+                  first_name: formData.name.split(' ')[0],
+                  last_name: formData.name.split(' ').slice(1).join(' '),
+                  email: formData.email,
+                  identification: {
+                    type: "CPF",
+                    number: formData.meiCnpj || ""
+                  },
+                  address: {
+                    zip_code: "",
+                    street_name: "",
+                    street_number: "",
+                    neighborhood: "",
+                    city: formData.city,
+                    federal_unit: formData.state
+                  }
+                };
+
+                const checkoutState: CheckoutState = {
+                  userId: professionalId,
+                  userName: formData.name,
+                  userEmail: formData.email,
+                  planPrice: 19.90,
+                  payer: payer
+                };
+
+                navigate("/checkout", { state: checkoutState });
               }, 2000);
             } else {
               Swal.fire({

@@ -2,6 +2,7 @@
 import { off } from "process";
 import { IProfissional } from "../interfaces/IProfissional";
 import { IProfissionalAdd } from "../interfaces/IProfissionalAdd";
+import { CheckoutPremiumInput, CheckoutPremiumOutput } from "../interfaces";
 import Api from "../providers/Api";
 import ApiPublica from "../providers/ApiPublica";
 import axios from "axios";
@@ -83,6 +84,8 @@ const ProfessionalByState = (data: { state:string, limit: number; offset: number
 const CountProfessionalsByProfessionByCitie = (data: { cityID: string }) =>
   Api.post("count/professionals/city", data);
 
+const checkoutUserPremium = (data: CheckoutPremiumInput) =>
+  Api.post<CheckoutPremiumOutput>("/professional/checkout/premium", data);
 
 
 const lastProfessionals = (data: { quantity: number }) =>
@@ -113,6 +116,7 @@ export const ProfessionalService = {
   getProfessionalByCityAndProfession,
   countProfessionalByProfession,
   countProfessionalByState,
+  checkoutUserPremium,
   lastProfessionals,
   deleteProfessional,
   getProfessionalbyName,
