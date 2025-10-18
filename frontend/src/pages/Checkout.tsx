@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ProfessionalService } from "../services/ProfessionalService";
 import { CheckoutState, CheckoutPremiumOutput } from "../interfaces";
 import { Copy, Check, Loader } from "lucide-react";
@@ -12,7 +12,8 @@ function Checkout() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // Dados vindos do registro com tipagem
+  const hasCalledApi = useRef(false);
+
   const state = location.state as CheckoutState | null;
 
   useEffect(() => {
@@ -26,7 +27,12 @@ function Checkout() {
       return;
     }
 
-    // Chamar API de checkout
+    if (hasCalledApi.current) {
+      return;
+    }
+
+    hasCalledApi.current = true;
+
     const createCheckout = async () => {
       try {
         const response = await ProfessionalService.checkoutUserPremium({
@@ -50,7 +56,7 @@ function Checkout() {
     };
 
     createCheckout();
-  }, [state, navigate]);
+  }, []);
 
   const copyToClipboard = () => {
     if (checkoutData?.qr_code) {

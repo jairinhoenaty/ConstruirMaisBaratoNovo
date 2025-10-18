@@ -46,6 +46,29 @@ func ValidateToken(tokenString string) bool {
 	}
 }
 
+// GetUserIDFromToken extrai o ID do usuário do token JWT
+func GetUserIDFromToken(tokenString string) (uint, error) {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if id, ok := claims["id"].(float64); ok {
+			return uint(id), nil
+		}
+		return 0, fmt.Errorf("id not found in token")
+	}
+
+	return 0, fmt.Errorf("invalid token")
+}
+
 func GenerateAuthenticatePresenter(token string, isLoged bool, data UserPresenter) AuthenticatePresenter {
 	dataProfile := ""
 	if data.Profile != nil {

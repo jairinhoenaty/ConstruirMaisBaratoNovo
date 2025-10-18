@@ -37,7 +37,7 @@ import InputMask from "react-input-mask";
 //import { states, citiesByState } from '../data';
 //import { professionals_data } from "../data";
 import { states } from "../data";
-import QuotesPanel from "./QuotesPanel";
+import QuotesPanel from "./QuotesPanelNew";
 import ClientMessages from "./ClientMessages";
 import PasswordPanel from "./PasswordPanel";
 import { ProfessionalService } from "../services/ProfessionalService";

@@ -94,6 +94,7 @@ func (c *MPClient) CreatePixPayment(input PixPaymentInput) (*PixCreateResult, er
 		return nil, err
 	}
 	defer resp.Body.Close()
+	fmt.Println(resp.StatusCode)
 
 	if resp.StatusCode >= 300 {
 		var dbg map[string]any

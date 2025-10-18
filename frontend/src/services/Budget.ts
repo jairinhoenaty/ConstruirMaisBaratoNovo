@@ -1,5 +1,6 @@
 //import { IBanner } from "../interfaces/IBanner";
 import { IBudget } from "../interfaces/IBudget";
+import { ICheckBudgetAccess, IUnlockBudgetPaymentInput, IUnlockBudgetPaymentOutput } from "../interfaces/IUnlockedBudget";
 import Api from "../providers/Api";
 import ApiPublica from "../providers/ApiPublica";
 
@@ -16,9 +17,17 @@ const getBudgetsAll = (limit:number,offset:number) => Api.get("/budgets?limit=" 
   "&offset=" +
   offset);
 
+const checkBudgetAccess = (budgetId: number) =>
+  Api.get<ICheckBudgetAccess>(`/budget/${budgetId}/check-access`);
+
+const unlockBudget = (budgetId: number, data: IUnlockBudgetPaymentInput) =>
+  Api.post<IUnlockBudgetPaymentOutput>(`/budget/${budgetId}/unlock`, data);
+
 export const BudgetService = {
   saveBudget,
   getBudgetsbyMonth,
   getBudgetsAll,
   deleteBudget,
+  checkBudgetAccess,
+  unlockBudget,
 };

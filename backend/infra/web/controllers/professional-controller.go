@@ -45,8 +45,8 @@ type ProfessionalControllerParams struct {
 
 func NewProfessionalController(params *ProfessionalControllerParams, g *echo.Group) {
 	controller := ProfessionalController{
-		FindRandomUCParams: params.FindRandomUCParams,
-		//FindAllProfessionalUCParams:                  params.FindAllProfessionalUCParams,
+		FindRandomUCParams:                           params.FindRandomUCParams,
+		FindAllProfessionalUCParams:                  params.FindAllProfessionalUCParams,
 		FindByIdUCParams:                             params.FindByIdUCParams,
 		FindByNamedUCParams:                          params.FindByNamedUCParams,
 		FindByProfessionAndLocationUCParams:          params.FindByProfessionAndLocationUCParams,
