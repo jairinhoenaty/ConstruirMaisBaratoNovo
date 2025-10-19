@@ -15,6 +15,7 @@ function Checkout() {
   const hasCalledApi = useRef(false);
 
   const state = location.state as CheckoutState | null;
+  const isUpgrade = (state as any)?.isUpgrade || false;
 
   useEffect(() => {
     if (!state || !state.userId) {
@@ -86,9 +87,13 @@ function Checkout() {
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
-          <h1 className="text-xl font-bold mb-1">Pagamento</h1>
+          <h1 className="text-xl font-bold mb-1">
+            {isUpgrade ? "Upgrade para Premium" : "Pagamento"}
+          </h1>
           <p className="text-sm text-blue-100">
-            Último passo para ativar seus benefícios exclusivos!
+            {isUpgrade
+              ? "Complete seu upgrade e desbloqueie todos os benefícios!"
+              : "Último passo para ativar seus benefícios exclusivos!"}
           </p>
         </div>
 

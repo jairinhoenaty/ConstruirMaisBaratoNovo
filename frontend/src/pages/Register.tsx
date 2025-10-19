@@ -36,7 +36,7 @@ import { ClientService } from "../services/ClientService";
 import { CheckoutState, Payer } from "../interfaces";
 import ErrorAlert from "../components/ErrorAlert";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import LoadingText from "../components/LoadingText";
 import VideoPopup from "../components/VideoPopup";
 
@@ -86,8 +86,10 @@ function Register() {
   const [codigoEnviado, setCodigoEnviado] = useState(false);
   const [loadingSMS, setLoadingSMS] = useState(false);
   const [choose, setChoose] = useState(false);
+  const [isUpgradeMode, setIsUpgradeMode] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const roles = [
     {
@@ -144,6 +146,32 @@ function Register() {
 
     fetchData();
   }, [showProfessions]);
+
+  // Detectar modo de upgrade e pré-popular dados do usuário logado
+  React.useEffect(() => {
+    const upgradeState = location.state as { upgradeToPremium?: boolean };
+
+    if (upgradeState?.upgradeToPremium) {
+      console.log("Modo upgrade detectado!");
+      setIsUpgradeMode(true);
+
+      // Buscar dados do usuário logado do localStorage
+      const userName = localStorage.getItem("name") || "";
+      const userEmail = localStorage.getItem("email") || "";
+      const userId = localStorage.getItem("id") || "";
+
+      // Pre-popular formulário com dados existentes
+      setFormData((prev) => ({
+        ...prev,
+        name: userName,
+        email: userEmail,
+      }));
+
+      // Automaticamente mostrar modal premium na primeira vez
+      setChoose(false);
+      setShowPremiumModal(true);
+    }
+  }, [location]);
 
   /*const handleClickOutside = (e) => {
     if (chevronRef.current && !chevronRef.current.contains(e.target)) {
@@ -390,14 +418,22 @@ function Register() {
     setError("");
     setErrorAge("");
 
-    // Validate password
-    if (formData.password != formData.confirmPassword) {
-      setErrorPass("Senhas não coincidem");
-      isValid = false;
+    // Validate password - pular em modo upgrade
+    if (!isUpgradeMode) {
+      if (formData.password != formData.confirmPassword) {
+        setErrorPass("Senhas não coincidem");
+        isValid = false;
+      }
     }
 
     // Validações específicas para premium
     if (premiumForm) {
+      // Validar telefone em modo upgrade (obrigatório para SMS)
+      if (isUpgradeMode && !formData.phone) {
+        setError("Telefone é obrigatório para receber o código SMS");
+        isValid = false;
+      }
+
       // Validar idade (maior de 18 anos)
       if (formData.dateOfBirth) {
         const age = calculateAge(formData.dateOfBirth);
@@ -659,6 +695,68 @@ function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Se estiver em modo upgrade, pular validação de modal e ir direto pro checkout
+    if (isUpgradeMode && premiumForm) {
+      // Validar apenas campos premium
+      if (!validateForm()) {
+        return;
+      }
+
+      setIsLoading(true);
+
+      // Buscar dados do usuário logado
+      const userId = localStorage.getItem("id") || "";
+      const userName = localStorage.getItem("name") || "";
+      const userEmail = localStorage.getItem("email") || "";
+
+      // TODO: Aqui deveria chamar API para atualizar dados premium do usuário
+      // Por enquanto, vamos apenas redirecionar para o checkout
+
+      setTimeout(() => {
+        const payer: Payer = {
+          first_name: userName.split(' ')[0],
+          last_name: userName.split(' ').slice(1).join(' '),
+          email: userEmail,
+          identification: {
+            type: "CPF",
+            number: formData.meiCnpj || ""
+          },
+          address: {
+            zip_code: "",
+            street_name: "",
+            street_number: "",
+            neighborhood: "",
+            city: formData.city || "",
+            federal_unit: formData.state || ""
+          }
+        };
+
+        const checkoutState: CheckoutState = {
+          userId: parseInt(userId),
+          userName: userName,
+          userEmail: userEmail,
+          planPrice: 19.90,
+          payer: payer
+        };
+
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "🚀 Upgrade para Premium!",
+          text: "Redirecionando para o pagamento...",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+
+        setTimeout(() => {
+          navigate("/checkout", { state: checkoutState });
+        }, 2000);
+      }, 500);
+
+      setIsLoading(false);
+      return;
+    }
 
     const shouldContinue = await processFormSubmission();
     if (!shouldContinue) {
@@ -1311,104 +1409,110 @@ function Register() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && <ErrorAlert message={error} onClose={closeError} />}
-          {/* Role Selection */}
-          <div className="mb-8">
-            <label className="block text-sm font-medium text-gray-700 mb-4">
-              Como você deseja se cadastrar?
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-              {roles.map((role) => {
-                const Icon = role.icon;
-                return (
-                  <button
-                    key={role.id}
-                    type="button"
-                    onClick={() => setSelectedRole(role.id as UserRole)}
-                    className={`flex flex-col items-center p-4 rounded-lg border-2 transition-colors ${
-                      selectedRole === role.id
-                        ? "border-blue-600 bg-blue-50"
-                        : "border-gray-200 hover:border-blue-300"
-                    }`}
-                  >
-                    <Icon
-                      className={`w-8 h-8 mb-2 ${
+
+          {/* Role Selection - Ocultar em modo upgrade */}
+          {!isUpgradeMode && (
+            <div className="mb-8">
+              <label className="block text-sm font-medium text-gray-700 mb-4">
+                Como você deseja se cadastrar?
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                {roles.map((role) => {
+                  const Icon = role.icon;
+                  return (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => setSelectedRole(role.id as UserRole)}
+                      className={`flex flex-col items-center p-4 rounded-lg border-2 transition-colors ${
                         selectedRole === role.id
-                          ? "text-blue-600"
-                          : "text-gray-400"
-                      }`}
-                    />
-                    <span
-                      className={`font-medium ${
-                        selectedRole === role.id
-                          ? "text-blue-600"
-                          : "text-gray-900"
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-200 hover:border-blue-300"
                       }`}
                     >
-                      {role.name}
-                    </span>
-                    <span className="text-xs text-gray-500 text-center mt-1">
-                      {role.description}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Foto */}
-            {/*
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Foto de Perfil
-              </label>
-              <div className="flex items-center justify-center">
-                <div className="relative">
-                  <div
-                    className={`w-32 h-32 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-50 ${
-                      previewUrl ? "" : "border-dashed"
-                    }`}
-                  >
-                    {previewUrl ? (
-                      <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
+                      <Icon
+                        className={`w-8 h-8 mb-2 ${
+                          selectedRole === role.id
+                            ? "text-blue-600"
+                            : "text-gray-400"
+                        }`}
                       />
-                    ) : (
-                      <Camera className="w-8 h-8 text-gray-400" />
-                    )}
-                  </div>
-                  <label
-                    htmlFor="photo-upload"
-                    className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors"
-                  >
-                    <Upload className="w-4 h-4" />
-                  </label>
-                  <input
-                    id="photo-upload"
-                    name="photo"
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoChange}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreviewUrl("");
-                      setFormData((prev) => ({ ...prev, photo: "" }));
-                    }}
-                    className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+                      <span
+                        className={`font-medium ${
+                          selectedRole === role.id
+                            ? "text-blue-600"
+                            : "text-gray-900"
+                        }`}
+                      >
+                        {role.name}
+                      </span>
+                      <span className="text-xs text-gray-500 text-center mt-1">
+                        {role.description}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            */}
-            {/* Nome */}
-            <div>
+          )}
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Campos básicos - Ocultar em modo upgrade */}
+            {!isUpgradeMode && (
+              <>
+                {/* Foto */}
+                {/*
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Foto de Perfil
+                  </label>
+                  <div className="flex items-center justify-center">
+                    <div className="relative">
+                      <div
+                        className={`w-32 h-32 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-50 ${
+                          previewUrl ? "" : "border-dashed"
+                        }`}
+                      >
+                        {previewUrl ? (
+                          <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Camera className="w-8 h-8 text-gray-400" />
+                        )}
+                      </div>
+                      <label
+                        htmlFor="photo-upload"
+                        className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors"
+                      >
+                        <Upload className="w-4 h-4" />
+                      </label>
+                      <input
+                        id="photo-upload"
+                        name="photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewUrl("");
+                          setFormData((prev) => ({ ...prev, photo: "" }));
+                        }}
+                        className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                */}
+                {/* Nome */}
+                <div>
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
@@ -1704,6 +1808,8 @@ function Register() {
                 )}
               </div>
             )}
+              </>
+            )}
 
             {premiumForm && (
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
@@ -1716,6 +1822,37 @@ function Register() {
                     confiável
                   </p>
                 </div>
+
+                {/* Telefone - Mostrar em modo upgrade */}
+                {isUpgradeMode && (
+                  <div className="mb-6">
+                    <label
+                      htmlFor="phone-upgrade"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Telefone Comercial *
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Phone className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <InputMask
+                        mask="(99) 99999-9999"
+                        id="phone-upgrade"
+                        name="phone"
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="(11) 99999-9999"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Necessário para receber o código de verificação SMS
+                    </p>
+                  </div>
+                )}
 
                 {/* Foto de Perfil */}
                 <div className="mb-6">
@@ -1974,12 +2111,14 @@ function Register() {
                 type="submit"
                 disabled={
                   !formData.acceptTerms ||
-                  (selectedRole === "professional" &&
+                  (!isUpgradeMode &&
+                    selectedRole === "professional" &&
                     formData.professions.length === 0) ||
                   (premiumForm &&
                     (!formData.dateOfBirth ||
                       !formData.codeVerification ||
-                      !formData.photo))
+                      !formData.photo ||
+                      (isUpgradeMode && !formData.phone)))
                 }
                 className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >

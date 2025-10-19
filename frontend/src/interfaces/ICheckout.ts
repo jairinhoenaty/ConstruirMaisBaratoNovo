@@ -41,4 +41,6 @@ export interface CheckoutState {
   userEmail: string;
   planPrice: number;
   payer: Payer;
+  isUpgrade?: boolean;
+  returnUrl?: string;
 }
