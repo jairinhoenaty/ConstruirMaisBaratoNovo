@@ -4,7 +4,7 @@ export interface IProfissional {
   oid: number;
   nome: string;
   email: string;
-  telephone: string;
+  telefone: string;
   //LgpdAceito: string;
   cep: string;
   street: string;
@@ -15,4 +15,10 @@ export interface IProfissional {
   professionIds: string[];
   image: string | null;
   verified: boolean|null;
+  isPremium: boolean;
+  dateOfBirth: string | null;
+  experience: string | null;
+  meiCnpj: string | null;
+  telefoneVerificado: string | null;
+  negativeCertificateNumber: string | null;
 }

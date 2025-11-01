@@ -861,7 +861,7 @@ function ProfessionalPanel() {
                       <div className="flex-1">
                         <label
                           htmlFor="photo-upload"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35] hover:bg-[#f76029] text-white rounded-lg cursor-pointer transition-colors text-xs sm:text-base whitespace-nowrap"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35] hover:bg-[#E55A2B] text-white rounded-lg cursor-pointer transition-colors text-xs sm:text-base whitespace-nowrap"
                         >
                           <Upload className="w-4 h-4" />
                           Atualizar Foto
@@ -1261,7 +1261,7 @@ function ProfessionalPanel() {
                   type="submit"
                   className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${
                     formData.isPremium
-                      ? "bg-[#FF6B35] hover:bg-[#f76029]"
+                      ? "bg-[#FF6B35] hover:bg-[#E55A2B]"
                       : "bg-blue-600 hover:bg-blue-700"
                   }`}
                 >

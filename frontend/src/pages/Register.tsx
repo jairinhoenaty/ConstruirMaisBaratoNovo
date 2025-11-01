@@ -822,10 +822,10 @@ function Register() {
                   neighborhood: "",
                   cityId: parseInt(formData.city),
                   professionIds: formData.professions,
-                  image: base64image,
                   // Campos Premium
                   isPremium: premiumForm,
                   ...(premiumForm && {
+                    image: base64image,
                     dateOfBirth: formData.dateOfBirth,
                     experience: formData.experience,
                     meiCnpj: formData.meiCnpj,
