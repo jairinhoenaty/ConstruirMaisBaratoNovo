@@ -110,6 +110,7 @@ export const ProfessionalService = {
   getProfessionals,
   getProfessionalsRandomPublic,
   postProfessionalPublic,
+  postProfessional,
   changePassword,
   saveProfessional,
   getProfessionalByCityAndProfession,

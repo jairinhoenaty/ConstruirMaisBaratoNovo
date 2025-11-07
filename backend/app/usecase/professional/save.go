@@ -34,7 +34,7 @@ func (uc *SaveProfessionalUC) Execute() (*ProfessionalPresenter, error) {
 	}
 
 	professional := GenerateProfessional(uc.Assembler)
-	println("Profissional a ser salvo:", &professional.Verified)
+	println("Profissional a ser salvo:", &professional.IsPremium)
 
 	professionalSaved, err := uc.Service.Save(professional)
 	if err != nil {

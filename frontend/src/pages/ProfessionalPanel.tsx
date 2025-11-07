@@ -749,7 +749,7 @@ function ProfessionalPanel() {
           <div className="flex flex-wrap gap-2">
             {menuItems.map((item) => {
               //console.log("VERIFIED: " + verified);
-              if (verified == false && item.id === "products") {
+              if (formData.isPremium == false && item.id === "products") {
                 return null; // Não renderiza o item se o profissional não estiver verificado
               } else {
                 const Icon = item.icon;
