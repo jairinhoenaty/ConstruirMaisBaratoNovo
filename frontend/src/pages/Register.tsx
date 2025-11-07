@@ -686,9 +686,9 @@ function Register() {
       return false;
     }
 
-    if (premiumForm) {
-      setFormData((prev) => ({ ...prev, isPremium: true }));
-    }
+    // if (premiumForm) {
+    //   setFormData((prev) => ({ ...prev, isPremium: true }));
+    // }
 
     return true;
   };
