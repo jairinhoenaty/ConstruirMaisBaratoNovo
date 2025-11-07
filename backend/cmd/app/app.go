@@ -367,6 +367,7 @@ func buildProfessionalEndPoint(dependency *dependenceParams, g *echo.Group) {
 
 	findRandomUCParams := pkgprofessionaluc.FindRandomUCParams{
     Service: dependency.ProfessionalService,
+		Service: dependency.ProfessionalService,
 	}
 
 	exportXLSXProfessionalUCParams := pkgprofessionaluc.ExportXLSXProfessionalUCParams{
@@ -681,8 +682,6 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.ProductService,
 	}
 
-	
-
 	// parametros do userController
 	publicControllerParams := pkgcontrollers.PublicControllerParams{
 		FindRegionByCityIdUCParams:                          findRegionByCityUCParams,
@@ -712,16 +711,13 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 
 	// ===== Profissionais aleatórios (rota pública, só essa) =====
 	{
-    findRandomParams := pkgprofessionaluc.FindRandomUCParams{
-        Service: dependency.ProfessionalService,
-    }
+		findRandomParams := pkgprofessionaluc.FindRandomUCParams{
+			Service: dependency.ProfessionalService,
+		}
 
-    controller := &pkgcontrollers.ProfessionalController{
-        FindRandomUCParams: findRandomParams,
-    }
-
-    g.GET("/professionals/random", controller.FindRandomByProfession)
-}
+		controller := &pkgcontrollers.ProfessionalController{
+			FindRandomUCParams: findRandomParams,
+		}
 
 
 }
