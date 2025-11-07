@@ -806,7 +806,7 @@ function SearchResults() {
                       )}
                   </div>
 
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-6">
                     {/* Botão Saiba Mais - Mobile e Desktop */}
                     <button
                       onClick={() => {

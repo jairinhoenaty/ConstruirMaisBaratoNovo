@@ -44,7 +44,6 @@ import (
 	pkgprofessionaluc "construir_mais_barato/app/usecase/professional"
 	pkgprofessionalinfra "construir_mais_barato/infra/database/repositories/professional"
 
-
 	pkgstore "construir_mais_barato/app/domain/store"
 	pkgstoreuc "construir_mais_barato/app/usecase/store"
 	pkgstoreinfra "construir_mais_barato/infra/database/repositories/store"
@@ -78,7 +77,6 @@ import (
 	pkgcontrollers "construir_mais_barato/infra/web/controllers"
 
 	"construir_mais_barato/infra/adapters/gateway-payment/mercadopago"
-
 )
 
 type Server struct {
@@ -366,7 +364,6 @@ func buildProfessionalEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	findRandomUCParams := pkgprofessionaluc.FindRandomUCParams{
-    Service: dependency.ProfessionalService,
 		Service: dependency.ProfessionalService,
 	}
 
@@ -719,6 +716,8 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 			FindRandomUCParams: findRandomParams,
 		}
 
+		g.GET("/professionals/random", controller.FindRandomByProfession)
+	}
 
 }
 
