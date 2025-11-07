@@ -8,3 +8,4 @@ export * from "./ProductService";
 export * from "./ProductCategoryService";
 export * from "./UploadFileService";
 export * from "./RegionService";
+export * from "./NotificationService";

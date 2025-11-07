@@ -807,6 +807,7 @@ func Start(db *gorm.DB) {
 	publicRouter := router.Group("/publica")
 	buildLoginEndPoint(&dependency, publicRouter)
 	buildPublicEndPoint(&dependency, publicRouter)
+	pkgcontrollers.NewNotificationController(publicRouter, dependency.ProfessionalService)
 
 	// **************************************** Rotas privadas
 	routerGroup := router.Group("/api/v1")

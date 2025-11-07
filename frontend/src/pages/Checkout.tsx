@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { ProfessionalService } from "../services/ProfessionalService";
+import { NotificationService } from "../services/NotificationService";
 import { CheckoutState, CheckoutPremiumOutput } from "../interfaces";
 import { Copy, Check, Loader } from "lucide-react";
 import Swal from "sweetalert2";
@@ -43,6 +44,15 @@ function Checkout() {
 
         if (response.data) {
           setCheckoutData(response.data);
+
+          // Enviar mensagem de boas-vindas via WhatsApp
+          // try {
+          //   await NotificationService.sendWelcome(state.userId);
+          //   console.log("Mensagem WhatsApp enviada com sucesso");
+          // } catch (notifError) {
+          //   // Não bloqueia o fluxo se falhar o WhatsApp
+          //   console.warn("Falha ao enviar WhatsApp, mas pagamento criado:", notifError);
+          // }
         }
       } catch (error: any) {
         console.error("Erro ao criar checkout:", error);
