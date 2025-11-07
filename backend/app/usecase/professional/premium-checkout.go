@@ -31,7 +31,7 @@ func NewCheckoutPremiumUC() *CheckoutPremiumUC {
 }
 
 func (uc *CheckoutPremiumUC) Execute() (*CheckoutPremiumOutput, error) {
-	mpClient := mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN_TESTE"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
+	mpClient := mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
 
 	price := 19.90
 	// appURL := os.Getenv("APP_PUBLIC_URL")

@@ -81,7 +81,7 @@ func (c *MPClient) CreatePixPayment(input PixPaymentInput) (*PixCreateResult, er
 		return nil, err
 	}
 
-	// c.AccessToken = os.Getenv("MERCADOPAGO_ACCESS_TOKEN_TESTE")
+	// c.AccessToken = os.Getenv("MERCADOPAGO_ACCESS_TOKEN")
 
 	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
 	req.Header.Set("Content-Type", "application/json")
