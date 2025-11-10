@@ -808,19 +808,21 @@ function SearchResults() {
 
                   <div className="flex items-start gap-6">
                     {/* Botão Saiba Mais - Mobile e Desktop */}
-                    <button
-                      onClick={() => {
-                        setSelectedProfessional(professional);
-                        setModalInfoProfissional(true);
-                      }}
-                      className="flex-shrink-0 rounded-lg hover:bg-[#fd7c4c1a] transition-colors"
-                    >
-                      <img
-                        className="h-36 w-3h-36 -mt-3 sm:mt-0 sm:h-14 sm:w-14"
-                        src="images/saibaMais.png"
-                        alt="Saiba Mais"
-                      />
-                    </button>
+                    {professional.isPremium && (
+                      <button
+                        onClick={() => {
+                          setSelectedProfessional(professional);
+                          setModalInfoProfissional(true);
+                        }}
+                        className="flex-shrink-0 rounded-lg hover:bg-[#fd7c4c1a] transition-colors"
+                      >
+                        <img
+                          className="h-36 w-3h-36 -mt-3 sm:mt-0 sm:h-14 sm:w-14"
+                          src="images/saibaMais.png"
+                          alt="Saiba Mais"
+                        />
+                      </button>
+                    )}
 
                     {/* Botão Solicitar Orçamento - Desktop */}
                     <button
@@ -840,7 +842,7 @@ function SearchResults() {
                 </div>
 
                 {/* Botão Solicitar Orçamento - Mobile */}
-                <div className="sm:hidden -mt-10">
+                <div className="sm:hidden mt-1">
                   <button
                     onClick={() => {
                       setShowLGPDTerms(true);

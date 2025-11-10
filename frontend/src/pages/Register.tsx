@@ -207,10 +207,7 @@ function Register() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     e.preventDefault();
-    window.open(
-      "https://servicos.pf.gov.br/epol-sinic-publico/",
-      "_blank"
-    );
+    window.open("https://servicos.pf.gov.br/epol-sinic-publico/", "_blank");
     setclickedCertificateButton(true);
   };
 
@@ -715,12 +712,12 @@ function Register() {
 
       setTimeout(() => {
         const payer: Payer = {
-          first_name: userName.split(' ')[0],
-          last_name: userName.split(' ').slice(1).join(' '),
+          first_name: userName.split(" ")[0],
+          last_name: userName.split(" ").slice(1).join(" "),
           email: userEmail,
           identification: {
             type: "CPF",
-            number: formData.meiCnpj || ""
+            number: formData.meiCnpj || "",
           },
           address: {
             zip_code: "",
@@ -728,16 +725,16 @@ function Register() {
             street_number: "",
             neighborhood: "",
             city: formData.city || "",
-            federal_unit: formData.state || ""
-          }
+            federal_unit: formData.state || "",
+          },
         };
 
         const checkoutState: CheckoutState = {
           userId: parseInt(userId),
           userName: userName,
           userEmail: userEmail,
-          planPrice: 19.90,
-          payer: payer
+          planPrice: 19.9,
+          payer: payer,
         };
 
         Swal.fire({
@@ -823,14 +820,15 @@ function Register() {
                   cityId: parseInt(formData.city),
                   professionIds: formData.professions,
                   // Campos Premium
-                  isPremium: premiumForm,
                   ...(premiumForm && {
                     image: base64image,
                     dateOfBirth: formData.dateOfBirth,
                     experience: formData.experience,
                     meiCnpj: formData.meiCnpj,
                     telefoneVerificado: !!formData.codeVerification,
-                    negativeCertificateNumber: parseInt(formData.negativeCertificateNumber)
+                    negativeCertificateNumber: parseInt(
+                      formData.negativeCertificateNumber
+                    ),
                   }),
                 };
 
@@ -907,22 +905,20 @@ function Register() {
               Swal.fire({
                 position: "center",
                 icon: "success",
-                title: premiumForm
-                  ? "🚀 Cadastro Premium Realizado!"
-                  : "Cadastro Realizado!",
-                text: "Redirecionando para o pagamento...",
+                title: "Cadastro Realizado!",
+                text: premiumForm ? "Redirecionando para o pagamento..." : "",
                 showConfirmButton: false,
                 timer: 3000,
               });
-              if(premiumForm){
+              if (premiumForm) {
                 setTimeout(() => {
                   const payer: Payer = {
-                    first_name: formData.name.split(' ')[0],
-                    last_name: formData.name.split(' ').slice(1).join(' '),
+                    first_name: formData.name.split(" ")[0],
+                    last_name: formData.name.split(" ").slice(1).join(" "),
                     email: formData.email,
                     identification: {
                       type: "CPF",
-                      number: formData.meiCnpj || ""
+                      number: formData.meiCnpj || "",
                     },
                     address: {
                       zip_code: "",
@@ -930,24 +926,22 @@ function Register() {
                       street_number: "",
                       neighborhood: "",
                       city: formData.city,
-                      federal_unit: formData.state
-                    }
+                      federal_unit: formData.state,
+                    },
                   };
-  
+
                   const checkoutState: CheckoutState = {
                     userId: professionalId,
                     userName: formData.name,
                     userEmail: formData.email,
-                    planPrice: 19.90,
-                    payer: payer
+                    planPrice: 19.9,
+                    payer: payer,
                   };
-  
+
                   navigate("/checkout", { state: checkoutState });
                 }, 2000);
-
-              }else{
-                navigate("/")
-
+              } else {
+                navigate("/");
               }
             } else {
               Swal.fire({
@@ -1513,301 +1507,303 @@ function Register() {
                 */}
                 {/* Nome */}
                 <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Nome Completo
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="João da Silva"
-                />
-              </div>
-            </div>
-
-            {/* Empresa - Only show not client role */}
-            {selectedRole !== "client" && (
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Empresa
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="company"
-                    name="company"
-                    type="text"
-                    required
-                    value={formData.company}
-                    onChange={handleChange}
-                    minLength={10}
-                    className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Construir LTDA"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Email */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="seu@email.com"
-                />
-              </div>
-            </div>
-
-            {/* Telefone */}
-            <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Telefone Comercial
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-gray-400" />
-                </div>
-                <InputMask
-                  mask="(99) 99999-9999"
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-            </div>
-
-            {/* Senha */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Senha
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  )}
-                </button>
-              </div>
-              {errorPass && (
-                <ErrorAlert message={errorPass} onClose={closeErrorPass} />
-              )}
-            </div>
-
-            {/* Confirmar Senha */}
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Confirmar Senha
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Estado e Cidade */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label
-                  htmlFor="state"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Estado
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <select
-                    id="state"
-                    name="state"
-                    required
-                    value={formData.state}
-                    onChange={handleChange}
-                    className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700"
                   >
-                    <option value="">Selecione o estado</option>
-                    {states.map((state) => (
-                      <option key={state.id} value={state.id}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="city"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Cidade
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <select
-                    id="city"
-                    name="city"
-                    required
-                    value={formData.city}
-                    onChange={handleChange}
-                    disabled={!formData.state}
-                    className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-                  >
-                    <option value="">Selecione a cidade</option>
-                    {formData.state &&
-                      citiesByState.map((city: any) => (
-                        <option key={city.id} value={city.id}>
-                          {city.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Profissões - Only show for professional role */}
-            {selectedRole === "professional" && (
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Profissões
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowProfessions(!showProfessions)}
-                  className="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-10 pr-10 py-2 text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <HardHat className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <span className="block truncate">
-                    {selectedProfessionsText}
-                  </span>
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-2">
-                    <ChevronDown
-                      className={`h-5 w-5 text-gray-400 transition-transform ${
-                        showProfessions ? "transform rotate-180" : ""
-                      }`}
+                    Nome Completo
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="João da Silva"
                     />
-                  </span>
-                </button>
+                  </div>
+                </div>
 
-                {showProfessions && (
-                  <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
-                    {professions != null &&
-                      professions.map((profession) => (
-                        <div
-                          key={profession.id}
-                          className="relative cursor-pointer select-none py-2 pl-10 pr-4 hover:bg-blue-50"
-                          onClick={() => toggleProfession(profession.id)}
-                        >
-                          <span
-                            className={`block truncate ${
-                              formData.professions.includes(profession.id)
-                                ? "font-medium text-blue-600"
-                                : "font-normal"
-                            }`}
-                          >
-                            {profession.name}
-                          </span>
-                          {formData.professions.includes(profession.id) && (
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                              <Check className="h-5 w-5" />
-                            </span>
-                          )}
-                        </div>
-                      ))}
+                {/* Empresa - Only show not client role */}
+                {selectedRole !== "client" && (
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Empresa
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        id="company"
+                        name="company"
+                        type="text"
+                        required
+                        value={formData.company}
+                        onChange={handleChange}
+                        minLength={10}
+                        className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Construir LTDA"
+                      />
+                    </div>
                   </div>
                 )}
-              </div>
-            )}
+
+                {/* Email */}
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Email
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="seu@email.com"
+                    />
+                  </div>
+                </div>
+
+                {/* Telefone */}
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Telefone Comercial
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <InputMask
+                      mask="(99) 99999-9999"
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      required
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+                </div>
+
+                {/* Senha */}
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Senha
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />
+                      )}
+                    </button>
+                  </div>
+                  {errorPass && (
+                    <ErrorAlert message={errorPass} onClose={closeErrorPass} />
+                  )}
+                </div>
+
+                {/* Confirmar Senha */}
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Confirmar Senha
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Estado e Cidade */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      htmlFor="state"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Estado
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <select
+                        id="state"
+                        name="state"
+                        required
+                        value={formData.state}
+                        onChange={handleChange}
+                        className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Selecione o estado</option>
+                        {states.map((state) => (
+                          <option key={state.id} value={state.id}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="city"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Cidade
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <select
+                        id="city"
+                        name="city"
+                        required
+                        value={formData.city}
+                        onChange={handleChange}
+                        disabled={!formData.state}
+                        className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                      >
+                        <option value="">Selecione a cidade</option>
+                        {formData.state &&
+                          citiesByState.map((city: any) => (
+                            <option key={city.id} value={city.id}>
+                              {city.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profissões - Only show for professional role */}
+                {selectedRole === "professional" && (
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Profissões
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowProfessions(!showProfessions)}
+                      className="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-10 pr-10 py-2 text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <HardHat className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <span className="block truncate">
+                        {selectedProfessionsText}
+                      </span>
+                      <span className="absolute inset-y-0 right-0 flex items-center pr-2">
+                        <ChevronDown
+                          className={`h-5 w-5 text-gray-400 transition-transform ${
+                            showProfessions ? "transform rotate-180" : ""
+                          }`}
+                        />
+                      </span>
+                    </button>
+
+                    {showProfessions && (
+                      <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
+                        {professions != null &&
+                          professions.map((profession) => (
+                            <div
+                              key={profession.id}
+                              className="relative cursor-pointer select-none py-2 pl-10 pr-4 hover:bg-blue-50"
+                              onClick={() => toggleProfession(profession.id)}
+                            >
+                              <span
+                                className={`block truncate ${
+                                  formData.professions.includes(profession.id)
+                                    ? "font-medium text-blue-600"
+                                    : "font-normal"
+                                }`}
+                              >
+                                {profession.name}
+                              </span>
+                              {formData.professions.includes(profession.id) && (
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                  <Check className="h-5 w-5" />
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
 
