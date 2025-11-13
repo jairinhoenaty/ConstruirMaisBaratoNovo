@@ -8,16 +8,17 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
+    // allowedHosts:true,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
-        // target: 'https://construirmaisbarato.com.br',
+        // target: 'http://localhost:5000',
+        target: 'https://construirmaisbarato.com.br',
         changeOrigin: true,
         secure: false,
       },
       '/images/upload': {
-        target: 'http://localhost:5000',
-        // target: 'https://construirmaisbarato.com.br',
+        // target: 'http://localhost:5000',
+        target: 'https://construirmaisbarato.com.br',
         changeOrigin: true,
         secure: false,
       },
