@@ -16,4 +16,13 @@ type ProfessionalRepository interface {
 	Save(professional Professional) (*Professional, error)
 	Remove(id uint) error
 	ExportXLSX() ([]*Professional, error)
+	// Retorna profissionais aleatórios por nome exato da profissão (ex.: "pedreiro")
+	FindRandom(
+        professionID *uint,
+        professionName *string,
+        verified *bool,
+        online *bool,
+        seed *int64,
+        limit, offset int,
+    ) ([]*Professional, int64, error)
 }

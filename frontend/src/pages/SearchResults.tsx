@@ -12,6 +12,9 @@ import {
   ShieldCheck,
   Building2,
   MapPin,
+  Brain,
+  Check,
+  BadgeCheck,
   // Crown,
   // Trophy,
   // Diamond,
@@ -28,7 +31,11 @@ import { ClientService } from "../services/ClientService";
 import { CityService } from "../services/CityService";
 import { ProfessionalService } from "../services/ProfessionalService";
 import { useLocation, useNavigate } from "react-router-dom";
-import { IBudget, ICitySearchProfessionals, IProfissional } from "../interfaces";
+import {
+  IBudget,
+  ICitySearchProfessionals,
+  IProfissional,
+} from "../interfaces";
 //import { useNavigate } from "react-router-dom";
 
 interface Professional {
@@ -57,6 +64,29 @@ interface FormData {
 //   onNewSearch: () => void;
 // }
 
+// Helper function para processar imagem (base64 ou URL)
+const getImageSrc = (imageData: string | null | undefined): string | null => {
+  if (!imageData || imageData.trim() === "") return null;
+
+  // Se já é uma data URL (base64), retorna direto
+  if (imageData.startsWith("data:image")) {
+    return imageData;
+  }
+
+  // Se é uma URL normal, retorna direto
+  if (imageData.startsWith("http://") || imageData.startsWith("https://")) {
+    return imageData;
+  }
+
+  // Se é só o base64 sem o prefixo, adiciona o prefixo
+  // Assume JPEG por padrão, mas pode ser ajustado
+  if (imageData.length > 100) {
+    return `data:image/jpeg;base64,${imageData}`;
+  }
+
+  return null;
+};
+
 function SearchResults() {
   /*{
   profession,
@@ -65,8 +95,13 @@ function SearchResults() {
 }: SearchResultsProps*/
   const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
-  const [citiesByState, setcitiesByState] = useState<ICitySearchProfessionals[]>([]);
+  const [citiesByState, setcitiesByState] = useState<
+    ICitySearchProfessionals[]
+  >([]);
   const [showLGPDTerms, setShowLGPDTerms] = useState(false);
+  const [modalInfoProfissional, setModalInfoProfissional] = useState(false);
+  const [showExpandedImage, setShowExpandedImage] = useState(false);
+  // const [selectedProfessional, setProfessionalForModal] = useState<IProfissional | null>(null);
   // const [showLogin, setShowLogin] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [showProfessionalSearch, setShowProfessionalSearch] = useState(true);
@@ -128,48 +163,68 @@ function SearchResults() {
   ];
   */
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     // console.log("Effect");
+  //     // console.log(location);
+  //     // console.log(location.state.selectedProfessional);
+  //     const selectedCity = location.state.selectedCity;
+  //     const selectedProfessional = location.state.selectedProfessional;
+  //     const return_professionals =
+  //       await ProfessionalService.getProfessionalByCityAndProfession({
+  //         cityID: parseInt(selectedCity),
+  //         professionID: parseInt(selectedProfessional),
+  //         limit: 1000,
+  //         offset: 0,
+  //       });
+
+  //     const json_professionals = await return_professionals.data.profissionais;
+  //     setProfessionals(json_professionals);
+  //     // setProfession(selectedProfessional);
+  //   };
+
+  //   fetchData();
+  // }, []);
+
   useEffect(() => {
     const fetchData = async () => {
-      // console.log("Effect");
-      // console.log(location);
-      // console.log(location.state.selectedProfessional);
       const selectedCity = location.state.selectedCity;
       const selectedProfessional = location.state.selectedProfessional;
-      const return_professionals =
-        await ProfessionalService.getProfessionalByCityAndProfession({
-          cityID: parseInt(selectedCity),
-          professionID: parseInt(selectedProfessional),
-          limit: 1000,
-          offset: 0,
-        });
 
-      const json_professionals = await return_professionals.data.profissionais;
-      setProfessionals(json_professionals);
-      // setProfession(selectedProfessional);
+      const res = await ProfessionalService.getProfessionalsRandomPublic({
+        professionId: parseInt(selectedProfessional),
+        limit: 1000,
+        offset: 0,
+      });
+      const all = res.data as IProfissional[];
+      const filtered =
+        selectedCity && String(selectedCity).length > 0
+          ? all.filter((p) => p.cidade?.oid === parseInt(selectedCity))
+          : all;
+      setProfessionals(filtered);
     };
 
     fetchData();
   }, []);
 
+  // Busca cidades e profissões ao mudar estado
+  useEffect(() => {
+    setSelectedCity("");
+    const fetchData = async () => {
+      if (!selectedState) return;
 
+      try {
+        const citiesRes = await CityService.citiesByStatePublic({
+          uf: selectedState,
+        });
+        if (citiesRes.status === 200) setcitiesByState(citiesRes.data);
+      } catch (error) {
+        console.error("Erro ao buscar cidades ou profissões:", error);
+      }
+    };
 
-    // Busca cidades e profissões ao mudar estado
-    useEffect(() => {
-      setSelectedCity("");
-      const fetchData = async () => {
-        if (!selectedState) return;
-  
-        try {
-          const citiesRes = await CityService.citiesByStatePublic({ uf: selectedState });
-          if (citiesRes.status === 200) setcitiesByState(citiesRes.data);
-  
-        } catch (error) {
-          console.error("Erro ao buscar cidades ou profissões:", error);
-        }
-      };
-  
-      fetchData();
-    }, [selectedState]);
+    fetchData();
+  }, [selectedState]);
 
   const handleRequestQuote = async (
     professional: IProfissional | null = null,
@@ -229,16 +284,15 @@ function SearchResults() {
       profs = [selectedProfessional.oid.toString()];
     }
 
-
     const budget: IBudget = {
       name: formData.name,
       email: formData.email,
-      telephone: formData.phone,
+      telefone: formData.phone,
       // clientId: formData.clientId,
       description: formData.message,
       termResponsabilityAccepted: true,
       cityId: parseInt(selectedCity),
-      professionalsId:[]
+      professionalsId: [],
     };
     // adicionar na lista o id do profissional selecionado
     //  profs é um array de string, preciso converter para number
@@ -250,7 +304,7 @@ function SearchResults() {
       setShowContactForm(false);
       setShowProfessionalSearch(true);
       //setShowPhoneNumbers(true);
-      
+
       // Limpar os campos do formulário após envio bem-sucedido
       setFormData({
         name: "",
@@ -263,7 +317,7 @@ function SearchResults() {
       setSelectedState("");
       setSelectedCity("");
       setcitiesByState([]);
-      
+
       // Mostrar mensagem de sucesso com SweetAlert2
       Swal.fire({
         position: "center",
@@ -484,9 +538,7 @@ function SearchResults() {
                       {/* {isBulkRequest
                         ? "Solicitar Orçamento"
                         : selectedProfessional?.nome} */}
-                        
-                        Solicitar Orçamento
-
+                      Solicitar Orçamento
                     </h3>
                     <p className="text-sm text-gray-600">
                       {selectedProfessional && selectedProfessional.nome
@@ -497,10 +549,9 @@ function SearchResults() {
                 </div>
                 <button
                   onClick={() => {
-                    setShowContactForm(false)
+                    setShowContactForm(false);
                     setSelectedProfessional(null);
                     setShowProfessionalSearch(true);
-
                   }}
                   className="text-gray-400 hover:text-gray-600"
                 >
@@ -578,8 +629,6 @@ function SearchResults() {
                   </div>
                 </div>
 
-               
-
                 <div>
                   {/* Estado */}
                   <div>
@@ -595,7 +644,7 @@ function SearchResults() {
                         id="state"
                         value={selectedState}
                         onChange={(e) => setSelectedState(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white mb-4" 
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white mb-4"
                       >
                         <option value="">Selecione o estado</option>
                         {states.map((state) => (
@@ -700,66 +749,328 @@ function SearchResults() {
             {professionals.map((professional: IProfissional) => (
               <div
                 key={professional.oid}
-                className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 transition-colors"
+                className="p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 transition-colors"
               >
-                {professional.verified && (
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck
-                      className="w-5 h-5 text-green-500"
-                      title="Profissional Verificado"
-                      aria-label="Profissional Verificado"
-                    />
-                    {/* Badge de Profissional Verificado */}
-                    <span className="text-xs font-semibold text-white bg-green-500 py-1 px-3 rounded-full">
-                      Profissional Verificado
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {professional.nome}
-                  </h3>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <div className="flex items-center"></div>
-                    <span>
-                      {professional.cidade.nome}, {professional.cidade.uf}
-                    </span>
-                  </div>
-                  {showPhoneNumbers &&
-                    (isBulkRequest ||
-                      selectedProfessional?.oid === professional.oid) && (
-                      <div className="mt-2 flex items-center gap-2 text-green-600">
-                        <Phone className="w-4 h-4" />
-                        <a
-                          href={`https://wa.me/${professional.telephone.replace(
-                            /\D/g,
-                            ""
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:text-green-700 transition-colors"
-                        >
-                          {professional.telephone}
-                        </a>
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    {/* Badge Premium - Mobile (acima) */}
+                    {professional.isPremium && (
+                      <div className="mb-3 sm:hidden">
+                        <span className="text-xs font-semibold text-white bg-green-500 py-1 px-3 rounded-full">
+                          Profissional Premium
+                        </span>
                       </div>
                     )}
+
+                    {/* Desktop: Badge à esquerda, Nome e Cidade à direita */}
+                    <div className="hidden sm:flex items-center gap-3">
+                      {/* Badge Premium - Desktop (à esquerda, centralizado) */}
+                      {professional.isPremium && (
+                        <span className="text-xs font-semibold text-white bg-green-500 py-1 px-3 rounded-full self-center flex-shrink-0">
+                          Profissional Premium
+                        </span>
+                      )}
+
+                      {/* Nome e Cidade empilhados */}
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {professional.nome}
+                        </h3>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <span>
+                            {professional.cidade.nome}, {professional.cidade.uf}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile: Nome e Cidade sem badge */}
+                    <div className="sm:hidden">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {professional.nome}
+                      </h3>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <span>
+                          {professional.cidade.nome}, {professional.cidade.uf}
+                        </span>
+                      </div>
+                    </div>
+
+                    {showPhoneNumbers &&
+                      (isBulkRequest ||
+                        selectedProfessional?.oid === professional.oid) && (
+                        <div className="mt-2 flex items-center gap-2 text-green-600">
+                          <Phone className="w-4 h-4" />
+                          {professional.telefone}
+                        </div>
+                      )}
+                  </div>
+
+                  <div className="flex items-start gap-6">
+                    {/* Botão Saiba Mais - Mobile e Desktop */}
+                    {professional.isPremium && (
+                      <button
+                        onClick={() => {
+                          setSelectedProfessional(professional);
+                          setModalInfoProfissional(true);
+                        }}
+                        className="flex-shrink-0 rounded-lg hover:bg-[#fd7c4c1a] transition-colors"
+                      >
+                        <img
+                          className="h-36 w-3h-36 -mt-3 sm:mt-0 sm:h-14 sm:w-14"
+                          src="images/saibaMais.png"
+                          alt="Saiba Mais"
+                        />
+                      </button>
+                    )}
+
+                    {/* Botão Solicitar Orçamento - Desktop */}
+                    <button
+                      onClick={() => {
+                        setShowLGPDTerms(true);
+                        setSelectedProfessional(professional);
+                      }}
+                      className={`hidden sm:flex items-center self-start ${
+                        professional.isPremium
+                          ? "bg-[#FF6B35] hover:bg-[#E55A2B]"
+                          : "bg-blue-600 hover:bg-blue-700"
+                      } py-1 px-4 text-white rounded-lg transition-colors whitespace-nowrap h-14`}
+                    >
+                      Solicitar Orçamento
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowLGPDTerms(true);
-                    setSelectedProfessional(professional);
-                    
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Solicitar Orçamento
-                </button>
+
+                {/* Botão Solicitar Orçamento - Mobile */}
+                <div className="sm:hidden mt-1">
+                  <button
+                    onClick={() => {
+                      setShowLGPDTerms(true);
+                      setSelectedProfessional(professional);
+                    }}
+                    className={`w-44 ${
+                      professional.isPremium
+                        ? "bg-[#FF6B35] hover:bg-[#E55A2B]"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    } py-2 px-4 text-white rounded-lg transition-colors`}
+                  >
+                    Solicitar Orçamento
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
+      {modalInfoProfissional && selectedProfessional && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            {/* Header do Modal */}
+            <div className="relative bg-white">
+              <div
+                className="absolute rounded-tl-sm top-0 right-0 z-50 bg-white h-8 md:w-96 w-44"
+                style={{
+                  clipPath: "polygon(0 0, 100% 0, 100% 100%, 8% 100%)",
+                }}
+              ></div>{" "}
+              <div className="flex pt-12 justify-between items-start p-8 bg-[#FF6B35] rounded-t-lg">
+                <div
+                  className="absolute -bottom-1 left-0 z-50 bg-white h-7 md:w-56 w-40 rounded-tl-2xl"
+                  style={{
+                    clipPath: "polygon(0 0, 85% 0, 100% 100%, 0 100%)",
+                  }}
+                ></div>
+                <div className="flex items-center gap-2">
+                  {getImageSrc(selectedProfessional.image) ? (
+                    <img
+                      src={getImageSrc(selectedProfessional.image)!}
+                      alt={selectedProfessional.nome}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setShowExpandedImage(true)}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        const fallback = e.currentTarget
+                          .nextElementSibling as HTMLElement;
+                        if (fallback) fallback.classList.remove("hidden");
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`w-24 h-24 rounded-full bg-white bg-opacity-20 flex items-center justify-center ${
+                      getImageSrc(selectedProfessional.image) ? "hidden" : ""
+                    }`}
+                  >
+                    <User className="w-12 h-12 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-3xl font-bold text-white">
+                      {selectedProfessional.nome}
+                    </h3>
+                    {selectedProfessional.isPremium && (
+                      <div className="flex items-center gap-1.5 mt-1 bg-green-500 rounded-full py-1 px-3">
+                        <BadgeCheck className="w-4 h-4 text-white" />
+                        <span className="text-xs font-bold text-white whitespace-nowrap">
+                          Profissional Premium
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setModalInfoProfissional(false);
+                    setShowExpandedImage(false);
+                    // setProfessionalForModal(null);
+                  }}
+                  className="text-white hover:text-white/80 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Conteúdo do Modal */}
+            <div className="space-y-6 p-6">
+              <div className="border-b border-gray-200 pb-4">
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                  Localização
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Cidade</p>
+                      <p className="text-gray-900">
+                        {selectedProfessional.cidade.nome},{" "}
+                        {selectedProfessional.cidade.uf}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedProfessional.neighborhood && (
+                    <div className="flex items-center gap-3">
+                      <Building2 className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Bairro</p>
+                        <p className="text-gray-900">
+                          {selectedProfessional.neighborhood}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedProfessional.street && (
+                    <div className="flex items-center gap-3">
+                      <Building2 className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Endereço</p>
+                        <p className="text-gray-900">
+                          {selectedProfessional.street}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedProfessional.cep && (
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">CEP</p>
+                        <p className="text-gray-900">
+                          {selectedProfessional.cep}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-b border-gray-200 pb-4">
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                  Informações Profissionais
+                </h4>
+                <div className="space-y-3">
+                  {selectedProfessional.experience && (
+                    <div className="flex items-start gap-3">
+                      <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-600">Experiência</p>
+                        <p className="text-gray-900">
+                          {selectedProfessional.experience}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedProfessional.meiCnpj && (
+                    <div className="flex items-start gap-3">
+                      <Building2 className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-600">MEI/CNPJ</p>
+                        <p className="text-gray-900">
+                          {selectedProfessional.meiCnpj}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedProfessional.verified && (
+                    <div className="flex items-start gap-3">
+                      <ShieldCheck className="w-5 h-5 text-green-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-600">Status</p>
+                        <p className="text-green-600 font-semibold">
+                          Profissional Verificado
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setModalInfoProfissional(false);
+                    setShowExpandedImage(false);
+                    setShowLGPDTerms(true);
+                    setSelectedProfessional(selectedProfessional);
+                  }}
+                  className={`${
+                    selectedProfessional.telefone &&
+                    selectedProfessional.telefone.trim() !== ""
+                      ? "flex-1"
+                      : "w-full"
+                  } bg-[#FF6B35] hover:bg-[#E55A2B] text-white py-3 px-4 rounded-lg transition-colors font-semibold`}
+                >
+                  Solicitar Orçamento
+                </button>
+              </div>
+            </div>
+          </div>
+          {/* </div> */}
+        </div>
+      )}
+
+      {/* Modal de Imagem Expandida */}
+      {showExpandedImage &&
+        selectedProfessional &&
+        getImageSrc(selectedProfessional.image) && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] p-4"
+            onClick={() => setShowExpandedImage(false)}
+          >
+            <div className="relative max-w-4xl max-h-[90vh]">
+              <button
+                onClick={() => setShowExpandedImage(false)}
+                className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+              >
+                <X className="w-8 h-8" />
+              </button>
+              <img
+                src={getImageSrc(selectedProfessional.image)!}
+                alt={selectedProfessional.nome}
+                className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
+        )}
     </div>
   );
 }

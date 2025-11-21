@@ -11,25 +11,32 @@ import (
 
 type Professional struct {
 	gorm.Model
-	Name          string
-	Email         string //`gorm:"unique"`
-	Company       string
-	Telephone     string
-	LgpdAceito    string
-	CityID        uint
-	City          pkgcity.City               `gorm:"foreignKey:CityID"`
-	Professions   []pkgprofession.Profession `gorm:"many2many:professional_professions;"`
-	ProfessionIDs []uint                     `gorm:"-"`
-	Cep           string
-	Street        string
-	Neighborhood  string
-	Image         []byte  `gorm:"type:longblob"`
-	Latitude      float64 `gorm:"type:decimal(10,8)"`
-	Longitude     float64 `gorm:"type:decimal(11,8)"`
-	Verified      *bool   `gorm:"default:false"`
-	OnLine        *bool
-	CreatedAt     time.Time `gorm:"<-:create"`
-	Distance      float64   `gorm:"->"` //`gorm:"-"`
+	Name                      string
+	Email                     string //`gorm:"unique"`
+	Company                   string
+	Telephone                 string
+	LgpdAceito                string
+	CityID                    uint
+	City                      pkgcity.City               `gorm:"foreignKey:CityID"`
+	Professions               []pkgprofession.Profession `gorm:"many2many:professional_professions;"`
+	ProfessionIDs             []uint                     `gorm:"-"`
+	Cep                       string
+	Street                    string
+	Neighborhood              string
+	Image                     []byte  `gorm:"type:longblob"`
+	Latitude                  float64 `gorm:"type:decimal(10,8)"`
+	Longitude                 float64 `gorm:"type:decimal(11,8)"`
+	Verified                  *bool   `gorm:"default:false"`
+	NegativeCertificateNumber int64
+	OnLine                    *bool
+	CreatedAt                 time.Time `gorm:"<-:create"`
+	Distance                  float64   `gorm:"->"` //`gorm:"-"`
+	IsPremium                 *bool     `gorm:"default:false"`
+	CodeVerification          string    `json:"codeVerification"`
+	DateOfBirth               string
+	Experience                string
+	// CodeVerification string
+	MeiCnpj string
 }
 
 type ProfessionCount struct {

@@ -2,6 +2,7 @@
 import { off } from "process";
 import { IProfissional } from "../interfaces/IProfissional";
 import { IProfissionalAdd } from "../interfaces/IProfissionalAdd";
+import { CheckoutPremiumInput, CheckoutPremiumOutput } from "../interfaces";
 import Api from "../providers/Api";
 import ApiPublica from "../providers/ApiPublica";
 import axios from "axios";
@@ -83,7 +84,8 @@ const ProfessionalByState = (data: { state:string, limit: number; offset: number
 const CountProfessionalsByProfessionByCitie = (data: { cityID: string }) =>
   Api.post("count/professionals/city", data);
 
-
+const checkoutUserPremium = (data: CheckoutPremiumInput) =>
+  ApiPublica.post<CheckoutPremiumOutput>("/professional/checkout/premium", data);
 
 const lastProfessionals = (data: { quantity: number }) =>
   Api.post("/last/professionals", data);
@@ -93,16 +95,28 @@ const postProfessionalPublic = (data: IProfissional) =>
 
 const deleteProfessional = (id: Number) => Api.delete("/professional/" + id);
 
+const getProfessionalsRandomPublic = (params: {
+  professionId?: number;      
+  profession?: string;        
+  verified?: boolean;         
+  online?: boolean;           
+  seed?: number;              
+  limit?: number;             
+  offset?: number;            
+}) => ApiPublica.get("/professionals/random", { params });
+
 export const ProfessionalService = {
   getProfessionalbyID,
   getProfessionals,
-  postProfessional,
+  getProfessionalsRandomPublic,
   postProfessionalPublic,
+  postProfessional,
   changePassword,
   saveProfessional,
   getProfessionalByCityAndProfession,
   countProfessionalByProfession,
   countProfessionalByState,
+  checkoutUserPremium,
   lastProfessionals,
   deleteProfessional,
   getProfessionalbyName,

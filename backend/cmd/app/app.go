@@ -56,6 +56,10 @@ import (
 	pkgbudgetuc "construir_mais_barato/app/usecase/budget"
 	pkgbudgetinfra "construir_mais_barato/infra/database/repositories/budget"
 
+	pkgunlockedbudget "construir_mais_barato/app/domain/unlocked-budget"
+	pkgunlockedbudgetuc "construir_mais_barato/app/usecase/unlocked-budget"
+	pkgunlockedbudgetinfra "construir_mais_barato/infra/database/repositories/unlocked-budget"
+
 	pkgbanner "construir_mais_barato/app/domain/banner"
 	pkgbanneruc "construir_mais_barato/app/usecase/banner"
 	pkgbannerinfra "construir_mais_barato/infra/database/repositories/banner"
@@ -71,6 +75,8 @@ import (
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
 
 	pkgcontrollers "construir_mais_barato/infra/web/controllers"
+
+	"construir_mais_barato/infra/adapters/gateway-payment/mercadopago"
 )
 
 type Server struct {
@@ -85,12 +91,14 @@ type dependenceParams struct {
 	ChatService            pkgchat.ChatService
 	ProfessionalService    pkgprofessional.ProfessionalService
 	BudgetService          pkgbudget.BudgetService
+	UnlockedBudgetService  pkgunlockedbudget.UnlockedBudgetService
 	BannerService          pkgbanner.BannerService
 	ProductService         pkgproduct.ProductService
 	ProductCategoryService pkgproductCategory.ProductCategoryService
 	StoreService           pkgstore.StoreService
 	ClientService          pkgclient.ClientService
 	RegionService          pkgregion.RegionService
+	MercadoPagoClient      *mercadopago.MPClient
 }
 
 func buildDependenciesParams(db *gorm.DB) dependenceParams {
@@ -103,12 +111,14 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.ChatService = pkgchat.NewChatService(pkgchatinfra.NewChatRepositoryImpl(db))
 	params.ProfessionalService = pkgprofessional.NewProfessionalService(pkgprofessionalinfra.NewProfessionalRepositoryImpl(db))
 	params.BudgetService = pkgbudget.NewBudgetService(pkgbudgetinfra.NewBudgetRepositoryImpl(db))
+	params.UnlockedBudgetService = pkgunlockedbudget.NewUnlockedBudgetService(pkgunlockedbudgetinfra.NewUnlockedBudgetRepositoryImpl(db))
 	params.BannerService = pkgbanner.NewBannerService(pkgbannerinfra.NewBannerRepositoryImpl(db))
 	params.ProductService = pkgproduct.NewProductService(pkgproductinfra.NewProductRepositoryImpl(db))
 	params.ProductCategoryService = pkgproductCategory.NewProductCategoryService(pkgproductCategoryinfra.NewProductCategoryRepositoryImpl(db))
 	params.StoreService = pkgstore.NewStoreService(pkgstoreinfra.NewStoreRepositoryImpl(db))
 	params.ClientService = pkgclient.NewClientService(pkgclientinfra.NewClientRepositoryImpl(db))
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
+	params.MercadoPagoClient = mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
 
 	return params
 }
@@ -353,6 +363,10 @@ func buildProfessionalEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.ProfessionalService,
 	}
 
+	findRandomUCParams := pkgprofessionaluc.FindRandomUCParams{
+		Service: dependency.ProfessionalService,
+	}
+
 	exportXLSXProfessionalUCParams := pkgprofessionaluc.ExportXLSXProfessionalUCParams{
 		Service: dependency.ProfessionalService,
 	}
@@ -371,6 +385,7 @@ func buildProfessionalEndPoint(dependency *dependenceParams, g *echo.Group) {
 		CountProfessionalsByStateUCParams:            countProfessionalsByStateUCParams,
 		CountProfessionalsByProfessionInCityUCParams: countProfessionalsByProfessionInCityUCParams,
 		CountCityProfessionalsByStateUCParams:        countCityProfessionalsByStateUCParams,
+		FindRandomUCParams:                           findRandomUCParams,
 	}
 
 	pkgcontrollers.NewProfessionalController(&professionalControllerParams, g)
@@ -539,6 +554,28 @@ func buildBudgetEndPoint(dependency *dependenceParams, g *echo.Group) {
 	pkgcontrollers.NewBudgetController(&budgetControllerParams, g)
 }
 
+func buildUnlockedBudgetEndPoint(dependency *dependenceParams, g *echo.Group) {
+	checkBudgetAccessUCParams := pkgunlockedbudgetuc.CheckBudgetAccessParams{
+		UnlockedBudgetService: dependency.UnlockedBudgetService,
+		ProfessionalService:   dependency.ProfessionalService,
+	}
+
+	unlockBudgetPaymentUCParams := pkgunlockedbudgetuc.UnlockBudgetPaymentParams{
+		UnlockedBudgetService: dependency.UnlockedBudgetService,
+		BudgetService:         dependency.BudgetService,
+		ProfessionalService:   dependency.ProfessionalService,
+		MercadoPagoClient:     dependency.MercadoPagoClient,
+	}
+
+	unlockedBudgetControllerParams := pkgcontrollers.UnlockedBudgetControllerParams{
+		CheckBudgetAccessUCParams:   checkBudgetAccessUCParams,
+		UnlockBudgetPaymentUCParams: unlockBudgetPaymentUCParams,
+		UserService:                 dependency.UserService,
+	}
+
+	pkgcontrollers.NewUnlockedBudgetController(&unlockedBudgetControllerParams, g)
+}
+
 func buildLoginEndPoint(dependency *dependenceParams, g *echo.Group) {
 
 	authenticateParams := pkgauthenticateuc.AuthenticateUCParams{
@@ -668,6 +705,20 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	pkgcontrollers.NewPublicController(&publicControllerParams, g)
+
+	// ===== Profissionais aleatórios (rota pública, só essa) =====
+	{
+		findRandomParams := pkgprofessionaluc.FindRandomUCParams{
+			Service: dependency.ProfessionalService,
+		}
+
+		controller := &pkgcontrollers.ProfessionalController{
+			FindRandomUCParams: findRandomParams,
+		}
+
+		g.GET("/professionals/random", controller.FindRandomByProfession)
+	}
+
 }
 
 func buildBannerEndPoint(dependenceParams *dependenceParams, g *echo.Group) {
@@ -769,6 +820,7 @@ func Start(db *gorm.DB) {
 	buildContactEndPoint(&dependency, routerGroup)
 	buildProfessionalEndPoint(&dependency, routerGroup)
 	buildBudgetEndPoint(&dependency, routerGroup)
+	buildUnlockedBudgetEndPoint(&dependency, routerGroup)
 	buildBannerEndPoint(&dependency, routerGroup)
 	buildProductEndPoint(&dependency, routerGroup)
 	buildProductCategoryEndPoint(&dependency, routerGroup)

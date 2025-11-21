@@ -16,6 +16,14 @@ type ProfessionalService interface {
 	Save(professional Professional) (*Professional, error)
 	Remove(id uint) error
 	ExportXLSX() ([]*Professional, error)
+	FindRandom(
+    	professionID *uint,
+    	professionName *string,
+    	verified *bool,
+    	online *bool,
+    	seed *int64,
+    	limit, offset int,
+	) ([]*Professional, int64, error)
 }
 
 type professionalService struct {
@@ -143,3 +151,20 @@ func (s *professionalService) Save(professional Professional) (*Professional, er
 func (s *professionalService) Remove(id uint) error {
 	return s.repository.Remove(id)
 }
+
+
+func (s *professionalService) FindRandom(
+    professionID *uint,
+    professionName *string,
+    verified *bool,
+    online *bool,
+    seed *int64,
+    limit, offset int,
+) ([]*Professional, int64, error) {
+    professionals, total, err := s.repository.FindRandom(professionID, professionName, verified, online, seed, limit, offset)
+    if err != nil {
+        return nil, 0, err
+    }
+    return professionals, total, nil
+}
+

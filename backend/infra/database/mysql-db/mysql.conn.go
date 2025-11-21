@@ -19,6 +19,7 @@ import (
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgregion "construir_mais_barato/app/domain/region"
 	pkgstore "construir_mais_barato/app/domain/store"
+	pkgunlockedbudget "construir_mais_barato/app/domain/unlocked-budget"
 	pkguser "construir_mais_barato/app/domain/user"
 )
 
@@ -79,5 +80,6 @@ func ConnectionDB(params *ConfigParams) *gorm.DB {
 	db.AutoMigrate(&pkgclient.Client{})
 	db.AutoMigrate(&pkgstore.Store{})
 	db.AutoMigrate(&pkgregion.Region{})
+	db.AutoMigrate(&pkgunlockedbudget.UnlockedBudget{})
 	return db
 }

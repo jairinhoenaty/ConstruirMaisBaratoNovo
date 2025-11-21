@@ -49,6 +49,7 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
     state: "",
     professions: [] as string[],
     verified: false, // Added the verified field
+    isPremium: false,
   });
 
   React.useEffect(() => {
@@ -113,6 +114,7 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
             state: json.cidade.uf,
             professions: json.profissoes.map((x: any) => x.oid),
             verified: json.verified || false, // Assuming 'verified' field exists in professional data
+            isPremium:json.isPremium || false
           }));
           setIsProfessional(true);
           const citiesResponse = await CityService.citiesByState({
@@ -223,6 +225,7 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
       Password: null,
       image: null,
       verified: formData.verified, // Include the verified status
+      isPremium: formData.isPremium, // Include the premium status
     };
 
     if (currentProfile === "client") {
@@ -508,18 +511,18 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
         {(profile === "admin" || profile === "profissional") && ( // Only show for admin or professional profiles
           <div className="flex items-center mt-4">
             <input
-              id="verified"
-              name="verified"
+              id="isPremium"
+              name="isPremium"
               type="checkbox"
-              checked={formData.verified}
+              checked={formData.isPremium}
               onChange={handleChange}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label
-              htmlFor="verified"
+              htmlFor="isPremium"
               className="ml-2 block text-sm text-gray-900"
             >
-              Verificado
+              Premium
             </label>
           </div>
         )}

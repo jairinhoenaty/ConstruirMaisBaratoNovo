@@ -25,12 +25,19 @@ import {
   ChevronDown,
   Check,
   Trash2,
+  Camera,
+  Upload,
+  Star,
+  Shield,
+  Calendar,
+  Building,
+  ExternalLink,
 } from "lucide-react";
 import InputMask from "react-input-mask";
 //import { states, citiesByState } from '../data';
 //import { professionals_data } from "../data";
 import { states } from "../data";
-import QuotesPanel from "./QuotesPanel";
+import QuotesPanel from "./QuotesPanelNew";
 import ClientMessages from "./ClientMessages";
 import PasswordPanel from "./PasswordPanel";
 import { ProfessionalService } from "../services/ProfessionalService";
@@ -73,6 +80,12 @@ function ProfessionalPanel() {
     city: "",
     state: "",
     professions: [] as string[],
+    dateOfBirth: "",
+    experience: "",
+    codeVerification: "",
+    meiCnpj: "",
+    negativeCertificateNumber: "",
+    isPremium: false,
   });
 
   const [isProfessional, setIsProfessional] = useState(false);
@@ -102,7 +115,8 @@ function ProfessionalPanel() {
     //{ id: "logout", label: "Sair do Painel", icon: LogOut },
   ]);
 
-  const [verified,setVerified] = useState(false); // Variável para verificar se o profissional está verificado  
+  const [verified, setVerified] = useState(false); // Variável para verificar se o profissional está verificado
+  const [previewUrl, setPreviewUrl] = useState("");
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -112,7 +126,7 @@ function ProfessionalPanel() {
         const response = await ClientService.getClientbyID(id);
         const json = await response.data;
 
-        if ((response.status == 200)) {
+        if (response.status == 200) {
           localStorage.setItem("post_id", response.data.oid);
           localStorage.setItem("city_id", response.data.cidade.oid);
           setFormData((prev) => ({
@@ -137,7 +151,7 @@ function ProfessionalPanel() {
           });
 
           const json_cities = await citiesByState.data;
-          if ((citiesByState.status == 200)) {
+          if (citiesByState.status == 200) {
             setcitiesByState(json_cities);
           }
           setFormData((prev) => ({
@@ -151,13 +165,13 @@ function ProfessionalPanel() {
       } else if (profile == "profissional") {
         const professions = await ProfessionService.getProfessions();
         const json_professions = await professions.data.profissoes;
-        if ((professions.status == 200)) {
+        if (professions.status == 200) {
           setProfessions(json_professions);
         }
 
         const response = await ProfessionalService.getProfessionalbyID(id);
         const json = await response.data;
-        if ((response.status == 200)) {
+        if (response.status == 200) {
           localStorage.setItem("post_id", response.data.oid);
           localStorage.setItem("city_id", response.data.cidade.oid);
           setVerified(json.verified);
@@ -173,14 +187,25 @@ function ProfessionalPanel() {
             city: json.cidade.oid,
             state: json.cidade.uf,
             professions: json.profissoes.map((x: any) => x.oid),
+            dateOfBirth: json.dateOfBirth,
+            experience: json.experience,
+            meiCnpj: json.meiCnpj,
+            negativeCertificateNumber: json.negativeCertificateNumber,
+            isPremium: json.isPremium,
           }));
+
+          // Carregar imagem do usuário premium
+          if (json.isPremium && json.image) {
+            const imageUrl = `data:image/jpeg;base64,${json.image}`;
+            setPreviewUrl(imageUrl);
+          }
           setIsProfessional(true);
           const citiesByState = await CityService.citiesByState({
             uf: json.cidade.uf,
           });
 
           const json_cities = await citiesByState.data;
-          if ((citiesByState.status == 200)) {
+          if (citiesByState.status == 200) {
             setcitiesByState(json_cities);
           }
           setFormData((prev) => ({
@@ -193,7 +218,7 @@ function ProfessionalPanel() {
       } else if (profile == "store") {
         const response = await StoreService.getStorebyID(id);
         const json = await response.data;
-        if ((response.status == 200)) {
+        if (response.status == 200) {
           localStorage.setItem("post_id", response.data.oid);
           localStorage.setItem("city_id", response.data.cidade.oid);
           setFormData((prev) => ({
@@ -213,7 +238,7 @@ function ProfessionalPanel() {
           });
 
           const json_cities = await citiesByState.data;
-          if ((citiesByState.status == 200)) {
+          if (citiesByState.status == 200) {
             setcitiesByState(json_cities);
           }
           setFormData((prev) => ({
@@ -232,8 +257,12 @@ function ProfessionalPanel() {
         result_products = await ProductService.productsAllPublic(
           limit,
           (page - 1) * limit,
-          profile=="profissional"?parseInt(localStorage.getItem("post_id") ?? ""):0,
-          profile=="store"?parseInt(localStorage.getItem("post_id") ?? ""):0,
+          profile == "profissional"
+            ? parseInt(localStorage.getItem("post_id") ?? "")
+            : 0,
+          profile == "store"
+            ? parseInt(localStorage.getItem("post_id") ?? "")
+            : 0,
           null,
           null
         );
@@ -258,7 +287,7 @@ function ProfessionalPanel() {
       });
 
       const json_cities = await citiesByState.data;
-      if ((citiesByState.status == 200)) {
+      if (citiesByState.status == 200) {
         setcitiesByState(json_cities);
       }
     }
@@ -291,21 +320,40 @@ function ProfessionalPanel() {
         image: null,
       });
     } else if (profile == "profissional") {
-      postReturn = await ProfessionalService.postProfessional({
+      // Processar imagem se houver uma nova
+      let base64image = null;
+      if (previewUrl && previewUrl.startsWith("data:image")) {
+        base64image = previewUrl
+          .replace("data:image/png;base64,", "")
+          .replace("data:image/jpg;base64,", "")
+          .replace("data:image/jpeg;base64,", "")
+          .replace("data:image/webp;base64,", "");
+      }
+
+      const professionalData = {
         oid: parseInt(post_id),
         Name: formData.fullName,
         Email: formData.email,
         Telephone: formData.whatsapp,
-        //LgpdAceito: "S",
-        //created_at:  "time.Date(2025, time.March, 16, 19, 41, 30, 309000000, time.Local)",
         cep: formData.cep,
         street: formData.street,
         neighborhood: formData.neighborhood,
         cityId: parseInt(formData.city),
         professionIds: formData.professions,
         Password: null,
-        image: null,
-      });
+        image: base64image,
+        // Campos premium
+        ...(formData.isPremium && {
+          dateOfBirth: formData.dateOfBirth,
+          experience: formData.experience,
+          meiCnpj: formData.meiCnpj,
+          negativeCertificateNumber:
+            parseInt(formData.negativeCertificateNumber) || null,
+          isPremium: formData.isPremium,
+        }),
+      };
+
+      postReturn = await ProfessionalService.postProfessional(professionalData);
     } else if (profile == "store") {
       postReturn = await StoreService.postStore({
         oid: parseInt(post_id),
@@ -365,33 +413,31 @@ function ProfessionalPanel() {
     //console.log(contact);
     //Send Message
     try {
-    const response = await ContactService.saveContact(contact);
-    //const json = await response.data;
-    if ((response.status == 200)) {
+      const response = await ContactService.saveContact(contact);
+      //const json = await response.data;
+      if (response.status == 200) {
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title:
+            "Mensagem enviada com sucesso! <br>Em breve nossa equipe entrará em contato.",
+          showConfirmButton: false,
+          timer: 3000,
+        });
+      }
+      /*alert(
+      "Mensagem enviada com sucesso! Em breve nossa equipe entrará em contato."
+    );*/
+      setSupportMessage("");
+    } catch (error) {
       Swal.fire({
         position: "center",
-        icon: "success",
-        title:
-          "Mensagem enviada com sucesso! <br>Em breve nossa equipe entrará em contato.",
+        icon: "error",
+        title: "Erro ao enviar mensagem" + error,
         showConfirmButton: false,
         timer: 3000,
       });
     }
-    /*alert(
-      "Mensagem enviada com sucesso! Em breve nossa equipe entrará em contato."
-    );*/
-    setSupportMessage("");
-  }
-  catch (error) {
-    Swal.fire({
-      position: "center",
-      icon: "error",
-      title:
-        "Erro ao enviar mensagem"+error,
-      showConfirmButton: false,
-      timer: 3000,
-    });
-  }
   };
 
   const selectedProfessionsText =
@@ -414,7 +460,7 @@ function ProfessionalPanel() {
   const handleDelete = async (productId: string) => {
     if (window.confirm("Tem certeza que deseja excluir este produto?")) {
       const response = await ProductService.deleteProduct(productId);
-      if ((response.status == 200)) {
+      if (response.status == 200) {
         Swal.fire({
           icon: "success",
           text: "Produto excluído",
@@ -424,6 +470,39 @@ function ProfessionalPanel() {
         setIsUpdate(!isUpdate);
       }
       //setProducts(products.filter((product) => product.id !== productId));
+    }
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validações para imagem premium
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire({
+          icon: "error",
+          title: "Arquivo muito grande",
+          text: "A imagem deve ter no máximo 5MB",
+        });
+        return;
+      }
+
+      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        Swal.fire({
+          icon: "error",
+          title: "Formato inválido",
+          text: "Use apenas arquivos JPG, PNG ou WebP",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+        const photoUrl = URL.createObjectURL(file);
+        setFormData((prev) => ({ ...prev, photo: photoUrl }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -670,26 +749,27 @@ function ProfessionalPanel() {
           <div className="flex flex-wrap gap-2">
             {menuItems.map((item) => {
               //console.log("VERIFIED: " + verified);
-              if (verified == false && item.id === "products") {
-                  return null; // Não renderiza o item se o profissional não estiver verificado
-              }                  
-              else {    
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                    activeTab === item.id
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            }
+              if (!formData.isPremium && item.id === "products") {
+                return null; // Não renderiza o item se o profissional não estiver verificado
+              } else {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                      activeTab === item.id
+                        ? formData.isPremium
+                          ? "bg-[#FF6B35] text-white"
+                          : "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
             })}
           </div>
         </div>
@@ -699,7 +779,9 @@ function ProfessionalPanel() {
             onClick={() => setActiveTab("profile")}
             className={`flex items-center justify-center gap-2 p-4 rounded-lg shadow-md transition-colors ${
               activeTab === "profile"
-                ? "bg-blue-600 text-white"
+                ? formData.isPremium
+                  ? "bg-[#FF6B35] text-white"
+                  : "bg-blue-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
@@ -710,7 +792,9 @@ function ProfessionalPanel() {
             onClick={() => setActiveTab("quotes")}
             className={`flex items-center justify-center gap-2 p-4 rounded-lg shadow-md transition-colors ${
               activeTab === "quotes"
-                ? "bg-blue-600 text-white"
+                ? formData.isPremium
+                  ? "bg-[#FF6B35] text-white"
+                  : "bg-blue-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
@@ -722,7 +806,9 @@ function ProfessionalPanel() {
               onClick={() => setActiveTab("cashback")}
               className={`flex items-center justify-center gap-2 p-4 rounded-lg shadow-md transition-colors ${
                 activeTab === "cashback"
-                  ? "bg-blue-600 text-white"
+                  ? formData.isPremium
+                    ? "bg-[#FF6B35] text-white"
+                    : "bg-blue-600 text-white"
                   : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
@@ -738,251 +824,446 @@ function ProfessionalPanel() {
               Dados da Conta
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label
-                  htmlFor="fullName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Nome Completo
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    name="fullName"
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Email
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor="whatsapp"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  WhatsApp
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <InputMask
-                    mask="(99) 99999-9999"
-                    type="tel"
-                    name="whatsapp"
-                    id="whatsapp"
-                    value={formData.whatsapp}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor="cep"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  CEP
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <InputMask
-                    mask="99999-999"
-                    type="text"
-                    name="cep"
-                    id="cep"
-                    value={formData.cep}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor="street"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Rua
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Building2 className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    name="street"
-                    id="street"
-                    value={formData.street}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor="neighborhood"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Bairro
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Building2 className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    name="neighborhood"
-                    id="neighborhood"
-                    value={formData.neighborhood}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    htmlFor="state"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Estado
-                  </label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Building2 className="h-5 w-5 text-gray-400" />
+              {formData.isPremium && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center gap-2">
+                      <Star className="w-6 h-6 text-yellow-500" />
+                      <h3 className="text-base font-bold text-[#FF6B35] sm:text-xl">
+                        Profissional Premium
+                      </h3>
+                      <Shield className="w-6 h-6 text-green-600" />
                     </div>
-                    <select
-                      id="state"
-                      name="state"
-                      value={formData.state}
-                      onChange={(e) => handleChange(e as any)}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Selecione o estado</option>
-                      {states.map((state) => (
-                        <option key={state.id} value={state.id}>
-                          {state.name}
-                        </option>
-                      ))}
-                    </select>
                   </div>
-                </div>
 
-                <div>
-                  <label
-                    htmlFor="city"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Cidade
-                  </label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Building2 className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <select
-                      id="city"
-                      name="city"
-                      value={formData.city}
-                      onChange={(e) => handleChange(e as any)}
-                      disabled={!formData.state}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-                    >
-                      <option value="">Selecione a cidade</option>
-                      {citiesByState &&
-                        citiesByState.map((city) => (
-                          <option key={city.id} value={city.id}>
-                            {city.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              {/* Profissões */}
-              {isProfessional && (
-                <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Profissões
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowProfessions(!showProfessions)}
-                    className="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-10 pr-10 py-2 text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <HardHat className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <span className="block truncate">
-                      {selectedProfessionsText}
-                    </span>
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-2">
-                      <ChevronDown
-                        className={`h-5 w-5 text-gray-400 transition-transform ${
-                          showProfessions ? "transform rotate-180" : ""
-                        }`}
-                      />
-                    </span>
-                  </button>
-
-                  {showProfessions && (
-                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
-                      {professions.map((profession) => (
-                        <div
-                          key={profession.id}
-                          className="relative cursor-pointer select-none py-2 pl-10 pr-4 hover:bg-blue-50"
-                          onClick={() => toggleProfession(profession.id)}
-                        >
-                          <span
-                            className={`block truncate ${
-                              formData.professions.includes(profession.id)
-                                ? "font-medium text-blue-600"
-                                : "font-normal"
-                            }`}
-                          >
-                            {profession.name}
-                          </span>
-                          {formData.professions.includes(profession.id) && (
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                              <Check className="h-5 w-5" />
-                            </span>
+                  {/* Foto de Perfil Premium */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Foto de Profissional Premium
+                    </label>
+                    <div className="flex items-center space-x-6">
+                      <div className="relative">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-300 flex items-center justify-center bg-gray-50">
+                          {previewUrl ? (
+                            <img
+                              src={previewUrl}
+                              alt="Foto de perfil"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Camera className="w-8 h-8 text-gray-400" />
                           )}
                         </div>
-                      ))}
+                        <div className="absolute -bottom-1 -right-1 bg-blue-600 rounded-full p-1">
+                          <Star className="w-4 h-4 text-white" />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <label
+                          htmlFor="photo-upload"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35] hover:bg-[#E55A2B] text-white rounded-lg cursor-pointer transition-colors text-xs sm:text-base whitespace-nowrap"
+                        >
+                          <Upload className="w-4 h-4" />
+                          Atualizar Foto
+                        </label>
+                        <input
+                          id="photo-upload"
+                          name="photo"
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoChange}
+                          className="hidden"
+                        />
+                        <p className="text-xs text-gray-600 mt-2">
+                          JPG, PNG ou WebP. Máximo 5MB.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Informações Premium em Grid */}
+                  {/* <div className="grid grid-cols-6 gap-6"> */}
+                  {/* Data de Nascimento */}
+                  <div className="w-full sm:w-64 md:w-48">
+                    <label
+                      htmlFor="dateOfBirth"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Data de Nascimento
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Calendar className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="date"
+                        name="dateOfBirth"
+                        id="dateOfBirth"
+                        value={formData.dateOfBirth}
+                        onChange={handleChange}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  {/* MEI/CNPJ */}
+                  {/* <div>
+                      <label
+                        htmlFor="meiCnpj"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        MEI/CNPJ
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Building className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          name="meiCnpj"
+                          id="meiCnpj"
+                          value={formData.meiCnpj}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div> */}
+
+                  {/* Certificado Negativo
+                    <div>
+                      <label
+                        htmlFor="negativeCertificateNumber"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Certificado Negativo
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Shield className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          name="negativeCertificateNumber"
+                          id="negativeCertificateNumber"
+                          value={formData.negativeCertificateNumber}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                          readOnly
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <a
+                          href="https://servicos.pf.gov.br/epol-sinic-publico/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Gerar nova certidão
+                        </a>
+                      </div>
+                    </div> */}
+                  {/* </div> */}
+
+                  {/* Experiência */}
+                  <div className="mt-6">
+                    <label
+                      htmlFor="experience"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Experiência Profissional
+                    </label>
+                    <textarea
+                      id="experience"
+                      name="experience"
+                      rows={4}
+                      value={formData.experience}
+                      onChange={handleChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Descreva sua experiência, projetos anteriores, certificações..."
+                    />
+                  </div>
+
+                  {/* Benefícios Premium */}
+                  <div className="mt-6 bg-white p-4 rounded-lg border border-blue-200">
+                    <h4 className="text-sm font-semibold text-[#FF6B35] mb-3">
+                      🚀 Benefícios Premium Ativos
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2 text-green-700">
+                        <Check className="w-4 h-4" />
+                        <span>Perfil destacado nas buscas</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-700">
+                        <Check className="w-4 h-4" />
+                        <span>Selo de verificação</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-700">
+                        <Check className="w-4 h-4" />
+                        <span>Prioridade em orçamentos</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-700">
+                        <Check className="w-4 h-4" />
+                        <span>Portfolio profissional</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
+                <div className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="fullName"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Nome Completo
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="fullName"
+                        id="fullName"
+                        value={formData.fullName}
+                        onChange={handleChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Email
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Mail className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="whatsapp"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      WhatsApp
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Phone className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <InputMask
+                        mask="(99) 99999-9999"
+                        type="tel"
+                        name="whatsapp"
+                        id="whatsapp"
+                        value={formData.whatsapp}
+                        onChange={handleChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="cep"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      CEP
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <InputMask
+                        mask="99999-999"
+                        type="text"
+                        name="cep"
+                        id="cep"
+                        value={formData.cep}
+                        onChange={handleChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="street"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Rua
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Building2 className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="street"
+                        id="street"
+                        value={formData.street}
+                        onChange={handleChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="neighborhood"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Bairro
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Building2 className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="neighborhood"
+                        id="neighborhood"
+                        value={formData.neighborhood}
+                        onChange={handleChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="state"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Estado
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Building2 className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <select
+                          id="state"
+                          name="state"
+                          value={formData.state}
+                          onChange={(e) => handleChange(e as any)}
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Selecione o estado</option>
+                          {states.map((state) => (
+                            <option key={state.id} value={state.id}>
+                              {state.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="city"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Cidade
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Building2 className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <select
+                          id="city"
+                          name="city"
+                          value={formData.city}
+                          onChange={(e) => handleChange(e as any)}
+                          disabled={!formData.state}
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                        >
+                          <option value="">Selecione a cidade</option>
+                          {citiesByState &&
+                            citiesByState.map((city) => (
+                              <option key={city.id} value={city.id}>
+                                {city.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Profissões */}
+                  {isProfessional && (
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Profissões
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowProfessions(!showProfessions)}
+                        className="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-10 pr-10 py-2 text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <HardHat className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <span className="block truncate">
+                          {selectedProfessionsText}
+                        </span>
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-2">
+                          <ChevronDown
+                            className={`h-5 w-5 text-gray-400 transition-transform ${
+                              showProfessions ? "transform rotate-180" : ""
+                            }`}
+                          />
+                        </span>
+                      </button>
+
+                      {showProfessions && (
+                        <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
+                          {professions.map((profession) => (
+                            <div
+                              key={profession.id}
+                              className="relative cursor-pointer select-none py-2 pl-10 pr-4 hover:bg-blue-50"
+                              onClick={() => toggleProfession(profession.id)}
+                            >
+                              <span
+                                className={`block truncate ${
+                                  formData.professions.includes(profession.id)
+                                    ? "font-medium text-blue-600"
+                                    : "font-normal"
+                                }`}
+                              >
+                                {profession.name}
+                              </span>
+                              {formData.professions.includes(profession.id) && (
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                  <Check className="h-5 w-5" />
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
+              </div>
               <div>
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${
+                    formData.isPremium
+                      ? "bg-[#FF6B35] hover:bg-[#E55A2B]"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
                 >
                   <Save className="w-5 h-5" />
                   Atualizar Conta
