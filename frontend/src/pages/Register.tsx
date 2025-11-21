@@ -98,19 +98,19 @@ function Register() {
       icon: HardHat,
       description: "Ofereço serviços profissionais",
     },
-    /*
-    {
-      id: "client",
-      name: "Cliente",
-      icon: UserCircle,
-      description: "Procuro profissionais e produtos",
-    },
+    
+    // {
+    //   id: "asdasdasdas",
+    //   name: "Balcão de Vagas",
+    //   icon: UserCircle,
+    //   description: "descrição de balcão de vagas",
+    // },
     {
       id: "store",
       name: "Lojista Parceiro",
       icon: ShoppingBag,
       description: "Vendo produtos e materiais",
-    },*/
+    },
   ];
 
   React.useEffect(() => {
