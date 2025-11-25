@@ -10,18 +10,19 @@ import (
 
 type Store struct {
 	gorm.Model
-	Name         string
-	Company      string
-	Email        string `gorm:"unique"`
-	Telephone    string
-	LgpdAceito   string
-	CityID       uint
-	City         pkgcity.City `gorm:"foreignKey:CityID"`
-	Cep          string
-	Street       string
-	Neighborhood string
-	Image        []byte    `gorm:"type:longblob"`
-	CreatedAt    time.Time `gorm:"<-:create"`
+	Name           string
+	Company        string
+	Email          string `gorm:"unique"`
+	Telephone      string
+	LgpdAceito     string
+	CityID         uint
+	City           pkgcity.City `gorm:"foreignKey:CityID"`
+	Cep            string
+	Street         string
+	Neighborhood   string
+	Image          []byte    `gorm:"type:longblob"`
+	CreatedAt      time.Time `gorm:"<-:create"`
+	IsPremiumStore bool
 }
 
 type StoreCount struct {

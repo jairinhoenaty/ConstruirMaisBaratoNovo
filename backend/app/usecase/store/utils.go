@@ -30,8 +30,8 @@ func GenerateStore(assembler *StoreAssembler) pkgstore.Store {
 		store.Cep = assembler.Cep
 		store.Street = assembler.Street
 		store.Neighborhood = assembler.Neighborhood
-		store.Image = assembler.Image		
-
+		store.Image = assembler.Image
+		store.IsPremiumStore = assembler.IsPremiumStore
 
 	}
 	return store
@@ -40,7 +40,6 @@ func GenerateStore(assembler *StoreAssembler) pkgstore.Store {
 func GenerateStorePresenter(store *pkgstore.Store) StorePresenter {
 	presenter := StorePresenter{}
 	if store != nil {
-
 
 		cidadePresenter := CidadePresenter{
 			ID:   store.CityID,
@@ -53,13 +52,13 @@ func GenerateStorePresenter(store *pkgstore.Store) StorePresenter {
 		presenter.Email = store.Email
 		presenter.Telephone = store.Telephone
 		presenter.LgpdAceito = store.LgpdAceito
-		presenter.CreatedAt = store.CreatedAt;
+		presenter.CreatedAt = store.CreatedAt
 		presenter.Cidade = cidadePresenter
 		presenter.Cep = store.Cep
-		presenter.Street = store.Street		
+		presenter.Street = store.Street
 		presenter.Neighborhood = store.Neighborhood
 		presenter.Image = store.Image
-
+		presenter.IsPremiumStore = store.IsPremiumStore
 
 	}
 	return presenter

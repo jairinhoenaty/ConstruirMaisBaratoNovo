@@ -1,4 +1,4 @@
-package professional_usecase
+package store_usecase
 
 import (
 	"fmt"
@@ -40,14 +40,14 @@ func NewCheckoutPremiumUC(params CheckoutPremiumUCParams) *CheckoutPremiumUC {
 }
 
 func (uc *CheckoutPremiumUC) Execute() (*CheckoutPremiumOutput, error) {
-	// Busca o plano de profissional do banco de dados
-	plan, err := uc.PlanService.FindByUserType(pkgplan.UserTypeProfessional)
+	// Busca o plano de lojista do banco de dados
+	plan, err := uc.PlanService.FindByUserType(pkgplan.UserTypeStore)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find professional plan: %w", err)
+		return nil, fmt.Errorf("failed to find store plan: %w", err)
 	}
 
 	if !plan.IsActive {
-		return nil, fmt.Errorf("professional plan is not active")
+		return nil, fmt.Errorf("store plan is not active")
 	}
 
 	mpClient := mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
@@ -58,7 +58,7 @@ func (uc *CheckoutPremiumUC) Execute() (*CheckoutPremiumOutput, error) {
 
 	idem := uuid.NewString()
 	desc := plan.Name
-	extRef := fmt.Sprintf("professional:%d:%d", uc.Assembler.UserID, time.Now().Unix())
+	extRef := fmt.Sprintf("store:%d:%d", uc.Assembler.UserID, time.Now().Unix())
 
 	paymentInput := mercadopago.PixPaymentInput{
 		Amount:      price,

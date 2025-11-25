@@ -85,7 +85,8 @@ function ProfessionalPanel() {
     codeVerification: "",
     meiCnpj: "",
     negativeCertificateNumber: "",
-    isPremium: false,
+    isPremium: undefined,
+    isPremiumStore: undefined,
   });
 
   const [isProfessional, setIsProfessional] = useState(false);
@@ -231,6 +232,7 @@ function ProfessionalPanel() {
             neighborhood: json.bairro,
             city: json.cidade.oid,
             state: json.cidade.uf,
+            isPremiumStore: json.isPremiumStore,
             //professions: json.profissoes.map((x: any) => x.oid),
           }));
           const citiesByState = await CityService.citiesByState({
@@ -369,6 +371,7 @@ function ProfessionalPanel() {
         LgpdAceito: "S",
         Password: null,
         image: null,
+        isPremiumStore: formData.isPremiumStore
       });
     }
 
@@ -749,7 +752,8 @@ function ProfessionalPanel() {
           <div className="flex flex-wrap gap-2">
             {menuItems.map((item) => {
               //console.log("VERIFIED: " + verified);
-              if (!formData.isPremium && item.id === "products") {
+              // Retirar produtos de profissional Premium
+              if (!formData.isPremiumStore && item.id === "products") {
                 return null; // Não renderiza o item se o profissional não estiver verificado
               } else {
                 const Icon = item.icon;

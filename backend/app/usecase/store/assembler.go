@@ -1,18 +1,19 @@
 package store_usecase
 
 type StoreAssembler struct {
-	ID            uint   `json:"oid,omitempty"`
-	Name          string `json:"name"`
-	Email         string `json:"email"`
-	Telephone     string `json:"telephone"`
-	LgpdAceito    string `json:"lgpdAceito"`
-	Password      string `json:"password"`
-	CityID        uint   `json:"cityId"`
-	ProfessionIDs []uint `json:"professionIds"`
-	Cep           string `json:"cep"`
-	Street        string `json:"street"`
-	Neighborhood  string `json:"neighborhood"`
-	Image         []byte `json:"image"`
+	ID             uint   `json:"oid,omitempty"`
+	Name           string `json:"name"`
+	Email          string `json:"email"`
+	Telephone      string `json:"telephone"`
+	LgpdAceito     string `json:"lgpdAceito"`
+	Password       string `json:"password"`
+	CityID         uint   `json:"cityId"`
+	ProfessionIDs  []uint `json:"professionIds"`
+	Cep            string `json:"cep"`
+	Street         string `json:"street"`
+	Neighborhood   string `json:"neighborhood"`
+	Image          []byte `json:"image"`
+	IsPremiumStore bool   `json:"isPremiumStore"`
 }
 
 type CityAssembler struct {

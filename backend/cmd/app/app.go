@@ -72,6 +72,10 @@ import (
 	pkgproductCategoryuc "construir_mais_barato/app/usecase/productCategory"
 	pkgproductCategoryinfra "construir_mais_barato/infra/database/repositories/productCategory"
 
+	pkgplan "construir_mais_barato/app/domain/plan"
+	pkgplanuc "construir_mais_barato/app/usecase/plan"
+	pkgplaninfra "construir_mais_barato/infra/database/repositories/plan"
+
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
 
 	pkgcontrollers "construir_mais_barato/infra/web/controllers"
@@ -98,6 +102,7 @@ type dependenceParams struct {
 	StoreService           pkgstore.StoreService
 	ClientService          pkgclient.ClientService
 	RegionService          pkgregion.RegionService
+	PlanService            pkgplan.PlanService
 	MercadoPagoClient      *mercadopago.MPClient
 }
 
@@ -118,6 +123,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.StoreService = pkgstore.NewStoreService(pkgstoreinfra.NewStoreRepositoryImpl(db))
 	params.ClientService = pkgclient.NewClientService(pkgclientinfra.NewClientRepositoryImpl(db))
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
+	params.PlanService = pkgplan.NewPlanService(pkgplaninfra.NewPlanRepositoryImpl(db))
 	params.MercadoPagoClient = mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
 
 	return params
@@ -679,6 +685,22 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.ProductService,
 	}
 
+	findAllActivePlansUCParams := pkgplanuc.FindAllActiveUCParams{
+		Service: dependency.PlanService,
+	}
+
+	findPlanByUserTypeUCParams := pkgplanuc.FindByUserTypeUCParams{
+		Service: dependency.PlanService,
+	}
+
+	checkoutProfessionalPremiumUCParams := pkgprofessionaluc.CheckoutPremiumUCParams{
+		PlanService: dependency.PlanService,
+	}
+
+	checkoutStorePremiumUCParams := pkgstoreuc.CheckoutPremiumUCParams{
+		PlanService: dependency.PlanService,
+	}
+
 	// parametros do userController
 	publicControllerParams := pkgcontrollers.PublicControllerParams{
 		FindRegionByCityIdUCParams:                          findRegionByCityUCParams,
@@ -702,6 +724,10 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		FindByProfessionalByCityAndProfessionUCParamns:      findByProfessionalByCityAndProfessionUCParamns,
 		FindByNameProfessionalAndCityAndProfessionUCParamns: findByNameProfessionalAndCityAndProfessionUCParamns,
 		FindAllWithoutPaginationProfessionParams:            findAllWithoutPaginationProfessionParams,
+		FindAllActivePlansUCParams:                          findAllActivePlansUCParams,
+		FindPlanByUserTypeUCParams:                          findPlanByUserTypeUCParams,
+		CheckoutProfessionalPremiumUCParams:                 checkoutProfessionalPremiumUCParams,
+		CheckoutStorePremiumUCParams:                        checkoutStorePremiumUCParams,
 	}
 
 	pkgcontrollers.NewPublicController(&publicControllerParams, g)

@@ -10,4 +10,5 @@ export interface IStore {
   Password: string | null;
   cityId: number;
   image: string | null;
+  // isPremiumStore: boolean | false;
 }
