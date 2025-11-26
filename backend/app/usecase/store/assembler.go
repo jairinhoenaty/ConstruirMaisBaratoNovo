@@ -13,7 +13,7 @@ type StoreAssembler struct {
 	Street         string `json:"street"`
 	Neighborhood   string `json:"neighborhood"`
 	Image          []byte `json:"image"`
-	IsPremiumStore bool   `json:"isPremiumStore"`
+	IsPremiumStore *bool  `json:"isPremiumStore"`
 }
 
 type CityAssembler struct {

@@ -22,7 +22,7 @@ type Store struct {
 	Neighborhood   string
 	Image          []byte    `gorm:"type:longblob"`
 	CreatedAt      time.Time `gorm:"<-:create"`
-	IsPremiumStore bool
+	IsPremiumStore *bool     `gorm:"default:false"`
 }
 
 type StoreCount struct {

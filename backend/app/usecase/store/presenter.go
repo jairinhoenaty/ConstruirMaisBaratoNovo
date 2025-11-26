@@ -15,7 +15,7 @@ type StorePresenter struct {
 	Cidade         CidadePresenter       `json:"cidade"`
 	Professions    []ProfissionPresenter `json:"profissoes"`
 	Image          []byte                `json:"image"`
-	IsPremiumStore bool                  `json:"isPremiumStore"`
+	IsPremiumStore *bool                 `json:"isPremiumStore"`
 }
 
 type CidadePresenter struct {
