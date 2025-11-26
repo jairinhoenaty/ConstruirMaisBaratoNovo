@@ -10,6 +10,20 @@ import (
 )
 
 
+func PremiumOnly(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		tipo := r.Header.Get("User-Type")
+
+		if tipo != "premium" {
+			http.Error(w, "Premium access only", http.StatusForbidden)
+			return
+		}
+
+		next(w, r)
+	}
+}
+
 func VerifyAndValidateToken(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		token := getToken(c)

@@ -71,6 +71,11 @@ import (
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
 
 	pkgcontrollers "construir_mais_barato/infra/web/controllers"
+
+	pkgjob "construir_mais_barato/app/domain/job"
+	pkgjobinfra "construir_mais_barato/infra/database/repositories/job"
+	pkgjobuc "construir_mais_barato/app/usecase/job"
+
 )
 
 type Server struct {
@@ -91,6 +96,7 @@ type dependenceParams struct {
 	StoreService           pkgstore.StoreService
 	ClientService          pkgclient.ClientService
 	RegionService          pkgregion.RegionService
+	JobService			   pkgjob.JobService
 }
 
 func buildDependenciesParams(db *gorm.DB) dependenceParams {
@@ -109,6 +115,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.StoreService = pkgstore.NewStoreService(pkgstoreinfra.NewStoreRepositoryImpl(db))
 	params.ClientService = pkgclient.NewClientService(pkgclientinfra.NewClientRepositoryImpl(db))
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
+	params.JobService = pkgjob.NewJobService(pkgjobinfra.NewJobRepositoryImpl(db))
 
 	return params
 }
@@ -775,6 +782,8 @@ func Start(db *gorm.DB) {
 	buildStoreEndPoint(&dependency, routerGroup)
 	buildClientEndPoint(&dependency, routerGroup)
 	buildRegionEndPoint(&dependency, routerGroup)
+	buildJobEndPoint(&dependency, routerGroup, publicRouter)
+
 
 	// Adicione a rotina de desativação de orçamentos
 	go deactivateExpiredBudgetsRoutine(dependency.BudgetService)
@@ -845,6 +854,31 @@ func setupStaticFileRoutes(router *echo.Echo) {
 	router.Static("/images/upload", absUploadDir)
 	fmt.Printf("Static files being served from: %s at /images/upload\n", absUploadDir)
 }
+
+func buildJobEndPoint(dependency *dependenceParams, privateGroup, publicGroup *echo.Group) {
+
+    saveParams := pkgjobuc.SaveJobUCParams{
+        Service: dependency.JobService,
+    }
+
+    findAllParams := pkgjobuc.FindAllJobUCParams{
+        Service: dependency.JobService,
+    }
+
+    deleteParams := pkgjobuc.DeleteJobUCParams{
+        Service: dependency.JobService,
+    }
+
+    controllerParams := controllers.JobControllerParams{
+        SaveJobUCParams:   saveParams,
+        FindAllJobUCParams: findAllParams,
+        DeleteJobUCParams: deleteParams,
+    }
+
+    controllers.NewJobController(&controllerParams, privateGroup, publicGroup)
+}
+
+
 
 func deactivateExpiredBudgetsRoutine(budgetService pkgbudget.BudgetService) {
 	for {

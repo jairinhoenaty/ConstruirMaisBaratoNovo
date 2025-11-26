@@ -75,6 +75,12 @@ function Register() {
       icon: HardHat,
       description: "Ofereço serviços profissionais",
     },
+     {
+      id: "jobs",
+      name: "Balcão de vagas",
+      icon: FileText,
+      description: "Cadastre vagas de emprego",
+    },
     /*
     {
       id: "client",
@@ -604,7 +610,13 @@ function Register() {
                   <button
                     key={role.id}
                     type="button"
-                    onClick={() => setSelectedRole(role.id as UserRole)}
+                    onClick={() => {
+                      if (role.id === "jobs") {
+                        navigate("/register-job"); // abre o formulário de vaga
+                        return;
+                      }
+                      setSelectedRole(role.id as UserRole);
+                    }}
                     className={`flex flex-col items-center p-4 rounded-lg border-2 transition-colors ${
                       selectedRole === role.id
                         ? "border-blue-600 bg-blue-50"

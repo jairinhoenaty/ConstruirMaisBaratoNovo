@@ -25,6 +25,7 @@ import {
   ChevronDown,
   Check,
   Trash2,
+  Briefcase,
 } from "lucide-react";
 import InputMask from "react-input-mask";
 //import { states, citiesByState } from '../data';
@@ -43,6 +44,7 @@ import { IContact } from "../interfaces/IContact";
 import { ContactService } from "../services/ContactService";
 import Pagination from "../components/Pagination";
 import EditProduct from "./EditProduct";
+import JobsPanel from "./JobsPanel";
 
 interface Product {
   id: string;
@@ -96,6 +98,7 @@ function ProfessionalPanel() {
   const [menuItems, setMenuItems] = useState([
     { id: "products", label: "Produtos", icon: Package },
     { id: "messages", label: "Mensagens", icon: MessageSquare },
+    { id: "jobs", label: "Balcão de vagas", icon: Briefcase },
     { id: "support", label: "Suporte", icon: HelpCircle },
     { id: "password", label: "Senha de Acesso", icon: Key },
 
@@ -670,7 +673,7 @@ function ProfessionalPanel() {
           <div className="flex flex-wrap gap-2">
             {menuItems.map((item) => {
               //console.log("VERIFIED: " + verified);
-              if (verified == false && item.id === "products") {
+              if (verified == false && (item.id === "products" || item.id === "jobs")) {
                   return null; // Não renderiza o item se o profissional não estiver verificado
               }                  
               else {    
@@ -999,6 +1002,7 @@ function ProfessionalPanel() {
         {activeTab === "newproduct" && <NewProduct />}
         {activeTab === "editproduct" && <EditProduct id={productID} />}
         {activeTab === "cashback" && renderCashback()}
+        {activeTab === "jobs" && <JobsPanel />}
       </div>
     </div>
   );

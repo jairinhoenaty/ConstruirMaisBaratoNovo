@@ -12,6 +12,7 @@ import Header from "./components/Header";
 import BannerHeader from "./components/BannerHeader";
 import SearchResults from "./pages/SearchResults";
 import ResetPassword from "./pages/ResetPassword";
+import RegisterJob from "./pages/RegisterJob";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/professional-panel" element={<ProfessionalPanel />} />
             <Route path="/confirmar-senha/:token" element={<ResetPassword />} />
+            <Route path="/register-job" element={<RegisterJob />} />
           </Routes>
         </BrowserRouter>
       </div>
