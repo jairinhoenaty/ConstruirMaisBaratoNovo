@@ -50,10 +50,12 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
     professions: [] as string[],
     verified: false, // Added the verified field
     isPremium: false,
+    isPremiumStore: false,
   });
 
   React.useEffect(() => {
     const fetchData = async () => {
+      console.log(profile);
       console.log(profile);
       if (profile === "client") {
         const response = await ClientService.getClientbyID(id);
@@ -114,7 +116,7 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
             state: json.cidade.uf,
             professions: json.profissoes.map((x: any) => x.oid),
             verified: json.verified || false, // Assuming 'verified' field exists in professional data
-            isPremium:json.isPremium || false
+            isPremium: json.isPremium || false,
           }));
           setIsProfessional(true);
           const citiesResponse = await CityService.citiesByState({
@@ -146,6 +148,7 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
             city: json.cidade.oid,
             state: json.cidade.uf,
             verified: json.verified || false, // Assuming 'verified' field exists in store data
+            isPremiumStore: json.isPremiumStore || false,
           }));
           const citiesResponse = await CityService.citiesByState({
             uf: json.cidade.uf,
@@ -226,19 +229,20 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
       image: null,
       verified: formData.verified, // Include the verified status
       isPremium: formData.isPremium, // Include the premium status
+      isPremiumStore: formData.isPremiumStore,
     };
 
     if (currentProfile === "client") {
       postReturn = await ClientService.postClient(commonData);
     } else if (
-      currentProfile === "profissional" ||
-      currentProfile === "admin"
+      currentProfile === "profissional" &&
+      profile === "profissional"
     ) {
       postReturn = await ProfessionalService.postProfessional({
         ...commonData,
         professionIds: formData.professions,
       });
-    } else if (currentProfile === "store") {
+    } else if (currentProfile === "admin" && profile === "store") {
       postReturn = await StoreService.postStore(commonData);
     }
 
@@ -508,18 +512,26 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
         )}
 
         {/* Verified Checkbox */}
-        {(profile === "admin" || profile === "profissional") && ( // Only show for admin or professional profiles
+        {(profile === "admin" ||
+          profile === "profissional" ||
+          profile === "store") && ( // Only show for admin or professional profiles
           <div className="flex items-center mt-4">
             <input
-              id="isPremium"
-              name="isPremium"
+              id={profile == "profissional" ? "isPremium" : "isPremiumStore"}
+              name={profile == "profissional" ? "isPremium" : "isPremiumStore"}
               type="checkbox"
-              checked={formData.isPremium}
+              checked={
+                profile == "profissional"
+                  ? formData.isPremium
+                  : formData.isPremiumStore
+              }
               onChange={handleChange}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label
-              htmlFor="isPremium"
+              htmlFor={
+                profile == "profissional" ? "isPremium" : "isPremiumStore"
+              }
               className="ml-2 block text-sm text-gray-900"
             >
               Premium
