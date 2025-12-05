@@ -69,7 +69,9 @@ func (r *repository) FindBudgetsByMonthAndProfessionalID(
 	if clientID != 0 {
 		tx = tx.Where("budgets.client_id = ?", clientID)
 	}
-
+	if storeID == 0 && professionalID == 0 {
+		return nil, fmt.Errorf("Nenhum orçamento encontrado")
+	}
 	// Filtro por mês
 	// tx = tx.Where("DATE_FORMAT(budgets.created_at, '%Y-%m') = ?", yearMonth)
 

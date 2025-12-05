@@ -77,11 +77,13 @@ func (uc *FindByMonthAndProfessionalIDUC) Execute() ([]BudgetPresenter, error) {
 
 	fmt.Println("Parametros da consulta")
 	fmt.Println("Mes => ", uc.Assembler.Month)
-	if uc.Assembler.ProfessionalID != nil {
+	if uc.Assembler.ProfessionalID != nil && *uc.Assembler.ProfessionalID != 0 {
 		fmt.Println("Id do profissional => ", int(*uc.Assembler.ProfessionalID))
 		profissionalID = *uc.Assembler.ProfessionalID
-	} else if uc.Assembler.StoreID != nil {
+	} else if uc.Assembler.StoreID != nil && *uc.Assembler.StoreID != 0 {
 		storeID = *uc.Assembler.StoreID
+	} else {
+		return nil, fmt.Errorf("erro ao buscar orçamentos")
 	}
 
 	budgets, err := uc.Service.FindBudgetsByMonthAndProfessionalID(
