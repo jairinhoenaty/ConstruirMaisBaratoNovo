@@ -60,6 +60,9 @@ import (
 	pkgunlockedbudgetuc "construir_mais_barato/app/usecase/unlocked-budget"
 	pkgunlockedbudgetinfra "construir_mais_barato/infra/database/repositories/unlocked-budget"
 
+	pkgunlockprice "construir_mais_barato/app/domain/unlock-price"
+	pkgunlockpriceinfra "construir_mais_barato/infra/database/repositories/unlock-price"
+
 	pkgbanner "construir_mais_barato/app/domain/banner"
 	pkgbanneruc "construir_mais_barato/app/usecase/banner"
 	pkgbannerinfra "construir_mais_barato/infra/database/repositories/banner"
@@ -96,6 +99,7 @@ type dependenceParams struct {
 	ProfessionalService    pkgprofessional.ProfessionalService
 	BudgetService          pkgbudget.BudgetService
 	UnlockedBudgetService  pkgunlockedbudget.UnlockedBudgetService
+	UnlockPriceService     pkgunlockprice.UnlockPriceService
 	BannerService          pkgbanner.BannerService
 	ProductService         pkgproduct.ProductService
 	ProductCategoryService pkgproductCategory.ProductCategoryService
@@ -117,6 +121,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.ProfessionalService = pkgprofessional.NewProfessionalService(pkgprofessionalinfra.NewProfessionalRepositoryImpl(db))
 	params.BudgetService = pkgbudget.NewBudgetService(pkgbudgetinfra.NewBudgetRepositoryImpl(db))
 	params.UnlockedBudgetService = pkgunlockedbudget.NewUnlockedBudgetService(pkgunlockedbudgetinfra.NewUnlockedBudgetRepositoryImpl(db))
+	params.UnlockPriceService = pkgunlockprice.NewUnlockPriceService(pkgunlockpriceinfra.NewUnlockPriceRepositoryImpl(db))
 	params.BannerService = pkgbanner.NewBannerService(pkgbannerinfra.NewBannerRepositoryImpl(db))
 	params.ProductService = pkgproduct.NewProductService(pkgproductinfra.NewProductRepositoryImpl(db))
 	params.ProductCategoryService = pkgproductCategory.NewProductCategoryService(pkgproductCategoryinfra.NewProductCategoryRepositoryImpl(db))
@@ -125,6 +130,10 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
 	params.PlanService = pkgplan.NewPlanService(pkgplaninfra.NewPlanRepositoryImpl(db))
 	params.MercadoPagoClient = mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
+
+	// Seed plans and unlock prices on startup
+	pkgplan.SeedPlans(db)
+	pkgunlockprice.SeedUnlockPrices(db)
 
 	return params
 }
@@ -542,6 +551,7 @@ func buildBudgetEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service:             dependency.BudgetService,
 		ServiceUser:         dependency.UserService,
 		ServiceProfessional: dependency.ProfessionalService,
+		ServiceStore:        dependency.StoreService,
 	}
 
 	FindByEmailUCParams := pkgbudgetuc.FindByEmailUCParams{
@@ -564,12 +574,15 @@ func buildUnlockedBudgetEndPoint(dependency *dependenceParams, g *echo.Group) {
 	checkBudgetAccessUCParams := pkgunlockedbudgetuc.CheckBudgetAccessParams{
 		UnlockedBudgetService: dependency.UnlockedBudgetService,
 		ProfessionalService:   dependency.ProfessionalService,
+		StoreService:          dependency.StoreService,
 	}
 
 	unlockBudgetPaymentUCParams := pkgunlockedbudgetuc.UnlockBudgetPaymentParams{
 		UnlockedBudgetService: dependency.UnlockedBudgetService,
 		BudgetService:         dependency.BudgetService,
 		ProfessionalService:   dependency.ProfessionalService,
+		StoreService:          dependency.StoreService,
+		UnlockPriceService:    dependency.UnlockPriceService,
 		MercadoPagoClient:     dependency.MercadoPagoClient,
 	}
 
@@ -614,6 +627,10 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 	SaveStoreUCParams := pkgstoreuc.SaveStoreUCParams{
 		Service:     dependency.StoreService,
 		ServiceUser: dependency.UserService,
+	}
+
+	findByCategoryAndSubCategories := pkgstoreuc.FindStoreByCategoryAndSubCategoryParams{
+		Service: dependency.StoreService,
 	}
 
 	FindByPageUCParams := pkgbanneruc.FindByPageUCParams{
@@ -728,6 +745,7 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		FindPlanByUserTypeUCParams:                          findPlanByUserTypeUCParams,
 		CheckoutProfessionalPremiumUCParams:                 checkoutProfessionalPremiumUCParams,
 		CheckoutStorePremiumUCParams:                        checkoutStorePremiumUCParams,
+		FindStoreByCategoryAndSubCategoryParams:             findByCategoryAndSubCategories,
 	}
 
 	pkgcontrollers.NewPublicController(&publicControllerParams, g)
@@ -805,11 +823,67 @@ func buildProductCategoryEndPoint(dependenceParams *dependenceParams, g *echo.Gr
 		Service: dependenceParams.ProductCategoryService,
 	}
 
+	findTopLevelUCParams := pkgproductCategoryuc.FindTopLevelUCParams{
+		Service: dependenceParams.ProductCategoryService,
+	}
+
+	findSubcategoriesByParentUCParams := pkgproductCategoryuc.FindSubcategoriesByParentUCParams{
+		Service: dependenceParams.ProductCategoryService,
+	}
+
 	productCategoryControllerParams := pkgcontrollers.ProductCategoryControllerParams{
-		FindByProfessionUCParams:    findByProfessionUCParams,
-		SaveProductCategoryUCParams: saveProductCategoryUCParams,
+		FindByProfessionUCParams:          findByProfessionUCParams,
+		SaveProductCategoryUCParams:       saveProductCategoryUCParams,
+		FindTopLevelUCParams:              findTopLevelUCParams,
+		FindSubcategoriesByParentUCParams: findSubcategoriesByParentUCParams,
 	}
 	pkgcontrollers.NewProductCategoryController(&productCategoryControllerParams, g)
+}
+
+func buildProductCategoryPublicEndPoint(dependenceParams *dependenceParams, g *echo.Group) {
+
+	findTopLevelUCParams := pkgproductCategoryuc.FindTopLevelUCParams{
+		Service: dependenceParams.ProductCategoryService,
+	}
+
+	findSubcategoriesByParentUCParams := pkgproductCategoryuc.FindSubcategoriesByParentUCParams{
+		Service: dependenceParams.ProductCategoryService,
+	}
+
+	productCategoryControllerParams := pkgcontrollers.ProductCategoryControllerParams{
+		FindTopLevelUCParams:              findTopLevelUCParams,
+		FindSubcategoriesByParentUCParams: findSubcategoriesByParentUCParams,
+	}
+	pkgcontrollers.NewProductCategoryController(&productCategoryControllerParams, g)
+}
+
+func buildProductCategoryAdminEndPoint(dependenceParams *dependenceParams, g *echo.Group) {
+
+	createProductCategoryUCParams := pkgproductCategoryuc.CreateProductCategoryUCParams{
+		Service: dependenceParams.ProductCategoryService,
+	}
+
+	updateProductCategoryUCParams := pkgproductCategoryuc.UpdateProductCategoryUCParams{
+		Service: dependenceParams.ProductCategoryService,
+	}
+
+	deleteProductCategoryUCParams := pkgproductCategoryuc.DeleteProductCategoryUCParams{
+		CategoryService: dependenceParams.ProductCategoryService,
+		StoreService:    dependenceParams.StoreService,
+	}
+
+	checkDependenciesUCParams := pkgproductCategoryuc.CheckDependenciesUCParams{
+		CategoryService: dependenceParams.ProductCategoryService,
+		StoreService:    dependenceParams.StoreService,
+	}
+
+	productCategoryAdminControllerParams := pkgcontrollers.ProductCategoryControllerParams{
+		CreateProductCategoryUCParams: createProductCategoryUCParams,
+		UpdateProductCategoryUCParams: updateProductCategoryUCParams,
+		DeleteProductCategoryUCParams: deleteProductCategoryUCParams,
+		CheckDependenciesUCParams:     checkDependenciesUCParams,
+	}
+	pkgcontrollers.NewProductCategoryAdminController(&productCategoryAdminControllerParams, g)
 }
 
 func Start(db *gorm.DB) {
@@ -832,6 +906,7 @@ func Start(db *gorm.DB) {
 	publicRouter := router.Group("/publica")
 	buildLoginEndPoint(&dependency, publicRouter)
 	buildPublicEndPoint(&dependency, publicRouter)
+	buildProductCategoryPublicEndPoint(&dependency, publicRouter)
 
 	// **************************************** Rotas privadas
 	routerGroup := router.Group("/api/v1")
@@ -850,6 +925,7 @@ func Start(db *gorm.DB) {
 	buildBannerEndPoint(&dependency, routerGroup)
 	buildProductEndPoint(&dependency, routerGroup)
 	buildProductCategoryEndPoint(&dependency, routerGroup)
+	buildProductCategoryAdminEndPoint(&dependency, routerGroup)
 	buildStoreEndPoint(&dependency, routerGroup)
 	buildClientEndPoint(&dependency, routerGroup)
 	buildRegionEndPoint(&dependency, routerGroup)

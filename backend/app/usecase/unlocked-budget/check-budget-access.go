@@ -2,26 +2,30 @@ package unlocked_budget_usecase
 
 import (
 	pkgprofessional "construir_mais_barato/app/domain/professional"
+	"construir_mais_barato/app/domain/store"
 	pkgunlockedbudget "construir_mais_barato/app/domain/unlocked-budget"
 	"errors"
 
 	"gorm.io/gorm"
 )
 
-// CheckBudgetAccessUC verifica se um profissional tem acesso a um orçamento
+// CheckBudgetAccessUC verifica se um profissional ou loja tem acesso a um orçamento
 type CheckBudgetAccessUC struct {
 	UnlockedBudgetService pkgunlockedbudget.UnlockedBudgetService
 	ProfessionalService   pkgprofessional.ProfessionalService
+	StoreService          store.StoreService
 }
 
 type CheckBudgetAccessParams struct {
 	UnlockedBudgetService pkgunlockedbudget.UnlockedBudgetService
 	ProfessionalService   pkgprofessional.ProfessionalService
+	StoreService          store.StoreService
 }
 
 type CheckBudgetAccessInput struct {
-	ProfessionalID uint `json:"professionalId"`
-	BudgetID       uint `json:"budgetId"`
+	Professional *pkgprofessional.Professional
+	Store        *store.Store
+	BudgetID     uint `json:"budgetId"`
 }
 
 type CheckBudgetAccessOutput struct {
@@ -29,42 +33,94 @@ type CheckBudgetAccessOutput struct {
 	IsPremium bool   `json:"isPremium"`
 	IsPaid    bool   `json:"isPaid"`
 	Reason    string `json:"reason,omitempty"`
+	UserType  string `json:"userType,omitempty"`
 }
 
 func NewCheckBudgetAccessUC(params CheckBudgetAccessParams) *CheckBudgetAccessUC {
 	return &CheckBudgetAccessUC{
 		UnlockedBudgetService: params.UnlockedBudgetService,
 		ProfessionalService:   params.ProfessionalService,
+		StoreService:          params.StoreService,
 	}
 }
 
-// Execute verifica se o profissional tem acesso ao orçamento
+// Execute verifica se o profissional ou loja tem acesso ao orçamento
 func (uc *CheckBudgetAccessUC) Execute(input CheckBudgetAccessInput) (*CheckBudgetAccessOutput, error) {
-	professional, err := uc.ProfessionalService.FindById(input.ProfessionalID)
-	if err != nil {
-		return nil, errors.New("profissional não encontrado")
-	}
+	// PROFESSIONAL LOGIC
+	if input.Professional != nil && input.Professional.ID > 0 {
+		// Check if professional is premium
+		if input.Professional.IsPremium != nil && *input.Professional.IsPremium {
+			return &CheckBudgetAccessOutput{
+				HasAccess: true,
+				IsPremium: true,
+				IsPaid:    false,
+				Reason:    "premium",
+				UserType:  "professional",
+			}, nil
+		}
 
-	if professional.IsPremium != nil && *professional.IsPremium {
+		// Check if professional has paid to unlock this specific budget
+		unlockedBudget, err := uc.UnlockedBudgetService.FindPaidByProfessionalAndBudget(input.Professional.ID, input.BudgetID)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		if unlockedBudget != nil && unlockedBudget.IsPaid() {
+			return &CheckBudgetAccessOutput{
+				HasAccess: true,
+				IsPremium: false,
+				IsPaid:    true,
+				Reason:    "paid",
+				UserType:  "professional",
+			}, nil
+		}
+
+		// No access
 		return &CheckBudgetAccessOutput{
-			HasAccess: true,
-			IsPremium: true,
+			HasAccess: false,
+			IsPremium: false,
 			IsPaid:    false,
-			Reason:    "premium",
+			Reason:    "blocked",
+			UserType:  "professional",
 		}, nil
 	}
 
-	unlockedBudget, err := uc.UnlockedBudgetService.FindPaidByProfessionalAndBudget(input.ProfessionalID, input.BudgetID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
+	// STORE LOGIC
+	if input.Store != nil && input.Store.ID > 0 {
+		// Check if store is premium
+		if input.Store.IsPremiumStore != nil && *input.Store.IsPremiumStore {
+			return &CheckBudgetAccessOutput{
+				HasAccess: true,
+				IsPremium: true,
+				IsPaid:    false,
+				Reason:    "premium",
+				UserType:  "store",
+			}, nil
+		}
 
-	if unlockedBudget != nil && unlockedBudget.IsPaid() {
+		// Check if store has paid to unlock this specific budget
+		unlockedBudget, err := uc.UnlockedBudgetService.FindPaidByStoreAndBudget(input.Store.ID, input.BudgetID)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		if unlockedBudget != nil && unlockedBudget.IsPaid() {
+			return &CheckBudgetAccessOutput{
+				HasAccess: true,
+				IsPremium: false,
+				IsPaid:    true,
+				Reason:    "paid",
+				UserType:  "store",
+			}, nil
+		}
+
+		// No access
 		return &CheckBudgetAccessOutput{
-			HasAccess: true,
+			HasAccess: false,
 			IsPremium: false,
-			IsPaid:    true,
-			Reason:    "paid",
+			IsPaid:    false,
+			Reason:    "blocked",
+			UserType:  "store",
 		}, nil
 	}
 
@@ -72,6 +128,6 @@ func (uc *CheckBudgetAccessUC) Execute(input CheckBudgetAccessInput) (*CheckBudg
 		HasAccess: false,
 		IsPremium: false,
 		IsPaid:    false,
-		Reason:    "blocked",
+		Reason:    "no_user",
 	}, nil
 }

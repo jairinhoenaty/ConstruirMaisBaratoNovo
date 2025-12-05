@@ -34,12 +34,51 @@ func (r *repository) Save(productCategory pkgproductCategory.ProductCategory) (*
 	return &productCategory, nil
 }
 
-/*
-func (r *repository) Remove(id uint) error {
+func (r *repository) FindAll() ([]*pkgproductCategory.ProductCategory, error) {
+	categories := make([]*pkgproductCategory.ProductCategory, 0)
+	if err := r.DB.Preload("Parent").
+		Preload("Children").
+		Order("name asc").
+		Find(&categories).Error; err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
 
-	if err := r.DB.Delete(&pkgproduct.Product{}, id).Error; err != nil {
+func (r *repository) FindById(id uint) (*pkgproductCategory.ProductCategory, error) {
+	category := &pkgproductCategory.ProductCategory{}
+	if err := r.DB.Preload("Parent").
+		Preload("Children").
+		First(category, id).Error; err != nil {
+		return nil, err
+	}
+	return category, nil
+}
+
+func (r *repository) FindTopLevel() ([]*pkgproductCategory.ProductCategory, error) {
+	categories := make([]*pkgproductCategory.ProductCategory, 0)
+	if err := r.DB.Where("parent_id IS NULL").
+		Preload("Children").
+		Order("name asc").
+		Find(&categories).Error; err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (r *repository) FindSubcategoriesByParentID(parentID uint) ([]*pkgproductCategory.ProductCategory, error) {
+	subcategories := make([]*pkgproductCategory.ProductCategory, 0)
+	if err := r.DB.Where("parent_id = ?", parentID).
+		Order("name asc").
+		Find(&subcategories).Error; err != nil {
+		return nil, err
+	}
+	return subcategories, nil
+}
+
+func (r *repository) Remove(id uint) error {
+	if err := r.DB.Delete(&pkgproductCategory.ProductCategory{}, id).Error; err != nil {
 		return err
 	}
 	return nil
 }
-*/

@@ -1,19 +1,21 @@
 package store_usecase
 
 type StoreAssembler struct {
-	ID             uint   `json:"oid,omitempty"`
-	Name           string `json:"name"`
-	Email          string `json:"email"`
-	Telephone      string `json:"telephone"`
-	LgpdAceito     string `json:"lgpdAceito"`
-	Password       string `json:"password"`
-	CityID         uint   `json:"cityId"`
-	ProfessionIDs  []uint `json:"professionIds"`
-	Cep            string `json:"cep"`
-	Street         string `json:"street"`
-	Neighborhood   string `json:"neighborhood"`
-	Image          []byte `json:"image"`
-	IsPremiumStore *bool  `json:"isPremiumStore"`
+	ID                uint   `json:"oid,omitempty"`
+	Name              string `json:"name"`
+	Email             string `json:"email"`
+	Telephone         string `json:"telephone"`
+	LgpdAceito        string `json:"lgpdAceito"`
+	Password          string `json:"password"`
+	CityID            uint   `json:"cityId"`
+	ProfessionIDs     []uint `json:"professionIds"`
+	Cep               string `json:"cep"`
+	Street            string `json:"street"`
+	Neighborhood      string `json:"neighborhood"`
+	Image             []byte `json:"image"`
+	IsPremiumStore    *bool  `json:"isPremiumStore"`
+	CategoryProductID uint   `json:"categoryProductID"`
+	SubCategories     []uint `json:"subCategories"`
 }
 
 type CityAssembler struct {
@@ -61,4 +63,9 @@ type FindWithPaginationStoreByStateAssembler struct {
 	UF     string `json:"state"`
 	Limit  int    `json:"limit"`
 	Offset int    `json:"offset"`
+}
+
+type FindByCategoryAndSubCategory struct {
+	CategoryID      int   `json:"categoryId"`
+	SubCategoriesID []int `json:"subCategoriesId"`
 }

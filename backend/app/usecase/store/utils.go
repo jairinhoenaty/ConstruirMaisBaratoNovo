@@ -32,6 +32,8 @@ func GenerateStore(assembler *StoreAssembler) pkgstore.Store {
 		store.Neighborhood = assembler.Neighborhood
 		store.Image = assembler.Image
 		store.IsPremiumStore = assembler.IsPremiumStore
+		store.CategoryProductID = assembler.CategoryProductID
+		store.SubCategories = assembler.SubCategories
 
 	}
 	return store
@@ -59,7 +61,10 @@ func GenerateStorePresenter(store *pkgstore.Store) StorePresenter {
 		presenter.Neighborhood = store.Neighborhood
 		presenter.Image = store.Image
 		presenter.IsPremiumStore = store.IsPremiumStore
-
+		presenter.CategoryId = int(store.CategoryProductID)
+	}
+	for _, sub := range store.SubCategories {
+		presenter.SubCategoriesId = append(presenter.SubCategoriesId, int(sub))
 	}
 	return presenter
 }

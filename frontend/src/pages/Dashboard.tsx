@@ -29,6 +29,7 @@ import Pagination from "../components/Pagination";
 import LoadingText from "../components/LoadingText";
 import DashboardProfessions from "./DashboardProfissions";
 import DashboardRegions from "./DashboardRegions";
+import ProductCategoriesAdmin from "./ProductCategoriesAdmin";
 
 function Dashboard() {
 
@@ -204,6 +205,7 @@ function Dashboard() {
     { id: "professionalbyCiity", label: "Profissionais por Estado" },
     { id: "professions", label: "Profissões" },
     { id: "regions", label: "Regiões" },
+    { id: "categoryProducts", label: "Categorias de produtos" },
   ];
 
   const renderDashboard = () => {
@@ -769,6 +771,9 @@ function Dashboard() {
             )}
             {selectedDashboardSection === "regions" && (
               <DashboardRegions />
+            )}
+            {selectedDashboardSection === "categoryProducts" && (
+              <ProductCategoriesAdmin />
             )}
           </div>
         </div>

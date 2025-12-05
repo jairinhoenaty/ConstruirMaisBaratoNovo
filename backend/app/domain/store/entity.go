@@ -1,6 +1,9 @@
 package store
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -10,19 +13,21 @@ import (
 
 type Store struct {
 	gorm.Model
-	Name           string
-	Company        string
-	Email          string `gorm:"unique"`
-	Telephone      string
-	LgpdAceito     string
-	CityID         uint
-	City           pkgcity.City `gorm:"foreignKey:CityID"`
-	Cep            string
-	Street         string
-	Neighborhood   string
-	Image          []byte    `gorm:"type:longblob"`
-	CreatedAt      time.Time `gorm:"<-:create"`
-	IsPremiumStore *bool     `gorm:"default:false"`
+	Name              string
+	Company           string
+	Email             string `gorm:"unique"`
+	Telephone         string
+	LgpdAceito        string
+	CityID            uint
+	City              pkgcity.City `gorm:"foreignKey:CityID"`
+	Cep               string
+	Street            string
+	Neighborhood      string
+	Image             []byte    `gorm:"type:longblob"`
+	CreatedAt         time.Time `gorm:"<-:create"`
+	IsPremiumStore    *bool     `gorm:"default:false"`
+	CategoryProductID uint
+	SubCategories     UintSlice `gorm:"type:json"`
 }
 
 type StoreCount struct {
@@ -34,4 +39,21 @@ type CityStoreCount struct {
 	CityID     uint
 	CityName   string
 	StoreCount int64
+}
+
+type UintSlice []uint
+
+func (u UintSlice) Value() (driver.Value, error) {
+	// Converte para JSON antes de salvar
+	b, err := json.Marshal(u)
+	return string(b), err
+}
+
+func (u *UintSlice) Scan(value interface{}) error {
+	// Converte de JSON para slice quando lê do BD
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("invalid Scan source for UintSlice")
+	}
+	return json.Unmarshal(b, u)
 }

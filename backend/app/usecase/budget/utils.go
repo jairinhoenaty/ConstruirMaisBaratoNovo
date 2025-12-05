@@ -18,6 +18,7 @@ func GenerateBudget(assembler *BudgetAssembler) pkgbudget.Budget {
 		budget.Telephone = assembler.Telephone
 		budget.Description = assembler.Description
 		budget.ProfessionalIDs = assembler.ProfessionalsId
+		budget.StoresIDs = assembler.StoresId
 		budget.CityID = assembler.CityID
 		budget.TermResponsabilityAccepted = assembler.TermResponsabilityAccepted
 		// budget.ClientID = assembler.ClientID
@@ -64,9 +65,13 @@ func GenerateBudget(assembler *BudgetAssembler) pkgbudget.Budget {
 
 func GenerateBudgetPresenter(budget *pkgbudget.Budget) BudgetPresenter {
 	presenter := BudgetPresenter{}
+	var professionalsPresenter *[]ProfessionalPresenter
 	if budget != nil {
 
-		professionalsPresenter := generateProfessionalPresenter(budget.Professionals)
+		if budget.Professionals != nil {
+			professionalsPresenter = generateProfessionalPresenter(budget.Professionals)
+
+		}
 
 		presenter.ID = budget.ID
 		presenter.Name = budget.Name

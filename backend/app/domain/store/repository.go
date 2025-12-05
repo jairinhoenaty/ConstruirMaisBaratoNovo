@@ -13,7 +13,11 @@ type StoreRepository interface {
 		CountProfessionalsByProfessionInCity(cityID uint) ([]ProfessionCount, error)
 	*/
 	FindLastStores(quantityRecords int) ([]Store, error)
-
+	FindByCategoryAndSubCategory(categoryID int, subCategories []int) ([]*Store, error)
+	CountByCategory(categoryID uint) (int64, error)
+	CountBySubCategory(subCategoryID uint) (int64, error)
+	MigrateCategoryBulk(fromCategoryID, toCategoryID uint) (int64, error)
+	MigrateSubCategoryBulk(fromSubCategoryID, toSubCategoryID uint) (int64, error)
 	Save(store Store) (*Store, error)
 	Remove(id uint) error
 	ExportXLSX() ([]*Store, error)

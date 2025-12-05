@@ -7,10 +7,12 @@ type BudgetAssembler struct {
 	Telephone                  string  `json:"telephone"`
 	Description                string  `json:"description"`
 	ProfessionalsId            *[]uint `json:"professionalsId"`
+	StoresId                   *[]uint `json:"storesId"`
 	CityID                     *uint   `json:"cityId"`
 	TermResponsabilityAccepted bool    `json:"termResponsabilityAccepted"`
+	CategoryId                 int     `json:"categoryId"`
 	// ClientID                   *uint   `json:"clientId"`
-	Approved                   bool    `json:"approved"`
+	Approved bool `json:"approved"`
 }
 
 type ProfessionalAssembler struct {
@@ -31,6 +33,7 @@ type FindBudgetByMontAndProfessionalIDAssembler struct {
 	Month          string `json:"month"`
 	PageSize       uint   `json:"pagesize"`
 	ProfessionalID *uint  `json:"professionalID"`
+	StoreID        *uint  `json:"storeID"`
 	ClientID       int    `json:"clientID"`
 }
 

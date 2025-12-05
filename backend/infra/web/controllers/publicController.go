@@ -1,16 +1,16 @@
 package controllers
 
 import (
+	pkgplan "construir_mais_barato/app/domain/plan"
 	pkgbanneruc "construir_mais_barato/app/usecase/banner"
 	pkgbudgetuc "construir_mais_barato/app/usecase/budget"
 	pkgcityuc "construir_mais_barato/app/usecase/city"
 	pkgclientuc "construir_mais_barato/app/usecase/client"
 	pkgpcontactuc "construir_mais_barato/app/usecase/contact"
+	pkgplanuc "construir_mais_barato/app/usecase/plan"
 	pkgpproductuc "construir_mais_barato/app/usecase/product"
 	pkgproductuc "construir_mais_barato/app/usecase/product"
 	pkgprofessionuc "construir_mais_barato/app/usecase/profession"
-	pkgplan "construir_mais_barato/app/domain/plan"
-	pkgplanuc "construir_mais_barato/app/usecase/plan"
 	pkgprofessionaluc "construir_mais_barato/app/usecase/professional"
 	pkgregionuc "construir_mais_barato/app/usecase/region"
 	pkgstoreuc "construir_mais_barato/app/usecase/store"
@@ -31,6 +31,7 @@ import (
 
 type PublicController struct {
 	FindByEmailUCParams                                 pkguseruc.FindByEmailUCParams
+	FindStoreByCategoryAndSubCategoryParams             pkgstoreuc.FindStoreByCategoryAndSubCategoryParams
 	SaveClientUCParams                                  pkgclientuc.SaveClientUCParams
 	SaveStoreUCParams                                   pkgstoreuc.SaveStoreUCParams
 	FindByPageUCParams                                  pkgbanneruc.FindByPageUCParams
@@ -57,8 +58,9 @@ type PublicController struct {
 	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
 }
 
-type PublicControllerParams struct{
+type PublicControllerParams struct {
 	FindByEmailUCParams                                 pkguseruc.FindByEmailUCParams
+	FindStoreByCategoryAndSubCategoryParams             pkgstoreuc.FindStoreByCategoryAndSubCategoryParams
 	SaveClientUCParams                                  pkgclientuc.SaveClientUCParams
 	SaveStoreUCParams                                   pkgstoreuc.SaveStoreUCParams
 	FindByPageUCParams                                  pkgbanneruc.FindByPageUCParams
@@ -112,6 +114,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 		FindPlanByUserTypeUCParams:                          params.FindPlanByUserTypeUCParams,
 		CheckoutProfessionalPremiumUCParams:                 params.CheckoutProfessionalPremiumUCParams,
 		CheckoutStorePremiumUCParams:                        params.CheckoutStorePremiumUCParams,
+		FindStoreByCategoryAndSubCategoryParams:             params.FindStoreByCategoryAndSubCategoryParams,
 	}
 
 	g.GET("/plans", controller.GetActivePlans)
@@ -140,6 +143,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.POST("/banners/page", controller.FindBannerbyPage)
 
 	g.POST("/save/store", controller.SaveStore)
+	g.POST("/category-and-sub", controller.FindStoreByCategoryAndSubCategory)
 	g.POST("/save/client", controller.SaveClient)
 	g.POST("/upload/image", controller.uploadFile)
 
@@ -326,6 +330,22 @@ func (c *PublicController) SaveProfessional(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, professional)
 
+}
+
+func (c *PublicController) FindStoreByCategoryAndSubCategory(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+	assembler := pkgstoreuc.FindByCategoryAndSubCategory{}
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	uc := pkgstoreuc.NewFindStoreByCategoryAndSubCategory(c.FindStoreByCategoryAndSubCategoryParams)
+	uc.Assembler = &assembler
+	stores, err := uc.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusPreconditionFailed, nil)
+	}
+	return ctx.JSON(http.StatusOK, stores)
 }
 
 func (c *PublicController) SaveStore(ctx echo.Context) error {

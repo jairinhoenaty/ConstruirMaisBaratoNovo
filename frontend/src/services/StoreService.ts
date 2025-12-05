@@ -3,6 +3,7 @@ import { IStore } from "../interfaces/IStore";
 import { CheckoutPremiumInput, CheckoutPremiumOutput } from "../interfaces";
 import Api from "../providers/Api";
 import ApiPublica from "../providers/ApiPublica";
+import { ICategoryAndSubCategories } from "../interfaces/ICategoryProduct";
 
 const getStorebyID = (id: Number) => Api.get("/store/" + id);
 const getStores = (limit: Number, offset: Number) =>
@@ -44,6 +45,9 @@ const postStoreXLSX = () => {
 const checkoutStorePremium = (data: CheckoutPremiumInput) =>
   ApiPublica.post<CheckoutPremiumOutput>("/store/checkout/premium", data);
 
+const getByCategoryAndSubCategories = (data: ICategoryAndSubCategories) =>
+  ApiPublica.post("/category-and-sub",data);
+
 export const StoreService = {
   postStorePublic,
   getStores,
@@ -53,4 +57,5 @@ export const StoreService = {
   deleteStore,
   postStoreXLSX,
   checkoutStorePremium,
+  getByCategoryAndSubCategories,
 };

@@ -6,7 +6,7 @@ type BudgetService interface {
 	FindAll(limit int, offset int) ([]*Budget, int64, error)
 	FindById(id uint) (*Budget, error)
 	FindByEmail(email string) (*Budget, error)
-	FindBudgetsByMonthAndProfessionalID(month string, professionalID uint, clientID int, page int, pageSize int) ([]*Budget, error)
+	FindBudgetsByMonthAndProfessionalID(month string, professionalID uint, storeID uint, clientID int, page int, pageSize int) ([]*Budget, error)
 	FindExpiredBudgets(before time.Time) ([]*Budget, error)
 	Save(budget Budget) (*Budget, error)
 	Remove(id uint) error
@@ -30,8 +30,8 @@ func (s *budgetService) FindExpiredBudgets(before time.Time) ([]*Budget, error) 
 	return budgets, nil
 }
 
-func (s *budgetService) FindBudgetsByMonthAndProfessionalID(month string, professionalID uint, clientID int, page int, pageSize int) ([]*Budget, error) {
-	budgets, err := s.repository.FindBudgetsByMonthAndProfessionalID(month, professionalID, clientID, page, pageSize)
+func (s *budgetService) FindBudgetsByMonthAndProfessionalID(month string, professionalID uint, storeID uint, clientID int, page int, pageSize int) ([]*Budget, error) {
+	budgets, err := s.repository.FindBudgetsByMonthAndProfessionalID(month, professionalID, storeID, clientID, page, pageSize)
 	if err != nil {
 		return nil, err
 	}

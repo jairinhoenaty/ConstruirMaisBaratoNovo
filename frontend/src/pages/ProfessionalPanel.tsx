@@ -34,6 +34,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import InputMask from "react-input-mask";
+import { useNavigate } from "react-router-dom";
 //import { states, citiesByState } from '../data';
 //import { professionals_data } from "../data";
 import { states } from "../data";
@@ -60,6 +61,7 @@ interface Product {
 }
 
 function ProfessionalPanel() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [showPopup, setShowPopup] = useState(false); //Colocar True para aparecer o modal do Proffisional Já
   const [showProfessions, setShowProfessions] = useState(false);
@@ -747,6 +749,116 @@ function ProfessionalPanel() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           Painel Administrativo
         </h1>
+
+        {/* Botão Ser Premium - para profissionais não-premium */}
+        {profile === "profissional" && !formData.isPremium && (
+          <div className="mb-6">
+            <style>{`
+              @keyframes pulse-slow {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
+              }
+              .pulse-slow-animation {
+                animation: pulse-slow 2s ease-in-out infinite;
+              }
+            `}</style>
+            <button
+              onClick={() => {
+                const userId = parseInt(localStorage.getItem("id") || "0");
+                const userName = localStorage.getItem("name") || "Profissional";
+                const userEmail = localStorage.getItem("email") || "email@exemplo.com";
+                const nameParts = userName.split(" ");
+
+                navigate("/checkout", {
+                  state: {
+                    userId: userId,
+                    userName: userName,
+                    userEmail: userEmail,
+                    planId: 1,
+                    userType: 'professional',
+                    payer: {
+                      first_name: nameParts[0] || "Nome",
+                      last_name: nameParts.slice(1).join(" ") || "Sobrenome",
+                      email: userEmail,
+                      identification: {
+                        type: "CPF",
+                        number: "00000000000",
+                      },
+                      address: {
+                        zip_code: (formData.cep && formData.cep.trim().replace(/\D/g, '')) || "00000000",
+                        street_name: (formData.street && formData.street.trim()) || "Rua Exemplo",
+                        street_number: "123",
+                        neighborhood: (formData.neighborhood && formData.neighborhood.trim()) || "Centro",
+                        city: (formData.city && typeof formData.city === 'string' ? formData.city.trim() : formData.city) || "São Paulo",
+                        federal_unit: formData.state || "SP",
+                      },
+                    },
+                  },
+                });
+              }}
+              className="pulse-slow-animation w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg hover:shadow-xl"
+            >
+              <Star className="w-6 h-6" />
+              <span className="text-lg">Torne-se Premium - Acesso Ilimitado!</span>
+              <Shield className="w-6 h-6" />
+            </button>
+          </div>
+        )}
+
+        {/* Botão Ser Premium - para lojistas não-premium */}
+        {profile === "store" && !formData.isPremiumStore && (
+          <div className="mb-6">
+            <style>{`
+              @keyframes pulse-slow {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
+              }
+              .pulse-slow-animation {
+                animation: pulse-slow 2s ease-in-out infinite;
+              }
+            `}</style>
+            <button
+              onClick={() => {
+                const userId = parseInt(localStorage.getItem("id") || "0");
+                const userName = localStorage.getItem("name") || "Lojista";
+                const userEmail = localStorage.getItem("email") || "email@exemplo.com";
+                const nameParts = userName.split(" ");
+
+                navigate("/checkout", {
+                  state: {
+                    userId: userId,
+                    userName: userName,
+                    userEmail: userEmail,
+                    planId: 1,
+                    userType: 'store',
+                    payer: {
+                      first_name: nameParts[0] || "Nome",
+                      last_name: nameParts.slice(1).join(" ") || "Sobrenome",
+                      email: userEmail,
+                      identification: {
+                        type: "CPF",
+                        number: "00000000000",
+                      },
+                      address: {
+                        zip_code: (formData.cep && formData.cep.trim().replace(/\D/g, '')) || "00000000",
+                        street_name: (formData.street && formData.street.trim()) || "Rua Exemplo",
+                        street_number: "123",
+                        neighborhood: (formData.neighborhood && formData.neighborhood.trim()) || "Centro",
+                        city: (formData.city && typeof formData.city === 'string' ? formData.city.trim() : formData.city) || "São Paulo",
+                        federal_unit: formData.state || "SP",
+                      },
+                    },
+                  },
+                });
+              }}
+              className="pulse-slow-animation w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg hover:shadow-xl"
+            >
+              <Star className="w-6 h-6" />
+              <span className="text-lg">Torne-se Premium - Destaque sua Loja!</span>
+              <Shield className="w-6 h-6" />
+            </button>
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
           <div className="flex flex-wrap gap-2">

@@ -30,6 +30,7 @@ import {
   ProfessionService,
   UserService,
   LoginService,
+  ProductCategoryService,
 } from "../services";
 import { StoreService } from "../services/StoreService";
 import { ClientService } from "../services/ClientService";
@@ -41,10 +42,17 @@ import Swal from "sweetalert2";
 import { useNavigate, useLocation, Form } from "react-router-dom";
 import LoadingText from "../components/LoadingText";
 import VideoPopup from "../components/VideoPopup";
+import { ICategoryProduct } from "../interfaces/ICategoryProduct";
 
 type UserRole = "client" | "professional" | "store";
 
 function Register() {
+  const [categoryProducts, setCategoryProducts] = useState<ICategoryProduct[]>(
+    []
+  );
+  const [selectedSubcategories, setSelectedSubcategories] = useState<number[]>(
+    []
+  );
   const [selectedRole, setSelectedRole] = useState<UserRole>("professional");
   const [isVideoPopupOpen, setIsVideoPopupOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -66,9 +74,11 @@ function Register() {
     meiCnpj: "",
     negativeCertificateNumber: "",
     isPremium: false,
-    isPremiumStore: false
+    isPremiumStore: false,
   });
   const [showProfessions, setShowProfessions] = useState(false);
+  const [selectedCategoryProduct, setSelectedCategoryProduct] =
+    useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -106,7 +116,7 @@ function Register() {
       icon: HardHat,
       description: "Ofereço serviços profissionais",
     },
-    
+
     // {
     //   id: "asdasdasdas",
     //   name: "Balcão de Vagas",
@@ -129,24 +139,28 @@ function Register() {
       if (result.status == 200) {
         setProfessions(json_professions);
       }
+      // Buscar Categorias de produtos
+      handleSearchCategoriesProduct();
 
       // Buscar planos premium
       try {
-        const professionalPlanResult = await PlanService.getPlanByUserType('professional');
+        const professionalPlanResult = await PlanService.getPlanByUserType(
+          "professional"
+        );
         if (professionalPlanResult.data) {
           setProfessionalPlan(professionalPlanResult.data);
         }
       } catch (error) {
-        console.error('Erro ao buscar plano profissional:', error);
+        console.error("Erro ao buscar plano profissional:", error);
       }
 
       try {
-        const storePlanResult = await PlanService.getPlanByUserType('store');
+        const storePlanResult = await PlanService.getPlanByUserType("store");
         if (storePlanResult.data) {
           setStorePlan(storePlanResult.data);
         }
       } catch (error) {
-        console.error('Erro ao buscar plano lojista:', error);
+        console.error("Erro ao buscar plano lojista:", error);
       }
     };
 
@@ -390,6 +404,40 @@ function Register() {
           setError("Login Inválido!!");
           console.error("ops! ocorreu um erro" + err);
         });
+    }
+  };
+
+  const handleSearchCategoriesProduct = async () => {
+    // localStorage.setItem("search_city", selectedCity);
+    try {
+      const response = await ProductCategoryService.findTopLevelCategory();
+      setCategoryProducts(response.data || []);
+    } catch (error) {
+      console.error("Erro ao buscar categorias:", error);
+    }
+  };
+
+  const subcategories = selectedCategoryProduct
+    ? categoryProducts.find(
+        (cat) => cat.id === parseInt(selectedCategoryProduct)
+      )?.children || []
+    : [];
+
+  const toggleSubcategory = (subcategoryId: number) => {
+    setSelectedSubcategories((prev) => {
+      if (prev.includes(subcategoryId)) {
+        return prev.filter((id) => id !== subcategoryId);
+      } else {
+        return [...prev, subcategoryId];
+      }
+    });
+  };
+
+  const toggleAllSubcategories = () => {
+    if (selectedSubcategories.length === subcategories.length) {
+      setSelectedSubcategories([]);
+    } else {
+      setSelectedSubcategories(subcategories.map((sub) => sub.id));
     }
   };
 
@@ -671,6 +719,8 @@ function Register() {
                   neighborhood: "",
                   cityId: parseInt(formData.city),
                   image: base64image,
+                  categoryProductID: parseInt(selectedCategoryProduct),
+                  subCategories:selectedSubcategories
                   // isPremiumStore: formData.isPremiumStore,
                 });
               } catch (error) {
@@ -806,7 +856,7 @@ function Register() {
           userName: userName,
           userEmail: userEmail,
           planId: professionalPlan?.id || 0,
-          userType: 'professional',
+          userType: "professional",
           payer: payer,
         };
 
@@ -960,6 +1010,8 @@ function Register() {
                   neighborhood: "",
                   cityId: parseInt(formData.city),
                   image: base64image,
+                  categoryProductID: parseInt(selectedCategoryProduct),
+                  subCategories:selectedSubcategories
                   // isPremiumStore: formData.isPremiumStore
                 });
               } catch (error) {
@@ -1005,13 +1057,14 @@ function Register() {
                   };
 
                   // Selecionar plano e userType baseado no selectedRole
-                  const currentPlan = selectedRole === 'store' ? storePlan : professionalPlan;
+                  const currentPlan =
+                    selectedRole === "store" ? storePlan : professionalPlan;
                   const checkoutState: CheckoutState = {
                     userId: professionalId,
                     userName: formData.name,
                     userEmail: formData.email,
                     planId: currentPlan?.id || 0,
-                    userType: selectedRole as 'professional' | 'store',
+                    userType: selectedRole as "professional" | "store",
                     payer: payer,
                   };
 
@@ -1096,7 +1149,9 @@ function Register() {
                 </h2>
                 <div className="mb-3">
                   <span className="text-3xl font-bold text-[#FF6B35]">
-                    {storePlan ? `R$ ${storePlan.price.toFixed(2).replace('.', ',')}` : 'Carregando...'}
+                    {storePlan
+                      ? `R$ ${storePlan.price.toFixed(2).replace(".", ",")}`
+                      : "Carregando..."}
                   </span>
                   <span className="text-gray-500 text-sm ml-1">/mês</span>
                 </div>
@@ -1136,7 +1191,11 @@ function Register() {
                       </div>
                       <div className="text-right">
                         <span className="text-2xl font-bold text-[#FF6B35]">
-                          {storePlan ? `R$ ${storePlan.price.toFixed(2).replace('.', ',')}` : '...'}
+                          {storePlan
+                            ? `R$ ${storePlan.price
+                                .toFixed(2)
+                                .replace(".", ",")}`
+                            : "..."}
                         </span>
                         <span className="text-gray-500 text-sm ml-1">/mês</span>
                       </div>
@@ -1152,7 +1211,7 @@ function Register() {
                     setPremiumStore(true);
                     setChoose(true);
                     setShowStoreModal(false);
-                    setFormData(prev => ({ ...prev, isPremiumStore: true }));
+                    setFormData((prev) => ({ ...prev, isPremiumStore: true }));
                     // Submeter o formulário programaticamente
                     setTimeout(() => {
                       formRef.current?.requestSubmit();
@@ -1172,7 +1231,8 @@ function Register() {
               </div>
 
               <p className="text-xs text-gray-500 text-center mt-4">
-                * Você pode se tornar Lojista Parceiro Premium a qualquer momento
+                * Você pode se tornar Lojista Parceiro Premium a qualquer
+                momento
               </p>
             </div>
           </div>
@@ -1208,7 +1268,11 @@ function Register() {
                 </h2>
                 <div className="mb-3">
                   <span className="text-3xl font-bold text-[#FF6B35]">
-                    {professionalPlan ? `R$ ${professionalPlan.price.toFixed(2).replace('.', ',')}` : 'Carregando...'}
+                    {professionalPlan
+                      ? `R$ ${professionalPlan.price
+                          .toFixed(2)
+                          .replace(".", ",")}`
+                      : "Carregando..."}
                   </span>
                   <span className="text-gray-500 text-sm ml-1">/mês</span>
                 </div>
@@ -1286,7 +1350,11 @@ function Register() {
                       </div>
                       <div className="text-right">
                         <span className="text-2xl font-bold text-[#FF6B35]">
-                          {professionalPlan ? `R$ ${professionalPlan.price.toFixed(2).replace('.', ',')}` : '...'}
+                          {professionalPlan
+                            ? `R$ ${professionalPlan.price
+                                .toFixed(2)
+                                .replace(".", ",")}`
+                            : "..."}
                         </span>
                         <span className="text-gray-500 text-sm ml-1">/mês</span>
                       </div>
@@ -1977,6 +2045,95 @@ function Register() {
                               )}
                             </div>
                           ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {selectedRole === "store" && (
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Especialidade
+                    </label>
+                    <div className="relative">
+                      <HardHat className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <select
+                        value={selectedCategoryProduct}
+                        onChange={(e) =>
+                          setSelectedCategoryProduct(e.target.value)
+                        }
+                        className="block w-full pl-10 pr-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                      >
+                        <option value="">Seleciona uma especialidade</option>
+                        {categoryProducts.map((cp: ICategoryProduct) => (
+                          <option key={cp.id} value={cp.id}>
+                            {cp.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {subcategories.length > 0 && (
+                      <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <HardHat className="w-5 h-5 text-blue-600" />
+                            Subcategorias Disponíveis
+                          </h3>
+                          <button
+                            onClick={toggleAllSubcategories}
+                            className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                          >
+                            {selectedSubcategories.length ===
+                            subcategories.length
+                              ? "Desmarcar Todas"
+                              : "Selecionar Todas"}
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {subcategories.map((subcategory) => (
+                            <label
+                              key={subcategory.id}
+                              className={`
+                              flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all
+                              ${
+                                selectedSubcategories.includes(subcategory.id)
+                                  ? "bg-blue-600 text-white shadow-md scale-105"
+                                  : "bg-white text-gray-700 hover:bg-blue-100 hover:shadow-sm"
+                              }
+                            `}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedSubcategories.includes(
+                                  subcategory.id
+                                )}
+                                onChange={() =>
+                                  toggleSubcategory(subcategory.id)
+                                }
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="font-medium text-sm">
+                                {subcategory.name}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+
+                        {selectedSubcategories.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-blue-200">
+                            <p className="text-sm text-gray-600">
+                              <span className="font-semibold text-blue-600">
+                                {selectedSubcategories.length}
+                              </span>{" "}
+                              subcategoria
+                              {selectedSubcategories.length !== 1
+                                ? "s"
+                                : ""}{" "}
+                              selecionada
+                              {selectedSubcategories.length !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

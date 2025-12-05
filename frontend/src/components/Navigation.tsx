@@ -48,6 +48,16 @@ function Navigation({
           },
         ]
       : []),
+    ...(!isLoggedIn || (isLoggedIn && isClient)
+      ? [
+          {
+            id: "quote-product",
+            label: "Consultar Preços",
+            icon: Search,
+            page: "CP",
+          },
+        ]
+      : []),
     {
       id: "privacy",
       label: "Política de Privacidade",

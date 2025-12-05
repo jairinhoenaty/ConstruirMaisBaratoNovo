@@ -235,7 +235,7 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
     if (currentProfile === "client") {
       postReturn = await ClientService.postClient(commonData);
     } else if (
-      currentProfile === "profissional" &&
+      currentProfile === "admin" &&
       profile === "profissional"
     ) {
       postReturn = await ProfessionalService.postProfessional({

@@ -52,6 +52,33 @@ func (r *repository) FindAllByProfessional(professionalID uint) ([]*unlockedbudg
 	return unlocked, nil
 }
 
+func (r *repository) FindByStoreAndBudget(storeID uint, budgetID uint) (*unlockedbudget.UnlockedBudget, error) {
+	var unlocked unlockedbudget.UnlockedBudget
+	err := r.DB.Where("store_id = ? AND budget_id = ?", storeID, budgetID).First(&unlocked).Error
+	if err != nil {
+		return nil, err
+	}
+	return &unlocked, nil
+}
+
+func (r *repository) FindPaidByStoreAndBudget(storeID uint, budgetID uint) (*unlockedbudget.UnlockedBudget, error) {
+	var unlocked unlockedbudget.UnlockedBudget
+	err := r.DB.Where("store_id = ? AND budget_id = ? AND status = ?", storeID, budgetID, "paid").First(&unlocked).Error
+	if err != nil {
+		return nil, err
+	}
+	return &unlocked, nil
+}
+
+func (r *repository) FindAllByStore(storeID uint) ([]*unlockedbudget.UnlockedBudget, error) {
+	var unlocked []*unlockedbudget.UnlockedBudget
+	err := r.DB.Where("store_id = ?", storeID).Order("created_at DESC").Find(&unlocked).Error
+	if err != nil {
+		return nil, err
+	}
+	return unlocked, nil
+}
+
 func (r *repository) Save(unlockedBudget unlockedbudget.UnlockedBudget) (*unlockedbudget.UnlockedBudget, error) {
 	var existingUnlocked unlockedbudget.UnlockedBudget
 
