@@ -1,0 +1,24 @@
+package job
+
+import (
+    pkgjob "construir_mais_barato/app/domain/job"
+    "github.com/labstack/echo/v4"
+)
+
+type SaveJobUC struct {
+	Service pkgjob.JobService
+}
+
+func (uc SaveJobUC) Execute(c echo.Context) error {
+	var request pkgjob.Job
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(400, echo.Map{"error": err.Error()})
+	}
+
+	result, err := uc.Service.Save(request)
+	if err != nil {
+		return c.JSON(500, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(201, result)
+}

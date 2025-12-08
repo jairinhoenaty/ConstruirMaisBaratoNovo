@@ -44,7 +44,11 @@ import { IContact } from "../interfaces/IContact";
 import { ContactService } from "../services/ContactService";
 import Pagination from "../components/Pagination";
 import EditProduct from "./EditProduct";
-import JobsPanel from "./JobsPanel";
+import JobsPanelAdmin from "./JobsPanelAdmin";
+import JobsPanelPremium from "./JobsPanelPremium";
+
+
+
 
 interface Product {
   id: string;
@@ -296,9 +300,9 @@ function ProfessionalPanel() {
     } else if (profile == "profissional") {
       postReturn = await ProfessionalService.postProfessional({
         oid: parseInt(post_id),
-        Name: formData.fullName,
-        Email: formData.email,
-        Telephone: formData.whatsapp,
+        nome: formData.fullName,
+        email: formData.email,
+        telephone: formData.whatsapp,
         //LgpdAceito: "S",
         //created_at:  "time.Date(2025, time.March, 16, 19, 41, 30, 309000000, time.Local)",
         cep: formData.cep,
@@ -1002,7 +1006,14 @@ function ProfessionalPanel() {
         {activeTab === "newproduct" && <NewProduct />}
         {activeTab === "editproduct" && <EditProduct id={productID} />}
         {activeTab === "cashback" && renderCashback()}
-        {activeTab === "jobs" && <JobsPanel />}
+        {activeTab === "jobs" && (
+          localStorage.getItem("role") === "admin"
+            ? <JobsPanelAdmin />
+            : <JobsPanelPremium />
+        )}
+
+        
+
       </div>
     </div>
   );

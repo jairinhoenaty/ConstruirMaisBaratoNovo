@@ -1,253 +1,328 @@
-import React, { useState } from "react";
-import { Briefcase, ArrowRight } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { JobService } from "../services/JobService";
-import Swal from "sweetalert2";
+import { ProfessionService } from "../services/ProfessionService";
+import { CityService } from "../services/CityService";
+import ErrorAlert from "../components/ErrorAlert";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
-function RegisterJob() {
+
+import {
+  Briefcase,
+  DollarSign,
+  MapPin,
+  Mail,
+  Phone,
+  FileText,
+  Clock,
+  ClipboardList,
+  CheckCircle,
+  Layers,
+  Hash,
+} from "lucide-react";
+
+// Estados locais (igual Register.tsx)
+import { states } from "../data";
+
+const RegisterJob: React.FC = () => {
+const navigate = useNavigate();
+
+  // 🔵 Formulário do job
   const [form, setForm] = useState({
-    cargo: "",
-    contratacao: "",
-    salario: "",
-    local: "",
-    descricao: "",
-    horario: "",
-    requisitos: "",
-    beneficios: "",
-    contato: "",
-    empresa: "",
-    quantidade_vagas: 1,
+    title: "",
+    hiring_type: "",
+    salary: "",
+    salary_type: "",
+    location: "",
+    description: "",
+    schedule: "",
+    requirements: "",
+    benefits: "",
+    contact_email: "",
+    contact_phone: "",
+    openings_quantity: "",
+    city_id: "",
+    profession_id: "",
+    state: "",
+    status: "aberto",
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]:
-        name === "quantidade_vagas" ? Number(value || 0) : value,
-    }));
-  };
+  // 🟣 Listas carregadas do banco
+  const [professions, setProfessions] = useState<any[]>([]);
+  const [citiesByState, setCitiesByState] = useState<any[]>([]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Feedback
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+
+  // 🔵 Atualiza formulário
+  function handleChange(e: any) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  // 🔥 Busca profissões ao iniciar
+  useEffect(() => {
+    async function loadProfessions() {
+      try {
+        const res = await ProfessionService.getProfessionsPublic();
+        setProfessions(res.data.professions || res.data || []);
+      } catch (err) {
+        console.error("Erro ao carregar profissões", err);
+      }
+    }
+    loadProfessions();
+  }, []);
+
+  // 🔥 Busca cidades quando o estado mudar
+  useEffect(() => {
+    async function loadCities() {
+      if (!form.state) return;
+
+      try {
+        const res = await CityService.citiesByStatePublic({
+          uf: form.state,
+        });
+
+        setCitiesByState(res.data.cities || res.data || []);
+      } catch (err) {
+        console.error("Erro ao carregar cidades", err);
+      }
+    }
+
+    loadCities();
+  }, [form.state]);
+
+  
+
+  // Enviar vaga
+  async function submit() {
+    if (!form.title ||
+  !form.hiring_type ||
+  !form.salary ||
+  !form.salary_type ||
+  !form.location ||
+  !form.description ||
+  !form.schedule ||
+  !form.requirements ||
+  !form.benefits ||
+  !form.contact_email ||
+  !form.contact_phone ||
+  !form.openings_quantity ||
+  !form.profession_id ||
+  !form.city_id ||
+  !form.state) {
+      setError("Preencha todos os campos obrigatórios!");
+      return;
+    }
 
     try {
-      const response = await JobService.saveJob(form);
-      if (response.status === 200 || response.status === 201) {
-        Swal.fire({
-          icon: "success",
-          title: "Vaga cadastrada!",
-          text: "Sua vaga foi enviada para o Balcão de vagas.",
-        });
-        // limpa form
-        setForm({
-          cargo: "",
-          contratacao: "",
-          salario: "",
-          local: "",
-          descricao: "",
-          horario: "",
-          requisitos: "",
-          beneficios: "",
-          contato: "",
-          empresa: "",
-          quantidade_vagas: 1,
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Erro ao salvar vaga",
-        text: "Tente novamente mais tarde.",
-      });
+      const payload = {
+        ...form,
+        salary: Number(form.salary),
+        openings_quantity: Number(form.openings_quantity),
+        profession_id: Number(form.profession_id),
+        city_id: Number(form.city_id),
+      };
+
+      await JobService.create(payload);
+      
+
+
+      setSuccess("Vaga cadastrada com sucesso!");
+      setError("");
+      setTimeout(() => {
+      navigate("/"); // home
+      }, 1500);
+      
+    } catch (err) {
+      console.error(err);
+      setError("Erro ao cadastrar vaga.");
     }
-  };
+  }
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
-      <div className="max-w-2xl w-full bg-white rounded-lg shadow-md p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Briefcase className="w-8 h-8 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Cadastrar vaga
-            </h1>
-            <p className="text-gray-500 text-sm">
-              Qualquer pessoa pode anunciar vagas. Os profissionais
-              Premium visualizam todas no Balcão de vagas.
-            </p>
-          </div>
+  // 🔹 Input padrão igual ao Register.tsx
+  const InputWrapper = ({ label, name, type = "text", Icon, placeholder }: any) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <div className="mt-1 relative rounded-md shadow-sm">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Icon className="h-5 w-5 text-gray-400" />
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Linha 1 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Cargo
-              </label>
-              <input
-                name="cargo"
-                value={form.cargo}
-                onChange={handleChange}
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Contratação
-              </label>
-              <input
-                name="contratacao"
-                value={form.contratacao}
-                onChange={handleChange}
-                placeholder="CLT, PJ, Estágio..."
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Linha 2 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Salário
-              </label>
-              <input
-                name="salario"
-                value={form.salario}
-                onChange={handleChange}
-                placeholder="R$ 2.000,00"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Quantidade de vagas
-              </label>
-              <input
-                name="quantidade_vagas"
-                type="number"
-                min={1}
-                value={form.quantidade_vagas}
-                onChange={handleChange}
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Linha 3 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Local
-            </label>
-            <input
-              name="local"
-              value={form.local}
-              onChange={handleChange}
-              placeholder="Cidade/Estado ou Remoto"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-
-          {/* Linha 4 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Horário
-            </label>
-            <input
-              name="horario"
-              value={form.horario}
-              onChange={handleChange}
-              placeholder="Ex: Segunda a sexta, 8h às 17h"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-
-          {/* Descrição */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Descrição
-            </label>
-            <textarea
-              name="descricao"
-              value={form.descricao}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-
-          {/* Requisitos */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Requisitos
-            </label>
-            <textarea
-              name="requisitos"
-              value={form.requisitos}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-
-          {/* Benefícios */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Benefícios
-            </label>
-            <textarea
-              name="beneficios"
-              value={form.beneficios}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-
-          {/* Contato + Empresa */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Contato
-              </label>
-              <input
-                name="contato"
-                value={form.contato}
-                onChange={handleChange}
-                placeholder="WhatsApp, e-mail, etc."
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Empresa
-              </label>
-              <input
-                name="empresa"
-                value={form.empresa}
-                onChange={handleChange}
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
-          >
-            Cadastrar vaga
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
+        <input
+          id={name}
+          name={name}
+          type={type}
+          value={(form as any)[name]}
+          onChange={handleChange}
+          className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          placeholder={placeholder}
+        />
       </div>
     </div>
   );
-}
+
+  const TextAreaWrapper = ({ label, name, Icon }: any) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <div className="mt-1 relative rounded-md shadow-sm">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-start pt-3 pointer-events-none">
+          <Icon className="h-5 w-5 text-gray-400" />
+        </div>
+        <textarea
+          id={name}
+          name={name}
+          value={(form as any)[name]}
+          onChange={handleChange}
+          rows={4}
+          className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        ></textarea>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+
+      {/* Botão de voltar */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center text-blue-600 hover:text-blue-800 mb-4 w-fit"
+      >
+        <ArrowLeft className="w-6 h-6 mr-1" />
+        Voltar
+      </button>
+      
+      <div className="sm:mx-auto sm:w-full sm:max-w-2xl">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 flex items-center justify-center gap-2">
+          <Briefcase className="w-8 h-8 text-blue-600" />
+          Cadastrar Vaga
+        </h2>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+
+          {error && <ErrorAlert message={error} onClose={() => setError("")} />}
+          {success && (
+            <p className="bg-green-100 text-green-700 p-3 rounded mb-4 text-center font-medium">
+              {success}
+            </p>
+          )}
+
+          <div className="space-y-6">
+
+            {/* PROFISSÃO */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Cargo / Profissão</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Briefcase className="h-5 w-5 text-gray-400" />
+                </div>
+
+                <select
+                  name="profession_id"
+                  value={form.profession_id}
+                  onChange={handleChange}
+                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                             focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Selecione a profissão</option>
+
+                  {professions.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Inputs */}
+            <InputWrapper 
+              label="Cargo / Título da vaga" 
+              name="title" 
+              Icon={Briefcase} 
+              placeholder="Ex: Pedreiro, Eletricista, Auxiliar..." 
+            />
+            <InputWrapper label="Tipo de Contratação" name="hiring_type" Icon={Layers} />
+            <InputWrapper label="Salário" name="salary" type="number" Icon={DollarSign} />
+            <InputWrapper label="Tipo de Salário (Mensal, Diário...)" name="salary_type" Icon={Hash} />
+            <InputWrapper label="Local" name="location" Icon={MapPin} />
+
+            <TextAreaWrapper label="Descrição" name="description" Icon={FileText} />
+            <TextAreaWrapper label="Horário" name="schedule" Icon={Clock} />
+            <TextAreaWrapper label="Requisitos" name="requirements" Icon={ClipboardList} />
+            <TextAreaWrapper label="Benefícios" name="benefits" Icon={CheckCircle} />
+
+            <InputWrapper label="Email para contato" name="contact_email" Icon={Mail} />
+            <InputWrapper label="Telefone para contato" name="contact_phone" Icon={Phone} />
+
+            <InputWrapper label="Quantidade de vagas" name="openings_quantity" Icon={Hash} type="number" />
+
+            {/* ESTADO */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Estado</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MapPin className="h-5 w-5 text-gray-400" />
+                </div>
+
+                <select
+                  name="state"
+                  value={(form as any).state}
+                  onChange={handleChange}
+                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                             focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Selecione o estado</option>
+                  {states.map((state) => (
+                    <option key={state.id} value={state.id}>
+                      {state.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* CIDADE */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Cidade</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MapPin className="h-5 w-5 text-gray-400" />
+                </div>
+
+                <select
+                  name="city_id"
+                  value={form.city_id}
+                  onChange={handleChange}
+                  disabled={!form.state}
+                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                             focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                >
+                  <option value="">Selecione a cidade</option>
+
+                  {citiesByState.map((city: any) => (
+                    <option key={city.id} value={city.id}>{city.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Botão */}
+            <button
+              onClick={submit}
+              className="w-full flex justify-center items-center py-3 border border-transparent rounded-md 
+                         shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            >
+              Cadastrar Vaga
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  );
+};
 
 export default RegisterJob;

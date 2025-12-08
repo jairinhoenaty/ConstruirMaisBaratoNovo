@@ -13,6 +13,10 @@ import BannerHeader from "./components/BannerHeader";
 import SearchResults from "./pages/SearchResults";
 import ResetPassword from "./pages/ResetPassword";
 import RegisterJob from "./pages/RegisterJob";
+import JobsPanelAdmin from "./pages/JobsPanelAdmin";
+import JobsPanelPremium from "./pages/JobsPanelPremium";
+
+
 
 function App() {
   return (
@@ -33,7 +37,10 @@ function App() {
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/professional-panel" element={<ProfessionalPanel />} />
             <Route path="/confirmar-senha/:token" element={<ResetPassword />} />
-            <Route path="/register-job" element={<RegisterJob />} />
+            <Route path="/balcao-de-vagas" element={<RegisterJob />} />
+            <Route path="/vagas-admin" element={<JobsPanelAdmin />} />
+            <Route path="/vagas" element={<JobsPanelPremium />} />
+
           </Routes>
         </BrowserRouter>
       </div>

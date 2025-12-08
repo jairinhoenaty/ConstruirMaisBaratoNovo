@@ -29,6 +29,8 @@ import Pagination from "../components/Pagination";
 import LoadingText from "../components/LoadingText";
 import DashboardProfessions from "./DashboardProfissions";
 import DashboardRegions from "./DashboardRegions";
+import JobsPanelAdmin from "./JobsPanelAdmin";
+import JobsPanelPremium from "./JobsPanelPremium";
 
 function Dashboard() {
 
@@ -204,6 +206,7 @@ function Dashboard() {
     { id: "professionalbyCiity", label: "Profissionais por Estado" },
     { id: "professions", label: "Profissões" },
     { id: "regions", label: "Regiões" },
+    {id: "jobs", label:"Balcão de vagas"},
   ];
 
   const renderDashboard = () => {
@@ -770,6 +773,13 @@ function Dashboard() {
             {selectedDashboardSection === "regions" && (
               <DashboardRegions />
             )}
+            {selectedDashboardSection === "jobs" &&
+              (localStorage.getItem("profile") === "admin"
+                ? <JobsPanelAdmin />
+                : <JobsPanelPremium />
+              )}
+
+
           </div>
         </div>
       </>

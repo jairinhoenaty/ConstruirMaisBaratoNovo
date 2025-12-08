@@ -1,27 +1,52 @@
 package job
 
 type JobService interface {
-	CreateJob(job *Job) error
-	UpdateJob(job *Job) error
-	CloseJob(jobID uint) error
-	ActivateJob(jobID uint) error
-	GetJobDetails(jobID uint) (*Job, error)
-	SearchJobs(filters map[string]interface{}) ([]*Job, error)
+	Save(job Job) (*Job, error)
+	FindAll() ([]*Job, error)
+	FindApproved() ([]*Job, error)
+	Approve(id uint) error
+	Disapprove(id uint) error
+	Remove(id uint) error
 }
-
 
 type jobService struct {
-    repository JobRepository
+	repository JobRepository
 }
 
-func NewJobService(repo JobRepository) JobService {
-    return &jobService{repository: repo}
+
+type JobRepository interface {
+	Save(job Job) (*Job, error)
+	FindAll() ([]*Job, error)
+	FindApproved() ([]*Job, error)
+	Approve(id uint) error
+	Disapprove(id uint) error
+	Remove(id uint) error
 }
 
-func (s *jobService) CreateJob(job *Job) (*Job, error) {
-    return s.repository.Save(job)
+func NewJobService(repository JobRepository) JobService {
+	return &jobService{repository}
 }
 
-func (s *jobService) ListJobs() ([]Job, error) {
-    return s.repository.FindAll()
+func (s *jobService) Save(job Job) (*Job, error) {
+	return s.repository.Save(job)
+}
+
+func (s *jobService) FindAll() ([]*Job, error) {
+	return s.repository.FindAll()
+}
+
+func (s *jobService) FindApproved() ([]*Job, error) {
+	return s.repository.FindApproved()
+}
+
+func (s *jobService) Approve(id uint) error {
+	return s.repository.Approve(id)
+}
+
+func (s *jobService) Disapprove(id uint) error {
+	return s.repository.Disapprove(id)
+}
+
+func (s *jobService) Remove(id uint) error {
+	return s.repository.Remove(id)
 }

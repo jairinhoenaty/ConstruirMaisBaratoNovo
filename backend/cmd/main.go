@@ -2,7 +2,6 @@ package main
 
 import (
 	"construir_mais_barato/cmd/app"
-	"construir_mais_barato/domain/entity"
 	pkgdatabase "construir_mais_barato/infra/database/mysql-db"
 	"fmt"
 	"log"
@@ -50,7 +49,7 @@ func main() {
 	db := pkgdatabase.ConnectionDB(params)
 
 	
-	db.AutoMigrate(&entity.Job{})
+
 
 	// Inicia a aplicação
 	app.Start(db)

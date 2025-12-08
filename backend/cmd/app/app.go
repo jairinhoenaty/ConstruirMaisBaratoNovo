@@ -68,13 +68,21 @@ import (
 	pkgproductCategoryuc "construir_mais_barato/app/usecase/productCategory"
 	pkgproductCategoryinfra "construir_mais_barato/infra/database/repositories/productCategory"
 
+	jobdomain "construir_mais_barato/app/domain/job"
+	jobinfra "construir_mais_barato/infra/database/repositories/job"
+	jobuc "construir_mais_barato/app/usecase/job"
+	controllers "construir_mais_barato/infra/web/controllers"
+
+
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
 
 	pkgcontrollers "construir_mais_barato/infra/web/controllers"
 
-	pkgjob "construir_mais_barato/app/domain/job"
-	pkgjobinfra "construir_mais_barato/infra/database/repositories/job"
-	pkgjobuc "construir_mais_barato/app/usecase/job"
+	
+
+
+
+
 
 )
 
@@ -96,7 +104,9 @@ type dependenceParams struct {
 	StoreService           pkgstore.StoreService
 	ClientService          pkgclient.ClientService
 	RegionService          pkgregion.RegionService
-	JobService			   pkgjob.JobService
+	JobService 			   jobdomain.JobService
+
+	
 }
 
 func buildDependenciesParams(db *gorm.DB) dependenceParams {
@@ -115,7 +125,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.StoreService = pkgstore.NewStoreService(pkgstoreinfra.NewStoreRepositoryImpl(db))
 	params.ClientService = pkgclient.NewClientService(pkgclientinfra.NewClientRepositoryImpl(db))
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
-	params.JobService = pkgjob.NewJobService(pkgjobinfra.NewJobRepositoryImpl(db))
+	params.JobService = jobdomain.NewJobService(jobinfra.NewJobRepository(db))
 
 	return params
 }
@@ -742,6 +752,13 @@ func buildProductCategoryEndPoint(dependenceParams *dependenceParams, g *echo.Gr
 	pkgcontrollers.NewProductCategoryController(&productCategoryControllerParams, g)
 }
 
+func buildJobEndPoint(dependency *dependenceParams, g *echo.Group) {
+    uc := jobuc.NewJobUseCase(dependency.JobService)
+    controllers.NewJobController(uc, g)
+}
+
+
+
 func Start(db *gorm.DB) {
 
 	dependency := buildDependenciesParams(db)
@@ -762,6 +779,9 @@ func Start(db *gorm.DB) {
 	publicRouter := router.Group("/publica")
 	buildLoginEndPoint(&dependency, publicRouter)
 	buildPublicEndPoint(&dependency, publicRouter)
+	buildJobEndPoint(&dependency, publicRouter)
+
+
 
 	// **************************************** Rotas privadas
 	routerGroup := router.Group("/api/v1")
@@ -782,7 +802,9 @@ func Start(db *gorm.DB) {
 	buildStoreEndPoint(&dependency, routerGroup)
 	buildClientEndPoint(&dependency, routerGroup)
 	buildRegionEndPoint(&dependency, routerGroup)
-	buildJobEndPoint(&dependency, routerGroup, publicRouter)
+	buildJobEndPoint(&dependency, routerGroup)
+
+
 
 
 	// Adicione a rotina de desativação de orçamentos
@@ -797,6 +819,9 @@ func Start(db *gorm.DB) {
 	<-stopChan
 
 }
+
+
+
 
 func newServer(port string, handler http.Handler) *Server {
 	return &Server{
@@ -855,28 +880,7 @@ func setupStaticFileRoutes(router *echo.Echo) {
 	fmt.Printf("Static files being served from: %s at /images/upload\n", absUploadDir)
 }
 
-func buildJobEndPoint(dependency *dependenceParams, privateGroup, publicGroup *echo.Group) {
 
-    saveParams := pkgjobuc.SaveJobUCParams{
-        Service: dependency.JobService,
-    }
-
-    findAllParams := pkgjobuc.FindAllJobUCParams{
-        Service: dependency.JobService,
-    }
-
-    deleteParams := pkgjobuc.DeleteJobUCParams{
-        Service: dependency.JobService,
-    }
-
-    controllerParams := controllers.JobControllerParams{
-        SaveJobUCParams:   saveParams,
-        FindAllJobUCParams: findAllParams,
-        DeleteJobUCParams: deleteParams,
-    }
-
-    controllers.NewJobController(&controllerParams, privateGroup, publicGroup)
-}
 
 
 

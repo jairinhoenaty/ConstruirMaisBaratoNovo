@@ -17,6 +17,8 @@ import {
   UserCircle,
   ShoppingBag,
   Youtube,
+  Briefcase,
+
 } from "lucide-react";
 import { states } from "../data";
 import {
@@ -32,6 +34,7 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import LoadingText from "../components/LoadingText";
 import VideoPopup from "../components/VideoPopup";
+
 
 type UserRole = "client" | "professional" | "store";
 
@@ -75,12 +78,7 @@ function Register() {
       icon: HardHat,
       description: "Ofereço serviços profissionais",
     },
-     {
-      id: "jobs",
-      name: "Balcão de vagas",
-      icon: FileText,
-      description: "Cadastre vagas de emprego",
-    },
+
     /*
     {
       id: "client",
@@ -611,10 +609,6 @@ function Register() {
                     key={role.id}
                     type="button"
                     onClick={() => {
-                      if (role.id === "jobs") {
-                        navigate("/register-job"); // abre o formulário de vaga
-                        return;
-                      }
                       setSelectedRole(role.id as UserRole);
                     }}
                     className={`flex flex-col items-center p-4 rounded-lg border-2 transition-colors ${
@@ -646,7 +640,34 @@ function Register() {
                 );
               })}
             </div>
-          </div>
+        {/* Balcão de Vagas */}
+        <label className="block text-sm font-medium text-gray-700 mb-4 mt-8">
+          Quer divulgar uma vaga?
+        </label>
+
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+          <button
+            type="button"
+            onClick={() => navigate("/balcao-de-vagas")}
+            className="flex flex-col items-center p-4 rounded-lg border-2 transition-colors 
+                      border-blue-600 bg-blue-50 hover:bg-blue-100"
+          >
+            <Briefcase className="w-8 h-8 mb-2 text-blue-600" />
+
+            <span className="font-medium text-blue-600">
+              Cadastrar vaga
+            </span>
+
+            <span className="text-xs text-gray-500 text-center mt-1">
+              Publique oportunidades para profissionais e trabalhadores de forma simples e gratuita.
+            </span>
+          </button>
+        </div>
+
+      </div>
+
+
+
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Foto */}

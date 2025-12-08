@@ -1,17 +1,17 @@
 export interface IJob {
-  id?: number;
-
-  cargo: string;
-  contratacao: string;
-  salario: string;
-  local: string;
-  descricao: string;
-  horario: string;
-  requisitos: string;
-  beneficios: string;
-  contato: string;
-  empresa: string;
-  quantidade_vagas: number;
-
-  created_at?: string;
+  title: string;
+  hiring_type: string;
+  salary: number;
+  salary_type: string;
+  location: string;
+  description: string;
+  schedule: string;
+  requirements: string;
+  benefits: string;
+  contact_email: string;
+  contact_phone: string;
+  openings_quantity: number;
+  status: string;
+  profession_id: number;
+  city_id: number;
 }

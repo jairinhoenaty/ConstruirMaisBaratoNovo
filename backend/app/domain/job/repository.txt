@@ -1,0 +1,8 @@
+package job 
+
+type JobRepository interface {
+	Save(job Job) (*Job, error)
+	FindAll(limit, offset int, professionalID int, approved string) ([]*Job, int64, error)
+	FindApproved() ([]*Job, error)
+	Remove(id uint) error
+}
