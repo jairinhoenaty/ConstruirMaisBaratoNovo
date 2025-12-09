@@ -877,7 +877,7 @@ function ProfessionalPanel() {
                     onClick={() => setActiveTab(item.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                       activeTab === item.id
-                        ? formData.isPremium
+                        ? formData.isPremium || formData.isPremiumStore
                           ? "bg-[#FF6B35] text-white"
                           : "bg-blue-600 text-white"
                         : "text-gray-700 hover:bg-gray-100"
@@ -897,7 +897,7 @@ function ProfessionalPanel() {
             onClick={() => setActiveTab("profile")}
             className={`flex items-center justify-center gap-2 p-4 rounded-lg shadow-md transition-colors ${
               activeTab === "profile"
-                ? formData.isPremium
+                ? formData.isPremium || formData.isPremiumStore
                   ? "bg-[#FF6B35] text-white"
                   : "bg-blue-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50"
@@ -910,7 +910,7 @@ function ProfessionalPanel() {
             onClick={() => setActiveTab("quotes")}
             className={`flex items-center justify-center gap-2 p-4 rounded-lg shadow-md transition-colors ${
               activeTab === "quotes"
-                ? formData.isPremium
+                ? formData.isPremium || formData.isPremiumStore
                   ? "bg-[#FF6B35] text-white"
                   : "bg-blue-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50"
@@ -924,7 +924,7 @@ function ProfessionalPanel() {
               onClick={() => setActiveTab("cashback")}
               className={`flex items-center justify-center gap-2 p-4 rounded-lg shadow-md transition-colors ${
                 activeTab === "cashback"
-                  ? formData.isPremium
+                  ? formData.isPremium || formData.isPremiumStore
                     ? "bg-[#FF6B35] text-white"
                     : "bg-blue-600 text-white"
                   : "bg-white text-gray-700 hover:bg-gray-50"
@@ -942,7 +942,7 @@ function ProfessionalPanel() {
               Dados da Conta
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {formData.isPremium && (
+              {formData.isPremium || formData.isPremiumStore && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="flex items-center gap-2">
@@ -1378,7 +1378,7 @@ function ProfessionalPanel() {
                 <button
                   type="submit"
                   className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${
-                    formData.isPremium
+                    formData.isPremium || formData.isPremiumStore
                       ? "bg-[#FF6B35] hover:bg-[#E55A2B]"
                       : "bg-blue-600 hover:bg-blue-700"
                   }`}

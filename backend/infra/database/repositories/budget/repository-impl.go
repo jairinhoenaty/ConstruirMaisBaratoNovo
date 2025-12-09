@@ -111,9 +111,11 @@ func (r *repository) FindAll(limit, offset int) ([]*pkgpbudget.Budget, int64, er
 
 	if err := r.DB.
 		Preload("Professionals").
+		Preload("Stores").
 		Preload("Professionals.Professions").
 		Preload("Professionals.City").
 		Preload("City").
+		Distinct("budgets.*").
 		// Preload("Client").
 		// Preload("Client.City").
 		Where("deleted_at IS NULL").

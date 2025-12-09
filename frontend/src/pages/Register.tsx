@@ -220,6 +220,7 @@ function Register() {
       setShowProfessions(false);
     }
   };*/
+  
 
   const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -434,12 +435,21 @@ function Register() {
   };
 
   const toggleAllSubcategories = () => {
-    if (selectedSubcategories.length === subcategories.length) {
-      setSelectedSubcategories([]);
-    } else {
-      setSelectedSubcategories(subcategories.map((sub) => sub.id));
+    if (subcategories.length > 0) {
+        setSelectedSubcategories(subcategories.map((sub) => sub.id));
     }
   };
+
+  // useEffect(() => {
+  //   if (subcategories.length > 0) {
+  //     toggleAllSubcategories();
+  //   }
+  // }, [subcategories]);
+  
+  // useEffect(() => {
+  //   setSelectedSubcategories([]); // limpa seleção
+  // }, [selectedCategoryProduct]);
+  
 
   const handleClosePremiumModal = async () => {
     setShowPremiumModal(false);
@@ -720,7 +730,7 @@ function Register() {
                   cityId: parseInt(formData.city),
                   image: base64image,
                   categoryProductID: parseInt(selectedCategoryProduct),
-                  subCategories:selectedSubcategories
+                  subCategories: selectedSubcategories,
                   // isPremiumStore: formData.isPremiumStore,
                 });
               } catch (error) {
@@ -811,6 +821,13 @@ function Register() {
 
     return true;
   };
+
+  useEffect(() => {
+    if (selectedCategoryProduct) {
+      toggleAllSubcategories();
+    }
+  }, [selectedCategoryProduct]);
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1011,7 +1028,7 @@ function Register() {
                   cityId: parseInt(formData.city),
                   image: base64image,
                   categoryProductID: parseInt(selectedCategoryProduct),
-                  subCategories:selectedSubcategories
+                  subCategories: selectedSubcategories,
                   // isPremiumStore: formData.isPremiumStore
                 });
               } catch (error) {
@@ -2058,9 +2075,10 @@ function Register() {
                       <HardHat className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                       <select
                         value={selectedCategoryProduct}
-                        onChange={(e) =>
-                          setSelectedCategoryProduct(e.target.value)
-                        }
+                        onChange={(e) => {
+                          setSelectedCategoryProduct(e.target.value);
+                          // toggleAllSubcategories();
+                        }}
                         className="block w-full pl-10 pr-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
                       >
                         <option value="">Seleciona uma especialidade</option>
@@ -2071,7 +2089,9 @@ function Register() {
                         ))}
                       </select>
                     </div>
-                    {subcategories.length > 0 && (
+                    
+                    {/* {subcategories.length > 0 && toggleAllSubcategories()} */}
+                    {/* {subcategories.length > 0 && (
                       <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-lg">
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -2135,7 +2155,7 @@ function Register() {
                           </div>
                         )}
                       </div>
-                    )}
+                    )} */}
                   </div>
                 )}
               </>

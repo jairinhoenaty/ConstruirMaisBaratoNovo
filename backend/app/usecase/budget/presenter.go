@@ -14,6 +14,7 @@ type BudgetPresenter struct {
 	Description                string                   `json:"description"`
 	CreatedAt                  time.Time                `json:"created_at"`
 	Professionals              *[]ProfessionalPresenter `json:"professionals"`
+	Stores                     *[]StorePresenter        `json:"stores"`
 	CityID                     *uint                    `json:"cityId"`
 	City                       CityPresenter            `json:"city"`
 	TermResponsabilityAccepted bool                     `json:"termResponsabilityAccepted"`
@@ -35,6 +36,32 @@ type ProfessionalPresenter struct {
 	Professions *[]ProfessionPresenter `json:"professions"`
 	City        CityPresenter          `json:"city"`
 }
+type StorePresenter struct {
+	ID                uint                   `json:"id,omitempty"`
+	Name              string                 `json:"name"`
+	Email             string                 `json:"email"`
+	Telephone         string                 `json:"telephone"`
+	Professions       *[]ProfessionPresenter `json:"professions"`
+	City              CityPresenter          `json:"city"`
+	CategoryProductID uint
+	// SubCategories     UintSlice `gorm:"type:json"`
+}
+
+// Name              string
+// 	Company           string
+// 	Email             string `gorm:"unique"`
+// 	Telephone         string
+// 	LgpdAceito        string
+// 	CityID            uint
+// 	City              pkgcity.City `gorm:"foreignKey:CityID"`
+// 	Cep               string
+// 	Street            string
+// 	Neighborhood      string
+// 	Image             []byte    `gorm:"type:longblob"`
+// 	CreatedAt         time.Time `gorm:"<-:create"`
+// 	IsPremiumStore    *bool     `gorm:"default:false"`
+// 	CategoryProductID uint
+// 	SubCategories     UintSlice `gorm:"type:json"`
 
 type ProfessionPresenter struct {
 	ID   uint   `json:"id,omitempty"`

@@ -33,7 +33,9 @@ function QuotesPanel() {
   const [selectedBudgetId, setSelectedBudgetId] = useState<number | null>(null);
   const [showLockModal, setShowLockModal] = useState(false);
   const profile = localStorage.getItem("profile");
-  const [budgetFilter, setBudgetFilter] = useState<"all" | "professional" | "store">("all");
+  const [budgetFilter, setBudgetFilter] = useState<
+    "all" | "professional" | "store"
+  >("all");
 
   const [professionals, setProfessionals] = useState([]);
   const citiesByState = [];
@@ -87,7 +89,7 @@ function QuotesPanel() {
               storesId: quote.storesId,
               professionals: quote.professionals,
               stores: quote.stores,
-              fullData: quote
+              fullData: quote,
             });
           });
           console.log("======================================");
@@ -235,17 +237,21 @@ function QuotesPanel() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Coluna 1 */}
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <User className="w-5 h-5 mt-1 text-gray-400" />
-                <div>
-                  <span className="block text-sm text-gray-500">Nome</span>
-                  {hasAccess ? (
-                    <p className="text-gray-900 font-medium">{message.name}</p>
-                  ) : (
-                    <p className="text-gray-400 italic">****** *******</p>
-                  )}
+              {budgetFilter !== "store" && (
+                <div className="flex items-start gap-3">
+                  <User className="w-5 h-5 mt-1 text-gray-400" />
+                  <div>
+                    <span className="block text-sm text-gray-500">Nome</span>
+                    {hasAccess ? (
+                      <p className="text-gray-900 font-medium">
+                        {message.name}
+                      </p>
+                    ) : (
+                      <p className="text-gray-400 italic">****** *******</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 mt-1 text-gray-400" />
@@ -329,7 +335,9 @@ function QuotesPanel() {
                 <div>
                   <span className="block text-sm text-gray-500">Nome</span>
                   <p className="text-gray-900 font-medium">
-                    {message.professionals?.[0]?.name}
+                    {message.professionals !== null
+                      ? message.professionals?.[0]?.name
+                      : message.stores?.[0]?.name}
                   </p>
                 </div>
               </div>
@@ -339,7 +347,9 @@ function QuotesPanel() {
                 <div>
                   <span className="block text-sm text-gray-500">Email:</span>
                   <p className="text-gray-900 font-medium">
-                    {message.professionals?.[0]?.email}
+                    {message.professionals !== null
+                      ? message.professionals?.[0]?.email
+                      : message.stores?.[0]?.email}
                   </p>
                 </div>
               </div>
@@ -352,7 +362,9 @@ function QuotesPanel() {
                 <div>
                   <span className="block text-sm text-gray-500">WhatsApp:</span>
                   <p className="text-gray-900 font-medium">
-                    {message.professionals?.[0]?.telephone}
+                    {message.professionals !== null
+                      ? message.professionals?.[0]?.telephone
+                      : message.stores?.[0]?.telephone}
                   </p>
                 </div>
               </div>
@@ -364,30 +376,42 @@ function QuotesPanel() {
                     UF/Cidade:
                   </span>
                   <p className="text-gray-900 font-medium">
-                    {message.professionals?.[0]?.city?.name}/
-                    {message.professionals?.[0]?.city?.uf}
+                  {message.professionals !== null
+                      ? `${message.professionals?.[0]?.city?.name}/${message.professionals?.[0]?.city?.uf}`
+                      : message.stores !== null
+                      ? `${message.stores?.[0]?.city?.name}/${message.stores?.[0]?.city?.uf}`
+                      :"Não informado"
+                      }
+
+                    {/* {message.professionals && message.professionals.length > 0
+                      ? `${message.professionals[0]?.city?.name}/${message.professionals[0]?.city?.uf}`
+                      : message.stores && message.stores.length > 0
+                      ? `${message.stores[0]?.city?.name}/${message.stores[0]?.city?.uf}`
+                      : "Não informado"} */}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Profissões */}
-            <div className="md:col-span-2 flex flex-wrap items-center gap-2">
-              <HardHat className="w-5 h-5 text-gray-400" />
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm text-gray-500">Profissão:</span>
-                {message.professionals?.[0]?.professions?.map(
-                  (element: any, index: number) => (
-                    <span
-                      key={index}
-                      className="text-gray-900 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"
-                    >
-                      {element.name}
-                    </span>
-                  )
-                )}
+            {message.professionals !== null && (
+              <div className="md:col-span-2 flex flex-wrap items-center gap-2">
+                <HardHat className="w-5 h-5 text-gray-400" />
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-sm text-gray-500">Profissão:</span>
+                  {message.professionals?.[0]?.professions?.map(
+                    (element: any, index: number) => (
+                      <span
+                        key={index}
+                        className="text-gray-900 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"
+                      >
+                        {element.name}
+                      </span>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </>
@@ -395,36 +419,55 @@ function QuotesPanel() {
   };
 
   // Filtrar orçamentos baseado no filtro selecionado (apenas para admin)
-  const filteredQuotes = profile === "admin"
-    ? quotes.filter(quote => {
-        if (budgetFilter === "all") return true;
+  const filteredQuotes =
+    profile === "admin"
+      ? quotes.filter((quote) => {
+          if (budgetFilter === "all") return true;
 
-        // Para profissionais: verificar se tem professionals ou professionalsId preenchido
-        if (budgetFilter === "professional") {
-          const hasProfessionalsArray = (quote as any).professionals && Array.isArray((quote as any).professionals) && (quote as any).professionals.length > 0;
-          const hasProfessionalsId = quote.professionalsId && Array.isArray(quote.professionalsId) && quote.professionalsId.length > 0;
-          console.log(`[FILTRO PROFISSIONAL] Quote ${quote.id}: hasProfessionalsArray=${hasProfessionalsArray}, hasProfessionalsId=${hasProfessionalsId}`);
-          return hasProfessionalsArray || hasProfessionalsId;
-        }
+          // Para profissionais: verificar se tem professionals ou professionalsId preenchido
+          if (budgetFilter === "professional") {
+            const hasProfessionalsArray =
+              (quote as any).professionals &&
+              Array.isArray((quote as any).professionals) &&
+              (quote as any).professionals.length > 0;
+            const hasProfessionalsId =
+              quote.professionalsId &&
+              Array.isArray(quote.professionalsId) &&
+              quote.professionalsId.length > 0;
+            console.log(
+              `[FILTRO PROFISSIONAL] Quote ${quote.id}: hasProfessionalsArray=${hasProfessionalsArray}, hasProfessionalsId=${hasProfessionalsId}`
+            );
+            return hasProfessionalsArray || hasProfessionalsId;
+          }
 
-        // Para lojistas: verificar múltiplas possibilidades de campo
-        if (budgetFilter === "store") {
-          // Verificar arrays (plural)
-          const hasStoresArray = (quote as any).stores && Array.isArray((quote as any).stores) && (quote as any).stores.length > 0;
-          const hasStoresId = quote.storesId && Array.isArray(quote.storesId) && quote.storesId.length > 0;
-          const hasStoresIds = (quote as any).storesIds && Array.isArray((quote as any).storesIds) && (quote as any).storesIds.length > 0;
+          // Para lojistas: verificar múltiplas possibilidades de campo
+          if (budgetFilter === "store") {
+            // Verificar arrays (plural)
+            const hasStoresArray =
+              (quote as any).stores &&
+              Array.isArray((quote as any).stores) &&
+              (quote as any).stores.length > 0;
+            const hasStoresId =
+              quote.storesId &&
+              Array.isArray(quote.storesId) &&
+              quote.storesId.length > 0;
+            const hasStoresIds =
+              (quote as any).storesIds &&
+              Array.isArray((quote as any).storesIds) &&
+              (quote as any).storesIds.length > 0;
 
-        
-          return hasStoresArray || hasStoresId || hasStoresIds;
-        }
+            return hasStoresArray || hasStoresId || hasStoresIds;
+          }
 
-        return true;
-      })
-    : quotes;
+          return true;
+        })
+      : quotes;
 
   // Log adicional para debug do filtro de lojistas
   if (profile === "admin" && budgetFilter === "store") {
-    console.log(`[RESULTADO FILTRO LOJISTA] Total encontrado: ${filteredQuotes.length} de ${quotes.length} orçamentos`);
+    console.log(
+      `[RESULTADO FILTRO LOJISTA] Total encontrado: ${filteredQuotes.length} de ${quotes.length} orçamentos`
+    );
   }
 
   return (
@@ -535,18 +578,21 @@ function QuotesPanel() {
 
               {(profile == "admin" || profile == "client") &&
                 renderProfessionalInfo(quote)}
-              {(profile == "admin" || profile == "profissional" || profile == "store") &&
+              {(profile == "admin" ||
+                profile == "profissional" ||
+                profile == "store") &&
                 renderClientInfoPreview(quote)}
-
-              <div className="border-t border-gray-100 pt-4">
-                <div className="flex items-start gap-2">
-                  <MessageSquare className="w-5 h-5 text-gray-400 mt-1" />
-                  <div>
-                    <span className="text-sm text-gray-500">Descrição:</span>
-                    <p className="mt-2 text-gray-900">{quote.description}</p>
+              {budgetFilter !== "store" && (
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="flex items-start gap-2">
+                    <MessageSquare className="w-5 h-5 text-gray-400 mt-1" />
+                    <div>
+                      <span className="text-sm text-gray-500">Descrição:</span>
+                      <p className="mt-2 text-gray-900">{quote.description}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {profile == "admin" && (
                 <div className="flex justify-end gap-3 mt-4">

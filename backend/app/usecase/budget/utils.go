@@ -4,6 +4,7 @@ import (
 	pkgbudget "construir_mais_barato/app/domain/budget"
 	pkgprofession "construir_mais_barato/app/domain/profession"
 	pkgprofessional "construir_mais_barato/app/domain/professional"
+	pkgstore "construir_mais_barato/app/domain/store"
 )
 
 func GenerateBudget(assembler *BudgetAssembler) pkgbudget.Budget {
@@ -66,10 +67,14 @@ func GenerateBudget(assembler *BudgetAssembler) pkgbudget.Budget {
 func GenerateBudgetPresenter(budget *pkgbudget.Budget) BudgetPresenter {
 	presenter := BudgetPresenter{}
 	var professionalsPresenter *[]ProfessionalPresenter
+	var storePresenter *[]StorePresenter
 	if budget != nil {
 
-		if budget.Professionals != nil {
+		if len(budget.Professionals) > 0 {
 			professionalsPresenter = generateProfessionalPresenter(budget.Professionals)
+
+		} else if len(budget.Stores) > 0 {
+			storePresenter = generateStorePresenter(budget.Stores)
 
 		}
 
@@ -80,6 +85,7 @@ func GenerateBudgetPresenter(budget *pkgbudget.Budget) BudgetPresenter {
 		presenter.Description = budget.Description
 		presenter.CreatedAt = budget.CreatedAt
 		presenter.Professionals = professionalsPresenter
+		presenter.Stores = storePresenter
 		presenter.CityID = budget.CityID
 		presenter.City = CityPresenter{
 			Name: budget.City.Name,
@@ -102,6 +108,28 @@ func GenerateBudgetPresenter(budget *pkgbudget.Budget) BudgetPresenter {
 	return presenter
 }
 
+func generateStorePresenter(stores []pkgstore.Store) *[]StorePresenter {
+	list := make([]StorePresenter, 0)
+	if stores != nil && len(stores) > 0 {
+		for _, store := range stores {
+
+			presenter := StorePresenter{}
+
+			presenter.ID = store.ID
+			presenter.Name = store.Name
+			presenter.Email = store.Email
+			presenter.Telephone = store.Telephone
+			presenter.City = CityPresenter{
+				Name: store.City.Name,
+				UF:   store.City.UF,
+			}
+
+			list = append(list, presenter)
+		}
+	}
+
+	return &list
+}
 func generateProfessionalPresenter(professionals []pkgprofessional.Professional) *[]ProfessionalPresenter {
 	list := make([]ProfessionalPresenter, 0)
 	if professionals != nil && len(professionals) > 0 {
