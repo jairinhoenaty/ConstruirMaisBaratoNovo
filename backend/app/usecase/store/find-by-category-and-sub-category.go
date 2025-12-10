@@ -25,7 +25,7 @@ func (uc *FindStoreByCategoryAndSubCategory) Execute() (*[]StorePresenter, error
 		return nil, fmt.Errorf("invalid data")
 	}
 
-	stores, err := uc.Service.FindByCategoryAndSubCategory(uc.Assembler.CategoryID, uc.Assembler.SubCategoriesID)
+	stores, err := uc.Service.FindByCategoryAndSubCategory(uc.Assembler.CategoryID, uc.Assembler.CityID, uc.Assembler.SubCategoriesID)
 	if err != nil {
 		return nil, err
 	}

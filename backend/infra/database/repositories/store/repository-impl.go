@@ -156,12 +156,13 @@ func (r *repository) FindLastStores(quantityRecords int) ([]pkgstore.Store, erro
 
 	return professionais, nil
 }
-func (r *repository) FindByCategoryAndSubCategory(categoryID int, subCategories []int) ([]*pkgstore.Store, error) {
+func (r *repository) FindByCategoryAndSubCategory(categoryID, cityID int, subCategories []int) ([]*pkgstore.Store, error) {
 	stores := make([]*pkgstore.Store, 0)
 
 	query := r.DB.
 		Preload("City").
-		Where("category_product_id = ?", categoryID)
+		Where("category_product_id = ?", categoryID).
+		Where("city_id = ?", cityID)
 
 	// Se há subcategorias solicitadas, verificar se a loja tem PELO MENOS UMA delas
 	if len(subCategories) > 0 {

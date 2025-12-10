@@ -19,4 +19,5 @@ export interface ICategoryProductSimple {
 export interface ICategoryAndSubCategories{
   categoryId:number;
   subCategoriesId: number[] | null;
+  cityId:number
 }

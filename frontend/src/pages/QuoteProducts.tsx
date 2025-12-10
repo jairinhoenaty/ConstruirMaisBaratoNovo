@@ -411,6 +411,7 @@ Orçamento enviado através de https://construirmaisbarato.com.br/`;
       const response = await StoreService.getByCategoryAndSubCategories({
         categoryId: parseInt(selectedCategoryProduct),
         subCategoriesId: selectedSubcategories,
+        cityId:parseInt(selectedCity),
       });
       setStores(response.data);
       // ✅ Retornar as lojas diretamente

@@ -68,4 +68,5 @@ type FindWithPaginationStoreByStateAssembler struct {
 type FindByCategoryAndSubCategory struct {
 	CategoryID      int   `json:"categoryId"`
 	SubCategoriesID []int `json:"subCategoriesId"`
+	CityID          int   `json:"cityId"`
 }
