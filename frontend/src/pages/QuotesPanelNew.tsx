@@ -376,12 +376,11 @@ function QuotesPanel() {
                     UF/Cidade:
                   </span>
                   <p className="text-gray-900 font-medium">
-                  {message.professionals !== null
+                    {message.professionals !== null
                       ? `${message.professionals?.[0]?.city?.name}/${message.professionals?.[0]?.city?.uf}`
                       : message.stores !== null
                       ? `${message.stores?.[0]?.city?.name}/${message.stores?.[0]?.city?.uf}`
-                      :"Não informado"
-                      }
+                      : "Não informado"}
 
                     {/* {message.professionals && message.professionals.length > 0
                       ? `${message.professionals[0]?.city?.name}/${message.professionals[0]?.city?.uf}`
@@ -594,7 +593,9 @@ function QuotesPanel() {
                 </div>
               )}
 
-              {profile == "admin" && (
+              {(profile == "admin" ||
+                (profile == "profissional" && quote.budgetAccess?.isPremium) ||
+                (profile == "store" && quote.budgetAccess?.isPremium)) && (
                 <div className="flex justify-end gap-3 mt-4">
                   <a
                     href={`https://wa.me/${quote.telephone.replace(/\D/g, "")}`}

@@ -174,13 +174,11 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ✅ Salvar dados ANTES de fazer qualquer operação assíncrona
     const currentFormData = { ...formData };
     const currentCities = [...citiesByState];
     const currentSelectedCity = selectedCity;
     const currentSelectedCategory = selectedCategoryProduct;
 
-    // ✅ Chamar handleOpenModal e receber as lojas DIRETAMENTE
     const loadedStores = await handleOpenModal();
 
     // Verificar se realmente temos lojas carregadas
@@ -207,127 +205,135 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
       termResponsabilityAccepted: true,
       cityId: parseInt(currentSelectedCity),
       professionalsId: [],
-      approved: true,
+      approved: false,
     };
     budget.storesId = stores.map(Number);
 
     const postReturn = await BudgetService.saveBudget(budget);
 
     if (postReturn.status == 200) {
-      // Filtrar lojistas premium usando loadedStores
-      const premiumStores = loadedStores.filter(
-        (store) => store.isPremiumStore === true
-      );
-
-      // Preparar mensagem de orçamento ANTES de limpar
-      const cityName =
-        currentCities.find((c) => c.id === parseInt(currentSelectedCity))
-          ?.name || "";
-      const categoryName =
-        categoryProducts.find((c) => c.id === parseInt(currentSelectedCategory))
-          ?.name || "";
-
-      const budgetMessage = `Olá! Gostaria de solicitar um orçamento.
-
-*Dados do Cliente:*
-Nome: ${currentFormData.name}
-WhatsApp: ${currentFormData.phone}
-${currentFormData.email ? `Email: ${currentFormData.email}` : ""}
-Cidade: ${cityName}
-
-*Categoria:* ${categoryName}
-
-${currentFormData.message ? `*Detalhes:*\n${currentFormData.message}` : ""}
-
-Orçamento enviado através de https://construirmaisbarato.com.br/`;
-
-      const encodedMessage = encodeURIComponent(budgetMessage);
-
-      // Limpar os campos do formulário DEPOIS de salvar os dados
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        message: "",
-        clientId: 0,
-        cityId: 0,
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "Solicitação enviada com sucesso!",
+        text: "Os lojistas entrarão em contato em breve.",
+        showConfirmButton: false,
+        timer: 1500,
       });
-      setSelectedState("");
-      setSelectedCity("");
-      setcitiesByState([]);
+      // Filtrar lojistas premium usando loadedStores
+      //       const premiumStores = loadedStores.filter(
+      //         (store) => store.isPremiumStore === true
+      //       );
 
-      // Se tem lojistas premium, redirecionar para WhatsApp
-      if (premiumStores.length > 0) {
-        // Se só tem 1 lojista premium, redireciona direto
-        if (premiumStores.length === 1) {
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "Orçamento enviado!",
-            text: "Você será redirecionado para o WhatsApp do lojista premium.",
-            showConfirmButton: false,
-            timer: 2000,
-          });
+      //       // Preparar mensagem de orçamento ANTES de limpar
+      //       const cityName =
+      //         currentCities.find((c) => c.id === parseInt(currentSelectedCity))
+      //           ?.name || "";
+      //       const categoryName =
+      //         categoryProducts.find((c) => c.id === parseInt(currentSelectedCategory))
+      //           ?.name || "";
 
-          const phone = (
-            premiumStores[0].telefone || premiumStores[0].Telephone
-          ).replace(/\D/g, "");
-          window.open(
-            `https://wa.me/55${phone}?text=${encodedMessage}`,
-            "_blank"
-          );
-        } else {
-          // Se tem múltiplos lojistas premium, mostra opções
-          const storeOptions: any = {};
-          premiumStores.forEach((store) => {
-            const storeName = store.nome || store.Name;
-            const storePhone = store.telefone || store.Telephone;
-            storeOptions[store.oid] = `${storeName} - ${storePhone}`;
-          });
+      //       const budgetMessage = `Olá! Gostaria de solicitar um orçamento.
 
-          Swal.fire({
-            title: "✅ Orçamento Enviado!",
-            html: "<p>Escolha um lojista premium para contato direto via WhatsApp:</p>",
-            input: "select",
-            inputOptions: storeOptions,
-            inputPlaceholder: "Selecione um lojista",
-            showCancelButton: true,
-            confirmButtonText: "Abrir WhatsApp",
-            cancelButtonText: "Fechar",
-            preConfirm: (selectedStoreId) => {
-              if (!selectedStoreId) {
-                Swal.showValidationMessage("Selecione um lojista!");
-              }
-              return selectedStoreId;
-            },
-          }).then((result) => {
-            if (result.isConfirmed) {
-              const selectedStore = premiumStores.find(
-                (s) => s.oid === parseInt(result.value)
-              );
-              if (selectedStore) {
-                const phone = (
-                  selectedStore.telefone || selectedStore.Telephone
-                ).replace(/\D/g, "");
-                window.open(
-                  `https://wa.me/55${phone}?text=${encodedMessage}`,
-                  "_blank"
-                );
-              }
-            }
-          });
-        }
-      } else {
-        // Não tem lojistas premium - mensagem padrão
-        Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "Solicitação enviada com sucesso!",
-          text: "Os lojistas entrarão em contato em breve.",
-          showConfirmButton: false,
-          timer: 3000,
-        });
-      }
+      // *Dados do Cliente:*
+      // Nome: ${currentFormData.name}
+      // WhatsApp: ${currentFormData.phone}
+      // ${currentFormData.email ? `Email: ${currentFormData.email}` : ""}
+      // Cidade: ${cityName}
+
+      // *Categoria:* ${categoryName}
+
+      // ${currentFormData.message ? `*Detalhes:*\n${currentFormData.message}` : ""}
+
+      // Orçamento enviado através de https://construirmaisbarato.com.br/`;
+
+      //       const encodedMessage = encodeURIComponent(budgetMessage);
+
+      //       // Limpar os campos do formulário DEPOIS de salvar os dados
+      //       setFormData({
+      //         name: "",
+      //         email: "",
+      //         phone: "",
+      //         message: "",
+      //         clientId: 0,
+      //         cityId: 0,
+      //       });
+      //       setSelectedState("");
+      //       setSelectedCity("");
+      //       setcitiesByState([]);
+
+      //       // Se tem lojistas premium, redirecionar para WhatsApp
+      //       if (premiumStores.length > 0) {
+      //         // Se só tem 1 lojista premium, redireciona direto
+      //         if (premiumStores.length === 1) {
+      //           Swal.fire({
+      //             position: "center",
+      //             icon: "success",
+      //             title: "Orçamento enviado!",
+      //             text: "Você será redirecionado para o WhatsApp do lojista premium.",
+      //             showConfirmButton: false,
+      //             timer: 2000,
+      //           });
+
+      //           const phone = (
+      //             premiumStores[0].telefone || premiumStores[0].Telephone
+      //           ).replace(/\D/g, "");
+      //           window.open(
+      //             `https://wa.me/55${phone}?text=${encodedMessage}`,
+      //             "_blank"
+      //           );
+      //         } else {
+      //           // Se tem múltiplos lojistas premium, mostra opções
+      //           const storeOptions: any = {};
+      //           premiumStores.forEach((store) => {
+      //             const storeName = store.nome || store.Name;
+      //             const storePhone = store.telefone || store.Telephone;
+      //             storeOptions[store.oid] = `${storeName} - ${storePhone}`;
+      //           });
+
+      //           Swal.fire({
+      //             title: "✅ Orçamento Enviado!",
+      //             html: "<p>Escolha um lojista premium para contato direto via WhatsApp:</p>",
+      //             input: "select",
+      //             inputOptions: storeOptions,
+      //             inputPlaceholder: "Selecione um lojista",
+      //             showCancelButton: true,
+      //             confirmButtonText: "Abrir WhatsApp",
+      //             cancelButtonText: "Fechar",
+      //             preConfirm: (selectedStoreId) => {
+      //               if (!selectedStoreId) {
+      //                 Swal.showValidationMessage("Selecione um lojista!");
+      //               }
+      //               return selectedStoreId;
+      //             },
+      //           }).then((result) => {
+      //             if (result.isConfirmed) {
+      //               const selectedStore = premiumStores.find(
+      //                 (s) => s.oid === parseInt(result.value)
+      //               );
+      //               if (selectedStore) {
+      //                 const phone = (
+      //                   selectedStore.telefone || selectedStore.Telephone
+      //                 ).replace(/\D/g, "");
+      //                 window.open(
+      //                   `https://wa.me/55${phone}?text=${encodedMessage}`,
+      //                   "_blank"
+      //                 );
+      //               }
+      //             }
+      //           });
+      //         }
+      //       } else {
+      //         // Não tem lojistas premium - mensagem padrão
+      //         Swal.fire({
+      //           position: "center",
+      //           icon: "success",
+      //           title: "Solicitação enviada com sucesso!",
+      //           text: "Os lojistas entrarão em contato em breve.",
+      //           showConfirmButton: false,
+      //           timer: 3000,
+      //         });
+      //       }
     } else {
       Swal.fire({
         position: "center",
@@ -411,7 +417,7 @@ Orçamento enviado através de https://construirmaisbarato.com.br/`;
       const response = await StoreService.getByCategoryAndSubCategories({
         categoryId: parseInt(selectedCategoryProduct),
         subCategoriesId: selectedSubcategories,
-        cityId:parseInt(selectedCity),
+        cityId: parseInt(selectedCity),
       });
       setStores(response.data);
       // ✅ Retornar as lojas diretamente
@@ -639,7 +645,7 @@ Orçamento enviado através de https://construirmaisbarato.com.br/`;
                     />
                   </div>
                 </div>
-                {/* <div>
+                 <div>
                   <label
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -658,7 +664,7 @@ Orçamento enviado através de https://construirmaisbarato.com.br/`;
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
                     />
                   </div>
-                </div> */}
+                </div> 
                 <button
                   // onClick={handleOpenModal}
                   type="submit"
