@@ -51,6 +51,7 @@ import { IContact } from "../interfaces/IContact";
 import { ContactService } from "../services/ContactService";
 import Pagination from "../components/Pagination";
 import EditProduct from "./EditProduct";
+import { IProduct } from "../interfaces";
 
 interface Product {
   id: string;
@@ -93,18 +94,7 @@ function ProfessionalPanel() {
 
   const [isProfessional, setIsProfessional] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [products, setProducts] = useState([
-    {
-      id: "0",
-      name: "",
-      price: 0,
-      image: "",
-      status: "",
-      dayoffer: false,
-      professionalID: 0,
-      storeID: 0,
-    },
-  ]);
+  const [products, setProducts] = useState<IProduct[]>([]);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
   const [productID, setProductID] = useState(0);
@@ -273,8 +263,8 @@ function ProfessionalPanel() {
 
         if (result_products.status == 200) {
           const json_products = await result_products.data.products;
-          setTotalPage(Math.ceil(result_products.data.total / limit));
           if (json_products.length > 0) {
+            setTotalPage(Math.ceil(result_products.data.total / limit));
             setProducts(json_products);
           }
           renderProducts();
@@ -474,6 +464,7 @@ function ProfessionalPanel() {
           showConfirmButton: false,
           timer: 1500,
         });
+        setProducts([])
         setIsUpdate(!isUpdate);
       }
       //setProducts(products.filter((product) => product.id !== productId));

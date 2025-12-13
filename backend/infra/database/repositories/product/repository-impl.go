@@ -74,7 +74,7 @@ func (r *repository) FindAll(limit, offset int, professionalID int, storeID int,
 
 func (r *repository) FindById(id uint) (*pkgproduct.Product, error) {
 	product := pkgproduct.Product{}
-	if err := r.DB.Preload("Category").
+	if err := r.DB.
 		First(&product, id).Error; err != nil {
 		return nil, err
 	}
@@ -119,8 +119,9 @@ func (r *repository) FindApproved() ([]*pkgproduct.Product, error) {
 func (r *repository) FindDayoffer() ([]*pkgproduct.Product, error) {
 	var products []*pkgproduct.Product
 	if err := r.DB.
-		Preload("Category").
+		// Preload("Category").
 		Preload("Professional").
+		Preload("Store").
 		Where("dayoffer = true").
 		Where("approved = true").
 		Where("deleted_at IS NULL").

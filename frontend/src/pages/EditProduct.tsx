@@ -72,15 +72,12 @@ function EditProduct({ id }: prodEditProduto) {
           professionalID: json.professionalID,
           storeID: json.storeID,
         }));
-        const result =
-          await ProductCategoryService.productCategoriesByProfession(
-            parseInt(json.category.ProfessionID)
-          );
-        if (result.status == 200) {
-          const json_categories = await result.data;
+        // const result = await ProductCategoryService.productCategoriesByProfession(parseInt(json.category.ProfessionID));
+        // if (result.status == 200) {
+        //   const json_categories = await result.data;
 
-          setSubcategories(json_categories);
-        }
+        //   setSubcategories(json_categories);
+        // }
         
         setPreviewUrl("data:image/png;base64," + json.image);
       }
@@ -239,7 +236,7 @@ function EditProduct({ id }: prodEditProduto) {
         </div>
 
         {/* Main Category */}
-        <div>
+        {/* <div>
           <label
             htmlFor="mainCategory"
             className="block text-sm font-medium text-gray-700 mb-1"
@@ -264,10 +261,10 @@ function EditProduct({ id }: prodEditProduto) {
               ))}
             </select>
           </div>
-        </div>
+        </div> */}
 
         {/* Subcategory */}
-        <div>
+        {/* <div>
           <label
             htmlFor="subcategory"
             className="block text-sm font-medium text-gray-700 mb-1"
@@ -293,7 +290,7 @@ function EditProduct({ id }: prodEditProduto) {
               ))}
             </select>
           </div>
-        </div>
+        </div> */}
 
         {/* Price */}
         <div>
