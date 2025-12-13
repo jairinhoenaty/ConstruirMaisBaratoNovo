@@ -7,6 +7,7 @@ import {
 } from "../services";
 import { IProduct } from "../interfaces/IProduct";
 import CurrencyInput from "react-currency-input-field";
+import Swal from "sweetalert2";
 
 function NewProduct() {
   const [formData, setFormData] = useState({
@@ -28,20 +29,20 @@ function NewProduct() {
   ) => {
     const { name, value } = e.target;
 
-    if (name == "mainCategory") {
-      const result = await ProductCategoryService.productCategoriesByProfession(
-        parseInt(value)
-      );
-      if (result.status == 200) {
-        const json_categories = await result.data;
+    // if (name == "mainCategory") {
+    //   const result = await ProductCategoryService.productCategoriesByProfession(
+    //     parseInt(value)
+    //   );
+    //   if (result.status == 200) {
+    //     const json_categories = await result.data;
 
-        setSubcategories(json_categories);
-      }
-    }
+    //     setSubcategories(json_categories);
+    //   }
+    // }
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "mainCategory" ? { subcategory: "" } : {}),
+      // ...(name === "mainCategory" ? { subcategory: "" } : {}),
     }));
   };
 
@@ -97,15 +98,23 @@ function NewProduct() {
       discount: 0,
       approved: false,
       dayoffer: false,
-      professionID: 0,
-      categoryID: parseInt(formData.subcategory),
+      // professionID: 0,
+      // categoryID: parseInt(formData.subcategory),
       professionalID: profile == "profissional" ? postID : null,
       storeID: profile == "store" ? postID : null,
     };
 
     const result = await ProductService.saveProduct(product);
     if (result.status == 200) {
-      alert("Produto cadastrado com sucesso!");
+      // alert("Produto cadastrado com sucesso!");
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "Cadastro de produto",
+        text: "Produto cadastrado com sucesso.",
+        showConfirmButton: false,
+        timer: 1500,
+      });
       setFormData((prev) => ({
         ...prev,
         title: "",
@@ -190,7 +199,7 @@ function NewProduct() {
         </div>
 
         {/* Main Category */}
-        <div>
+        {/* <div>
           <label
             htmlFor="mainCategory"
             className="block text-sm font-medium text-gray-700 mb-1"
@@ -215,10 +224,10 @@ function NewProduct() {
               ))}
             </select>
           </div>
-        </div>
+        </div> */}
 
         {/* Subcategory */}
-        <div>
+        {/* <div>
           <label
             htmlFor="subcategory"
             className="block text-sm font-medium text-gray-700 mb-1"
@@ -244,7 +253,7 @@ function NewProduct() {
               ))}
             </select>
           </div>
-        </div>
+        </div> */}
 
         {/* Price */}
         <div>
@@ -268,11 +277,11 @@ function NewProduct() {
               id="price"
               name="price"
               value={formData.price}
-              //onChange={handleChange}
+              // onChange={handleChange}
               onValueChange={(value, name, values) => handleChangePrice(value)} //(value, name, values) => console.log(value, name, values)}
               required
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Entre com o preço"
+              placeholder="Digite o valor do produto"
             />
           </div>
         </div>

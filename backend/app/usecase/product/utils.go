@@ -15,8 +15,8 @@ func GenerateProduct(assembler *ProductAssembler) pkgproduct.Product {
 		product.Approved = assembler.Approved
 		product.Dayoffer = assembler.Dayoffer
 		product.ProfessionID = assembler.ProfessionID
-		product.CategoryID = assembler.CategoryID
-		product.Category = assembler.Category
+		// product.CategoryID = assembler.CategoryID
+		// product.Category = assembler.Category
 		product.ProfessionalID = assembler.ProfessionalID
 		product.Professional = assembler.Professional
 		product.StoreID = assembler.StoreID
@@ -40,8 +40,8 @@ func GenerateProductPresenter(product *pkgproduct.Product) ProductPresenter {
 	presenter.Approved = product.Approved
 	presenter.Dayoffer = product.Dayoffer
 	presenter.ProfessionID = product.ProfessionID
-	presenter.CategoryID = product.CategoryID
-	presenter.Category = product.Category
+	// presenter.CategoryID = product.CategoryID
+	// presenter.Category = product.Category
 	presenter.ProfessionalID = product.ProfessionalID
 	presenter.Professional = product.Professional
 	presenter.StoreID = product.StoreID
@@ -69,8 +69,8 @@ func GenerateProductsPresenter(products []*pkgproduct.Product) *[]ProductPresent
 			presenter.Approved = product.Approved
 			presenter.Dayoffer = product.Dayoffer
 			presenter.ProfessionID = product.ProfessionID
-			presenter.CategoryID = product.CategoryID
-			presenter.Category = product.Category
+			// presenter.CategoryID = product.CategoryID
+			// presenter.Category = product.Category
 			presenter.ProfessionalID = product.ProfessionalID
 			presenter.Professional = product.Professional
 			presenter.StoreID = product.StoreID

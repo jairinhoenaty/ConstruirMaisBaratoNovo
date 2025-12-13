@@ -30,9 +30,6 @@ func (r *repository) FindAll(limit, offset int, professionalID int, storeID int,
 	if storeID != 0 {
 		where = where + " and store_id=" + strconv.Itoa(storeID)
 	}
-	if storeID != 0 {
-		where = where + " and store_id=" + strconv.Itoa(storeID)
-	}
 	if dayoffer != "" {
 		var dayofferStr = "false"
 		if dayoffer == "S" {
@@ -61,7 +58,7 @@ func (r *repository) FindAll(limit, offset int, professionalID int, storeID int,
 	var products []*pkgproduct.Product
 
 	if err := r.DB.
-		Preload("Category").
+		// Preload("Category").
 		Preload("Professional").
 		Preload("Store").
 		Limit(limit).
