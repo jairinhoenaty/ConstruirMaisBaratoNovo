@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"construir_mais_barato/app/domain/professional"
+	"construir_mais_barato/app/domain/store"
 	pkguser "construir_mais_barato/app/domain/user"
 	pkgauthuc "construir_mais_barato/app/usecase/auth"
 	pkgunlockedbudgetuc "construir_mais_barato/app/usecase/unlocked-budget"
@@ -38,6 +40,8 @@ func NewUnlockedBudgetController(params *UnlockedBudgetControllerParams, g *echo
 // CheckAccess verifica se o profissional tem acesso ao orçamento
 func (c *UnlockedBudgetController) CheckAccess(ctx echo.Context) error {
 	defer ctx.Request().Body.Close()
+	var professional *professional.Professional
+	var store *store.Store
 
 	token := getTokenFromHeader(ctx)
 	if token == "" {
@@ -54,9 +58,17 @@ func (c *UnlockedBudgetController) CheckAccess(ctx echo.Context) error {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Usuário não encontrado"})
 	}
 
-	professional, err := c.CheckBudgetAccessUCParams.ProfessionalService.FindByEmail(user.Email)
-	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profissional não encontrado"})
+	switch user.Profile {
+	case "profissional":
+		professional, err = c.CheckBudgetAccessUCParams.ProfessionalService.FindByEmail(user.Email)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profissional não encontrado"})
+		}
+	case "store":
+		store, err = c.CheckBudgetAccessUCParams.StoreService.FindByEmail(user.Email)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profissional não encontrado"})
+		}
 	}
 
 	budgetIDParam := ctx.Param("id")
@@ -67,8 +79,9 @@ func (c *UnlockedBudgetController) CheckAccess(ctx echo.Context) error {
 
 	usecase := pkgunlockedbudgetuc.NewCheckBudgetAccessUC(c.CheckBudgetAccessUCParams)
 	result, err := usecase.Execute(pkgunlockedbudgetuc.CheckBudgetAccessInput{
-		ProfessionalID: professional.ID,
-		BudgetID:       uint(budgetID),
+		BudgetID:     uint(budgetID),
+		Professional: professional,
+		Store:        store,
 	})
 
 	if err != nil {
@@ -97,11 +110,6 @@ func (c *UnlockedBudgetController) UnlockBudget(ctx echo.Context) error {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Usuário não encontrado"})
 	}
 
-	professional, err := c.UnlockBudgetPaymentUCParams.ProfessionalService.FindByEmail(user.Email)
-	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profissional não encontrado"})
-	}
-
 	budgetIDParam := ctx.Param("id")
 	budgetID, err := strconv.ParseUint(budgetIDParam, 10, 32)
 	if err != nil {
@@ -113,8 +121,29 @@ func (c *UnlockedBudgetController) UnlockBudget(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Dados inválidos"})
 	}
 
-	input.ProfessionalID = professional.ID
 	input.BudgetID = uint(budgetID)
+
+	// Determine user type and set appropriate ID
+	switch user.Profile {
+	case "profissional":
+		professional, err := c.UnlockBudgetPaymentUCParams.ProfessionalService.FindByEmail(user.Email)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profissional não encontrado"})
+		}
+		input.ProfessionalID = &professional.ID
+		input.UserType = "professional"
+
+	case "store":
+		storeObj, err := c.UnlockBudgetPaymentUCParams.StoreService.FindByEmail(user.Email)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loja não encontrada"})
+		}
+		input.StoreID = &storeObj.ID
+		input.UserType = "store"
+
+	default:
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Tipo de usuário inválido"})
+	}
 
 	usecase := pkgunlockedbudgetuc.NewUnlockBudgetPaymentUC(c.UnlockBudgetPaymentUCParams)
 	result, err := usecase.Execute(input)

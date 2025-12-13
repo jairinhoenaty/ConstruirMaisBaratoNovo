@@ -1,7 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { ProfessionalService } from "../services/ProfessionalService";
+import { StoreService } from "../services/StoreService";
+import { PlanService } from "../services/PlanService";
 import { CheckoutState, CheckoutPremiumOutput } from "../interfaces";
+import { Plan } from "../interfaces/IPlan";
 import { Copy, Check, Loader } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -9,6 +12,7 @@ function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [checkoutData, setCheckoutData] = useState<CheckoutPremiumOutput | null>(null);
+  const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
@@ -36,7 +40,20 @@ function Checkout() {
 
     const createCheckout = async () => {
       try {
-        const response = await ProfessionalService.checkoutUserPremium({
+        // Buscar dados do plano
+        if (state.userType) {
+          const planResponse = await PlanService.getPlanByUserType(state.userType);
+          if (planResponse.data) {
+            setPlan(planResponse.data);
+          }
+        }
+
+        // Criar checkout usando o service apropriado
+        const checkoutService = state.userType === 'store'
+          ? StoreService.checkoutStorePremium
+          : ProfessionalService.checkoutUserPremium;
+
+        const response = await checkoutService({
           userId: state.userId,
           payer: state.payer,
         });
@@ -105,15 +122,15 @@ function Checkout() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-[#FF6B35]">
-                    Plano Profissional Premium Mensal
+                    {plan?.name || 'Carregando...'}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Assinatura recorrente
+                    {plan?.description || 'Assinatura recorrente'}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-bold text-blue-600">
-                    R$ {state?.planPrice?.toFixed(2)}
+                    {plan ? `R$ ${plan.price.toFixed(2).replace('.', ',')}` : '...'}
                   </p>
                   <p className="text-sm text-gray-500">/mês</p>
                 </div>

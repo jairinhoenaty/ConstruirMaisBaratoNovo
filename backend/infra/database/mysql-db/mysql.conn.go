@@ -14,12 +14,14 @@ import (
 	pkgclient "construir_mais_barato/app/domain/client"
 	pkgcontact "construir_mais_barato/app/domain/contact"
 	pkgjob "construir_mais_barato/app/domain/job"
+	pkgplan "construir_mais_barato/app/domain/plan"
 	pkgproduct "construir_mais_barato/app/domain/product"
 	pkgproductCategory "construir_mais_barato/app/domain/productCategory"
 	pkgprofession "construir_mais_barato/app/domain/profession"
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgregion "construir_mais_barato/app/domain/region"
 	pkgstore "construir_mais_barato/app/domain/store"
+	pkgsubscription "construir_mais_barato/app/domain/subscription"
 	pkgunlockedbudget "construir_mais_barato/app/domain/unlocked-budget"
 	pkguser "construir_mais_barato/app/domain/user"
 )
@@ -83,5 +85,13 @@ func ConnectionDB(params *ConfigParams) *gorm.DB {
 	db.AutoMigrate(&pkgregion.Region{})
 	db.AutoMigrate(&pkgjob.Job{})
 	db.AutoMigrate(&pkgunlockedbudget.UnlockedBudget{})
+	db.AutoMigrate(&pkgplan.Plan{})
+	db.AutoMigrate(&pkgsubscription.Subscription{})
+
+	// Seed de planos (popula planos iniciais se não existirem)
+	if err := pkgplan.SeedPlans(db); err != nil {
+		fmt.Printf("Warning: Failed to seed plans: %v\n", err)
+	}
+
 	return db
 }

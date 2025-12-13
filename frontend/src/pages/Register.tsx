@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import InputMask from "react-input-mask";
 import {
   Mail,
@@ -30,19 +30,29 @@ import {
   ProfessionService,
   UserService,
   LoginService,
+  ProductCategoryService,
 } from "../services";
 import { StoreService } from "../services/StoreService";
 import { ClientService } from "../services/ClientService";
+import { PlanService } from "../services/PlanService";
 import { CheckoutState, Payer } from "../interfaces";
+import { Plan } from "../interfaces/IPlan";
 import ErrorAlert from "../components/ErrorAlert";
 import Swal from "sweetalert2";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Form } from "react-router-dom";
 import LoadingText from "../components/LoadingText";
 import VideoPopup from "../components/VideoPopup";
+import { ICategoryProduct } from "../interfaces/ICategoryProduct";
 
 type UserRole = "client" | "professional" | "store";
 
 function Register() {
+  const [categoryProducts, setCategoryProducts] = useState<ICategoryProduct[]>(
+    []
+  );
+  const [selectedSubcategories, setSelectedSubcategories] = useState<number[]>(
+    []
+  );
   const [selectedRole, setSelectedRole] = useState<UserRole>("professional");
   const [isVideoPopupOpen, setIsVideoPopupOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -64,12 +74,17 @@ function Register() {
     meiCnpj: "",
     negativeCertificateNumber: "",
     isPremium: false,
+    isPremiumStore: false,
   });
   const [showProfessions, setShowProfessions] = useState(false);
+  const [selectedCategoryProduct, setSelectedCategoryProduct] =
+    useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showStoreModal, setShowStoreModal] = useState(false);
+  const [premiumStore, setPremiumStore] = useState(false);
   const [premiumForm, setPremiumForm] = useState(false);
   const [clickedCertificateButton, setclickedCertificateButton] =
     useState(false);
@@ -87,9 +102,12 @@ function Register() {
   const [loadingSMS, setLoadingSMS] = useState(false);
   const [choose, setChoose] = useState(false);
   const [isUpgradeMode, setIsUpgradeMode] = useState(false);
+  const [professionalPlan, setProfessionalPlan] = useState<Plan | null>(null);
+  const [storePlan, setStorePlan] = useState<Plan | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const roles = [
     {
@@ -98,7 +116,7 @@ function Register() {
       icon: HardHat,
       description: "Ofereço serviços profissionais",
     },
-    
+
     // {
     //   id: "asdasdasdas",
     //   name: "Balcão de Vagas",
@@ -115,10 +133,34 @@ function Register() {
 
   React.useEffect(() => {
     const fetchData = async () => {
+      // Buscar profissões
       const result = await ProfessionService.getProfessionsPublic();
       const json_professions = await result.data;
       if (result.status == 200) {
         setProfessions(json_professions);
+      }
+      // Buscar Categorias de produtos
+      handleSearchCategoriesProduct();
+
+      // Buscar planos premium
+      try {
+        const professionalPlanResult = await PlanService.getPlanByUserType(
+          "professional"
+        );
+        if (professionalPlanResult.data) {
+          setProfessionalPlan(professionalPlanResult.data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar plano profissional:", error);
+      }
+
+      try {
+        const storePlanResult = await PlanService.getPlanByUserType("store");
+        if (storePlanResult.data) {
+          setStorePlan(storePlanResult.data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar plano lojista:", error);
       }
     };
 
@@ -178,6 +220,7 @@ function Register() {
       setShowProfessions(false);
     }
   };*/
+  
 
   const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -321,6 +364,92 @@ function Register() {
     result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
     return result === parseInt(digits.charAt(1));
   };
+
+  const handleCloseStoreModal = async () => {
+    setShowStoreModal(false);
+    setChoose(true);
+
+    setFormData((prev) => ({
+      ...prev,
+      isPremiumStore: false,
+    }));
+    setCodigoEnviado(false);
+
+    const registrationSuccess = await processBasicRegistration();
+
+    if (registrationSuccess) {
+      LoginService.login({
+        email: formData.email,
+        password: formData.password,
+      })
+        .then((response) => {
+          if (response.data.isLoged == true) {
+            localStorage.setItem("isLoggedIn", response.data.isLoged);
+            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("user", response.data.user);
+            localStorage.setItem("id", response.data.user.id);
+            localStorage.setItem("name", response.data.user.name);
+            localStorage.setItem("profile", response.data.user.profile);
+            localStorage.setItem("email", response.data.user.email);
+
+            if (response.data.user.profile === "admin") {
+              navigate("/dashboard");
+            } else {
+              navigate("/professional-panel");
+            }
+          } else {
+            setError("Login Inválido!!");
+          }
+        })
+        .catch((err) => {
+          setError("Login Inválido!!");
+          console.error("ops! ocorreu um erro" + err);
+        });
+    }
+  };
+
+  const handleSearchCategoriesProduct = async () => {
+    // localStorage.setItem("search_city", selectedCity);
+    try {
+      const response = await ProductCategoryService.findTopLevelCategory();
+      setCategoryProducts(response.data || []);
+    } catch (error) {
+      console.error("Erro ao buscar categorias:", error);
+    }
+  };
+
+  const subcategories = selectedCategoryProduct
+    ? categoryProducts.find(
+        (cat) => cat.id === parseInt(selectedCategoryProduct)
+      )?.children || []
+    : [];
+
+  const toggleSubcategory = (subcategoryId: number) => {
+    setSelectedSubcategories((prev) => {
+      if (prev.includes(subcategoryId)) {
+        return prev.filter((id) => id !== subcategoryId);
+      } else {
+        return [...prev, subcategoryId];
+      }
+    });
+  };
+
+  const toggleAllSubcategories = () => {
+    if (subcategories.length > 0) {
+        setSelectedSubcategories(subcategories.map((sub) => sub.id));
+    }
+  };
+
+  // useEffect(() => {
+  //   if (subcategories.length > 0) {
+  //     toggleAllSubcategories();
+  //   }
+  // }, [subcategories]);
+  
+  // useEffect(() => {
+  //   setSelectedSubcategories([]); // limpa seleção
+  // }, [selectedCategoryProduct]);
+  
 
   const handleClosePremiumModal = async () => {
     setShowPremiumModal(false);
@@ -600,6 +729,9 @@ function Register() {
                   neighborhood: "",
                   cityId: parseInt(formData.city),
                   image: base64image,
+                  categoryProductID: parseInt(selectedCategoryProduct),
+                  subCategories: selectedSubcategories,
+                  // isPremiumStore: formData.isPremiumStore,
                 });
               } catch (error) {
                 Swal.fire({
@@ -675,20 +807,27 @@ function Register() {
   };
 
   const processFormSubmission = async () => {
-    if (!choose) {
+    if (!choose && selectedRole == "professional") {
       setShowPremiumModal(true);
+      return false;
+    }
+    if (!choose && selectedRole == "store") {
+      setShowStoreModal(true);
       return false;
     }
     if (!validateForm()) {
       return false;
     }
 
-    // if (premiumForm) {
-    //   setFormData((prev) => ({ ...prev, isPremium: true }));
-    // }
-
     return true;
   };
+
+  useEffect(() => {
+    if (selectedCategoryProduct) {
+      toggleAllSubcategories();
+    }
+  }, [selectedCategoryProduct]);
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -733,7 +872,8 @@ function Register() {
           userId: parseInt(userId),
           userName: userName,
           userEmail: userEmail,
-          planPrice: 19.9,
+          planId: professionalPlan?.id || 0,
+          userType: "professional",
           payer: payer,
         };
 
@@ -887,6 +1027,9 @@ function Register() {
                   neighborhood: "",
                   cityId: parseInt(formData.city),
                   image: base64image,
+                  categoryProductID: parseInt(selectedCategoryProduct),
+                  subCategories: selectedSubcategories,
+                  // isPremiumStore: formData.isPremiumStore
                 });
               } catch (error) {
                 Swal.fire({
@@ -910,7 +1053,7 @@ function Register() {
                 showConfirmButton: false,
                 timer: 3000,
               });
-              if (premiumForm) {
+              if (premiumForm || formData.isPremiumStore) {
                 setTimeout(() => {
                   const payer: Payer = {
                     first_name: formData.name.split(" ")[0],
@@ -930,11 +1073,15 @@ function Register() {
                     },
                   };
 
+                  // Selecionar plano e userType baseado no selectedRole
+                  const currentPlan =
+                    selectedRole === "store" ? storePlan : professionalPlan;
                   const checkoutState: CheckoutState = {
                     userId: professionalId,
                     userName: formData.name,
                     userEmail: formData.email,
-                    planPrice: 19.9,
+                    planId: currentPlan?.id || 0,
+                    userType: selectedRole as "professional" | "store",
                     payer: payer,
                   };
 
@@ -1001,6 +1148,113 @@ function Register() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {showStoreModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+          <div className="relative max-w-4xl w-full max-h-[95vh] rounded-lg overflow-hidden shadow-xl bg-white">
+            <button
+              onClick={handleCloseStoreModal}
+              className="absolute top-4 right-4 z-10 text-gray-600 hover:text-gray-800 text-2xl bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full w-10 h-10 flex items-center justify-center shadow-lg"
+            >
+              ✕
+            </button>
+
+            {/* Conteúdo do modal de lojista */}
+            <div className="p-6 lg:p-8 flex flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                  🚀 Lojista Parceiro Premium
+                </h2>
+                <div className="mb-3">
+                  <span className="text-3xl font-bold text-[#FF6B35]">
+                    {storePlan
+                      ? `R$ ${storePlan.price.toFixed(2).replace(".", ",")}`
+                      : "Carregando..."}
+                  </span>
+                  <span className="text-gray-500 text-sm ml-1">/mês</span>
+                </div>
+                <p className="text-gray-600 text-sm lg:text-base">
+                  Destaque-se da concorrência e conquiste mais clientes
+                </p>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">
+                      Possibilidade de anunciar
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Venda na plataforma Construir Mais Barato!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">
+                          Mais visibilidade para sua empresa
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          Apareça antes das pesquisas
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-[#FF6B35]">
+                          {storePlan
+                            ? `R$ ${storePlan.price
+                                .toFixed(2)
+                                .replace(".", ",")}`
+                            : "..."}
+                        </span>
+                        <span className="text-gray-500 text-sm ml-1">/mês</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPremiumStore(true);
+                    setChoose(true);
+                    setShowStoreModal(false);
+                    setFormData((prev) => ({ ...prev, isPremiumStore: true }));
+                    // Submeter o formulário programaticamente
+                    setTimeout(() => {
+                      formRef.current?.requestSubmit();
+                    }, 100);
+                  }}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+                >
+                  ✨ Quero ser Lojista Parceiro Premium
+                </button>
+
+                <button
+                  onClick={handleCloseStoreModal}
+                  className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                >
+                  Continuar com cadastro gratuito
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-500 text-center mt-4">
+                * Você pode se tornar Lojista Parceiro Premium a qualquer
+                momento
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {showPremiumModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
           <div className="relative max-w-4xl w-full max-h-[95vh] rounded-lg overflow-hidden shadow-xl bg-white">
@@ -1031,7 +1285,11 @@ function Register() {
                 </h2>
                 <div className="mb-3">
                   <span className="text-3xl font-bold text-[#FF6B35]">
-                    R$ 19,90
+                    {professionalPlan
+                      ? `R$ ${professionalPlan.price
+                          .toFixed(2)
+                          .replace(".", ",")}`
+                      : "Carregando..."}
                   </span>
                   <span className="text-gray-500 text-sm ml-1">/mês</span>
                 </div>
@@ -1109,7 +1367,11 @@ function Register() {
                       </div>
                       <div className="text-right">
                         <span className="text-2xl font-bold text-[#FF6B35]">
-                          R$ 19,90
+                          {professionalPlan
+                            ? `R$ ${professionalPlan.price
+                                .toFixed(2)
+                                .replace(".", ",")}`
+                            : "..."}
                         </span>
                         <span className="text-gray-500 text-sm ml-1">/mês</span>
                       </div>
@@ -1450,7 +1712,7 @@ function Register() {
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form ref={formRef} className="space-y-6" onSubmit={handleSubmit}>
             {/* Campos básicos - Ocultar em modo upgrade */}
             {!isUpgradeMode && (
               <>
@@ -1802,6 +2064,98 @@ function Register() {
                           ))}
                       </div>
                     )}
+                  </div>
+                )}
+                {selectedRole === "store" && (
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Especialidade
+                    </label>
+                    <div className="relative">
+                      <HardHat className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <select
+                        value={selectedCategoryProduct}
+                        onChange={(e) => {
+                          setSelectedCategoryProduct(e.target.value);
+                          // toggleAllSubcategories();
+                        }}
+                        className="block w-full pl-10 pr-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                      >
+                        <option value="">Seleciona uma especialidade</option>
+                        {categoryProducts.map((cp: ICategoryProduct) => (
+                          <option key={cp.id} value={cp.id}>
+                            {cp.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* {subcategories.length > 0 && toggleAllSubcategories()} */}
+                    {/* {subcategories.length > 0 && (
+                      <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <HardHat className="w-5 h-5 text-blue-600" />
+                            Subcategorias Disponíveis
+                          </h3>
+                          <button
+                            onClick={toggleAllSubcategories}
+                            className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                          >
+                            {selectedSubcategories.length ===
+                            subcategories.length
+                              ? "Desmarcar Todas"
+                              : "Selecionar Todas"}
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {subcategories.map((subcategory) => (
+                            <label
+                              key={subcategory.id}
+                              className={`
+                              flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all
+                              ${
+                                selectedSubcategories.includes(subcategory.id)
+                                  ? "bg-blue-600 text-white shadow-md scale-105"
+                                  : "bg-white text-gray-700 hover:bg-blue-100 hover:shadow-sm"
+                              }
+                            `}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedSubcategories.includes(
+                                  subcategory.id
+                                )}
+                                onChange={() =>
+                                  toggleSubcategory(subcategory.id)
+                                }
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="font-medium text-sm">
+                                {subcategory.name}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+
+                        {selectedSubcategories.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-blue-200">
+                            <p className="text-sm text-gray-600">
+                              <span className="font-semibold text-blue-600">
+                                {selectedSubcategories.length}
+                              </span>{" "}
+                              subcategoria
+                              {selectedSubcategories.length !== 1
+                                ? "s"
+                                : ""}{" "}
+                              selecionada
+                              {selectedSubcategories.length !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )} */}
                   </div>
                 )}
               </>

@@ -1,10 +1,18 @@
 package unlockedbudget
 
 type UnlockedBudgetService interface {
+	// Professional methods
 	FindByProfessionalAndBudget(professionalID uint, budgetID uint) (*UnlockedBudget, error)
 	FindPaidByProfessionalAndBudget(professionalID uint, budgetID uint) (*UnlockedBudget, error)
-	FindByPaymentID(paymentID string) (*UnlockedBudget, error)
 	FindAllByProfessional(professionalID uint) ([]*UnlockedBudget, error)
+
+	// Store methods
+	FindByStoreAndBudget(storeID uint, budgetID uint) (*UnlockedBudget, error)
+	FindPaidByStoreAndBudget(storeID uint, budgetID uint) (*UnlockedBudget, error)
+	FindAllByStore(storeID uint) ([]*UnlockedBudget, error)
+
+	// Common methods
+	FindByPaymentID(paymentID string) (*UnlockedBudget, error)
 	Save(unlockedBudget UnlockedBudget) (*UnlockedBudget, error)
 	Update(unlockedBudget *UnlockedBudget) error
 }
@@ -33,6 +41,18 @@ func (s *unlockedBudgetService) FindByPaymentID(paymentID string) (*UnlockedBudg
 
 func (s *unlockedBudgetService) FindAllByProfessional(professionalID uint) ([]*UnlockedBudget, error) {
 	return s.repository.FindAllByProfessional(professionalID)
+}
+
+func (s *unlockedBudgetService) FindByStoreAndBudget(storeID uint, budgetID uint) (*UnlockedBudget, error) {
+	return s.repository.FindByStoreAndBudget(storeID, budgetID)
+}
+
+func (s *unlockedBudgetService) FindPaidByStoreAndBudget(storeID uint, budgetID uint) (*UnlockedBudget, error) {
+	return s.repository.FindPaidByStoreAndBudget(storeID, budgetID)
+}
+
+func (s *unlockedBudgetService) FindAllByStore(storeID uint) ([]*UnlockedBudget, error) {
+	return s.repository.FindAllByStore(storeID)
 }
 
 func (s *unlockedBudgetService) Save(unlockedBudget UnlockedBudget) (*UnlockedBudget, error) {

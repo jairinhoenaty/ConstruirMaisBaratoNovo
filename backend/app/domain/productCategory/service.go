@@ -10,6 +10,11 @@ type ProductCategoryService interface {
 	//FindByProfessional(professionalId uint, limit, offset int) ([]*Product, int64, error)
 	FindByProfession(professionID int) ([]*ProductCategory, error)
 	Save(productCategory ProductCategory) (*ProductCategory, error)
+	FindAll() ([]*ProductCategory, error)
+	FindById(id uint) (*ProductCategory, error)
+	FindTopLevel() ([]*ProductCategory, error)
+	FindSubcategoriesByParentID(parentID uint) ([]*ProductCategory, error)
+	Remove(id uint) error
 }
 
 type productCategoryService struct {
@@ -38,6 +43,46 @@ func (s *productCategoryService) Save(productCategory ProductCategory) (*Product
 	}
 	return newproductCategory, nil
 
+}
+
+func (s *productCategoryService) FindAll() ([]*ProductCategory, error) {
+	categories, err := s.repository.FindAll()
+	if err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (s *productCategoryService) FindById(id uint) (*ProductCategory, error) {
+	category, err := s.repository.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+	return category, nil
+}
+
+func (s *productCategoryService) FindTopLevel() ([]*ProductCategory, error) {
+	categories, err := s.repository.FindTopLevel()
+	if err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (s *productCategoryService) FindSubcategoriesByParentID(parentID uint) ([]*ProductCategory, error) {
+	subcategories, err := s.repository.FindSubcategoriesByParentID(parentID)
+	if err != nil {
+		return nil, err
+	}
+	return subcategories, nil
+}
+
+func (s *productCategoryService) Remove(id uint) error {
+	err := s.repository.Remove(id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 /*

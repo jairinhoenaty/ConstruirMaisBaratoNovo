@@ -9,7 +9,7 @@ func GenerateProductCategory(assembler *ProductCategoryAssembler) pkgproductCate
 		productCategory.Name = assembler.Name
 		productCategory.ProfessionID = assembler.ProfessionID
 		productCategory.Profession = assembler.Profession
-
+		productCategory.ParentID = assembler.ParentID
 	}
 	return productCategory
 }
@@ -22,6 +22,16 @@ func GenerateProductCategoryPresenter(productCategory *pkgproductCategory.Produc
 	presenter.Name = productCategory.Name
 	presenter.ProfessionID = productCategory.ProfessionID
 	presenter.Profession = productCategory.Profession
+	presenter.ParentID = productCategory.ParentID
+
+	// Map children if present
+	if len(productCategory.Children) > 0 {
+		children := make([]ProductCategoryPresenter, len(productCategory.Children))
+		for i, child := range productCategory.Children {
+			children[i] = GenerateProductCategoryPresenter(&child)
+		}
+		presenter.Children = children
+	}
 
 	return presenter
 }
@@ -30,16 +40,7 @@ func GenerateProductCategorysPresenter(productCategorys []*pkgproductCategory.Pr
 	list := make([]ProductCategoryPresenter, 0)
 	if productCategorys != nil && len(productCategorys) > 0 {
 		for _, productCategory := range productCategorys {
-
-			//professions := getProfessionsPresenter(professional.Professions)
-
-			presenter := ProductCategoryPresenter{}
-
-			presenter.ID = productCategory.ID
-			presenter.Name = productCategory.Name
-			presenter.ProfessionID = productCategory.ProfessionID
-			presenter.Profession = productCategory.Profession
-
+			presenter := GenerateProductCategoryPresenter(productCategory)
 			list = append(list, presenter)
 		}
 	}

@@ -41,11 +41,11 @@ func NewBudgetController(params *BudgetControllerParams, g *echo.Group) {
 	g.GET("/budgets", controller.FindAll)
 	g.GET("/budget/:id", controller.FindById)
 	g.DELETE("/budget/:id", controller.Delete)
-	g.POST("/budgets/month", controller.FindBudgetByMonthAndProfessionalId)
+	g.POST("/budgets/month", controller.FindBudgetByMonthAndId)
 	g.POST("/budget/email", controller.FindBudgetByEmail)
 }
 
-func (c *BudgetController) FindBudgetByMonthAndProfessionalId(ctx echo.Context) error {
+func (c *BudgetController) FindBudgetByMonthAndId(ctx echo.Context) error {
 	defer ctx.Request().Body.Close()
 	usecase := pkgpbudgetuc.NewFindByMonthAndProfessionalIDUC(c.FindByMonthAndProfessionalIDUCParams)
 	assembler := pkgpbudgetuc.FindBudgetByMontAndProfessionalIDAssembler{}

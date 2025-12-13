@@ -3,18 +3,21 @@ package store_usecase
 import "time"
 
 type StorePresenter struct {
-	ID           uint                  `json:"oid,omitempty"`
-	Name         string                `json:"nome"`
-	Email        string                `json:"email"`
-	Telephone    string                `json:"telefone"`
-	LgpdAceito   string                `json:"lgpdaceito"`
-	CreatedAt    time.Time             `json:"created_at"`
-	Cep          string                `json:"cep"`
-	Street       string                `json:"endereco"`
-	Neighborhood string                `json:"bairro"`
-	Cidade       CidadePresenter       `json:"cidade"`
-	Professions  []ProfissionPresenter `json:"profissoes"`
-	Image        []byte  			   `json:"image"`	
+	ID              uint                  `json:"oid,omitempty"`
+	Name            string                `json:"nome"`
+	Email           string                `json:"email"`
+	Telephone       string                `json:"telefone"`
+	LgpdAceito      string                `json:"lgpdaceito"`
+	CreatedAt       time.Time             `json:"created_at"`
+	Cep             string                `json:"cep"`
+	Street          string                `json:"endereco"`
+	Neighborhood    string                `json:"bairro"`
+	Cidade          CidadePresenter       `json:"cidade"`
+	Professions     []ProfissionPresenter `json:"profissoes"`
+	Image           []byte                `json:"image"`
+	IsPremiumStore  *bool                 `json:"isPremiumStore"`
+	CategoryId      int                   `json:"categoryId"`
+	SubCategoriesId []int                 `json:"subCategoriesId"`
 }
 
 type CidadePresenter struct {

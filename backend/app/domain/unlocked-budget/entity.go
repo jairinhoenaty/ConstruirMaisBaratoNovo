@@ -2,11 +2,20 @@ package unlockedbudget
 
 import "time"
 
-// UnlockedBudget representa um orçamento desbloqueado por um profissional não-premium
+type UserType string
+
+const (
+	UserTypeProfessional UserType = "professional"
+	UserTypeStore        UserType = "store"
+)
+
+// UnlockedBudget representa um orçamento desbloqueado por um profissional ou loja não-premium
 type UnlockedBudget struct {
 	ID             uint       `json:"id" gorm:"primaryKey"`
-	ProfessionalID uint       `json:"professionalId" gorm:"not null;index:idx_prof_budget,unique"`
-	BudgetID       uint       `json:"budgetId" gorm:"not null;index:idx_prof_budget,unique"`
+	UserType       UserType   `json:"userType" gorm:"type:varchar(20);not null;index:idx_user_budget"`
+	ProfessionalID *uint      `json:"professionalId" gorm:"index:idx_user_budget"`
+	StoreID        *uint      `json:"storeId" gorm:"index:idx_user_budget"`
+	BudgetID       uint       `json:"budgetId" gorm:"not null;index:idx_user_budget"`
 	Status         string     `json:"status" gorm:"type:varchar(20);not null;default:'pending'"` // pending, paid, failed, cancelled
 	PaymentID      string     `json:"paymentId" gorm:"type:varchar(100);index"`                  // ID do pagamento no gateway (Mercado Pago)
 	Amount         float64    `json:"amount" gorm:"type:decimal(10,2);not null"`                 // Valor pago (ex: 30.00)

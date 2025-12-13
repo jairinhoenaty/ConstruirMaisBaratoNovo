@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	pkgplan "construir_mais_barato/app/domain/plan"
 	pkgbanneruc "construir_mais_barato/app/usecase/banner"
 	pkgbudgetuc "construir_mais_barato/app/usecase/budget"
 	pkgcityuc "construir_mais_barato/app/usecase/city"
 	pkgclientuc "construir_mais_barato/app/usecase/client"
 	pkgpcontactuc "construir_mais_barato/app/usecase/contact"
+	pkgplanuc "construir_mais_barato/app/usecase/plan"
 	pkgpproductuc "construir_mais_barato/app/usecase/product"
 	pkgproductuc "construir_mais_barato/app/usecase/product"
 	pkgprofessionuc "construir_mais_barato/app/usecase/profession"
@@ -29,6 +31,7 @@ import (
 
 type PublicController struct {
 	FindByEmailUCParams                                 pkguseruc.FindByEmailUCParams
+	FindStoreByCategoryAndSubCategoryParams             pkgstoreuc.FindStoreByCategoryAndSubCategoryParams
 	SaveClientUCParams                                  pkgclientuc.SaveClientUCParams
 	SaveStoreUCParams                                   pkgstoreuc.SaveStoreUCParams
 	FindByPageUCParams                                  pkgbanneruc.FindByPageUCParams
@@ -49,10 +52,15 @@ type PublicController struct {
 	FindAllWithoutPaginationProfessionParams            pkgprofessionuc.FindAllWithoutPaginationProfessionParams
 	FindByProfessionalByCityAndProfessionUCParamns      pkgprofessionaluc.FindByProfessionalByCityAndProfessionUCParamns
 	FindByNameProfessionalAndCityAndProfessionUCParamns pkgprofessionaluc.FindByNameProfessionalAndCityAndProfessionUCParamns
+	FindAllActivePlansUCParams                          pkgplanuc.FindAllActiveUCParams
+	FindPlanByUserTypeUCParams                          pkgplanuc.FindByUserTypeUCParams
+	CheckoutProfessionalPremiumUCParams                 pkgprofessionaluc.CheckoutPremiumUCParams
+	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
 }
 
 type PublicControllerParams struct {
 	FindByEmailUCParams                                 pkguseruc.FindByEmailUCParams
+	FindStoreByCategoryAndSubCategoryParams             pkgstoreuc.FindStoreByCategoryAndSubCategoryParams
 	SaveClientUCParams                                  pkgclientuc.SaveClientUCParams
 	SaveStoreUCParams                                   pkgstoreuc.SaveStoreUCParams
 	FindByPageUCParams                                  pkgbanneruc.FindByPageUCParams
@@ -73,6 +81,10 @@ type PublicControllerParams struct {
 	FindAllWithoutPaginationProfessionParams            pkgprofessionuc.FindAllWithoutPaginationProfessionParams
 	FindByProfessionalByCityAndProfessionUCParamns      pkgprofessionaluc.FindByProfessionalByCityAndProfessionUCParamns
 	FindByNameProfessionalAndCityAndProfessionUCParamns pkgprofessionaluc.FindByNameProfessionalAndCityAndProfessionUCParamns
+	FindAllActivePlansUCParams                          pkgplanuc.FindAllActiveUCParams
+	FindPlanByUserTypeUCParams                          pkgplanuc.FindByUserTypeUCParams
+	CheckoutProfessionalPremiumUCParams                 pkgprofessionaluc.CheckoutPremiumUCParams
+	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
 }
 
 func NewPublicController(params *PublicControllerParams, g *echo.Group) {
@@ -98,8 +110,16 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 		FindAllWithoutPaginationProfessionParams:            params.FindAllWithoutPaginationProfessionParams,
 		FindByProfessionalByCityAndProfessionUCParamns:      params.FindByProfessionalByCityAndProfessionUCParamns,
 		FindByNameProfessionalAndCityAndProfessionUCParamns: params.FindByNameProfessionalAndCityAndProfessionUCParamns,
+		FindAllActivePlansUCParams:                          params.FindAllActivePlansUCParams,
+		FindPlanByUserTypeUCParams:                          params.FindPlanByUserTypeUCParams,
+		CheckoutProfessionalPremiumUCParams:                 params.CheckoutProfessionalPremiumUCParams,
+		CheckoutStorePremiumUCParams:                        params.CheckoutStorePremiumUCParams,
+		FindStoreByCategoryAndSubCategoryParams:             params.FindStoreByCategoryAndSubCategoryParams,
 	}
 
+	g.GET("/plans", controller.GetActivePlans)
+	g.GET("/plans/:userType", controller.GetPlanByUserType)
+	g.POST("/store/checkout/premium", controller.CheckoutStorePremium)
 	g.POST("/save/budget", controller.SaveBudget)
 	g.POST("/user/send-mail", controller.SendMail)
 	g.POST("/user/find-by-email", controller.FindUserByEmail)
@@ -123,9 +143,60 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.POST("/banners/page", controller.FindBannerbyPage)
 
 	g.POST("/save/store", controller.SaveStore)
+	g.POST("/category-and-sub", controller.FindStoreByCategoryAndSubCategory)
 	g.POST("/save/client", controller.SaveClient)
 	g.POST("/upload/image", controller.uploadFile)
 
+}
+
+func (c *PublicController) GetActivePlans(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+
+	uc := pkgplanuc.NewFindAllActiveUC(c.FindAllActivePlansUCParams)
+	plans, err := uc.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, plans)
+}
+
+func (c *PublicController) GetPlanByUserType(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+
+	userTypeStr := ctx.Param("userType")
+	if userTypeStr != "professional" && userTypeStr != "store" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user type. Use 'professional' or 'store'"})
+	}
+
+	uc := pkgplanuc.NewFindByUserTypeUC(c.FindPlanByUserTypeUCParams)
+	userTypeEnum := pkgplan.UserType(userTypeStr)
+	uc.UserType = &userTypeEnum
+
+	plan, err := uc.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, plan)
+}
+
+func (c *PublicController) CheckoutStorePremium(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+
+	var assembler pkgstoreuc.PayerAssembler
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	checkoutUC := pkgstoreuc.NewCheckoutPremiumUC(c.CheckoutStorePremiumUCParams)
+	checkoutUC.Assembler = assembler
+	result, err := checkoutUC.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, result)
 }
 
 func (c *PublicController) CheckoutProfissionalPremium(ctx echo.Context) error {
@@ -136,7 +207,7 @@ func (c *PublicController) CheckoutProfissionalPremium(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
 
-	checkoutUC := pkgprofessionaluc.NewCheckoutPremiumUC()
+	checkoutUC := pkgprofessionaluc.NewCheckoutPremiumUC(c.CheckoutProfessionalPremiumUCParams)
 	checkoutUC.Assembler = assembler
 	result, err := checkoutUC.Execute()
 	if err != nil {
@@ -259,6 +330,22 @@ func (c *PublicController) SaveProfessional(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, professional)
 
+}
+
+func (c *PublicController) FindStoreByCategoryAndSubCategory(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+	assembler := pkgstoreuc.FindByCategoryAndSubCategory{}
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	uc := pkgstoreuc.NewFindStoreByCategoryAndSubCategory(c.FindStoreByCategoryAndSubCategoryParams)
+	uc.Assembler = &assembler
+	stores, err := uc.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusPreconditionFailed, nil)
+	}
+	return ctx.JSON(http.StatusOK, stores)
 }
 
 func (c *PublicController) SaveStore(ctx echo.Context) error {

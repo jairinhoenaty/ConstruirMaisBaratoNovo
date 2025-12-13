@@ -15,6 +15,11 @@ type StoreService interface {
 		CountStoresByProfessionInCity(cityID uint) ([]ProfessionCount, error)
 	*/
 	FindLastStores(quantityRecords int) ([]Store, error)
+	FindByCategoryAndSubCategory(categoryID, cityID int, subCategories []int) ([]*Store, error)
+	CountByCategory(categoryID uint) (int64, error)
+	CountBySubCategory(subCategoryID uint) (int64, error)
+	MigrateCategoryBulk(fromCategoryID, toCategoryID uint) (int64, error)
+	MigrateSubCategoryBulk(fromSubCategoryID, toSubCategoryID uint) (int64, error)
 
 	Save(store Store) (*Store, error)
 	Remove(id uint) error
@@ -80,6 +85,15 @@ func (s *storeService) FindLastStores(quantityRecords int) ([]Store, error) {
 	return stores, nil
 }
 
+func (s *storeService) FindByCategoryAndSubCategory(categoryID, cityID int, subCategories []int) ([]*Store, error) {
+	stores, err := s.repository.FindByCategoryAndSubCategory(categoryID, cityID, subCategories)
+	if err != nil {
+		return nil, err
+	}
+	return stores, nil
+
+}
+
 /*
 	func (s *storeService) FindByCityAndProfession(cityID, professionID uint, limit, offset int) ([]*Store, int64, error) {
 		stores, total, err := s.repository.FindByCityAndProfession(cityID, professionID, limit, offset)
@@ -131,4 +145,36 @@ func (s *storeService) Save(store Store) (*Store, error) {
 
 func (s *storeService) Remove(id uint) error {
 	return s.repository.Remove(id)
+}
+
+func (s *storeService) CountByCategory(categoryID uint) (int64, error) {
+	count, err := s.repository.CountByCategory(categoryID)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *storeService) CountBySubCategory(subCategoryID uint) (int64, error) {
+	count, err := s.repository.CountBySubCategory(subCategoryID)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *storeService) MigrateCategoryBulk(fromCategoryID, toCategoryID uint) (int64, error) {
+	affected, err := s.repository.MigrateCategoryBulk(fromCategoryID, toCategoryID)
+	if err != nil {
+		return 0, err
+	}
+	return affected, nil
+}
+
+func (s *storeService) MigrateSubCategoryBulk(fromSubCategoryID, toSubCategoryID uint) (int64, error) {
+	affected, err := s.repository.MigrateSubCategoryBulk(fromSubCategoryID, toSubCategoryID)
+	if err != nil {
+		return 0, err
+	}
+	return affected, nil
 }

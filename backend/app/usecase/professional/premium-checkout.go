@@ -5,14 +5,17 @@ import (
 	"os"
 	"time"
 
+	pkgplan "construir_mais_barato/app/domain/plan"
 	"construir_mais_barato/infra/adapters/gateway-payment/mercadopago"
 
 	"github.com/google/uuid"
 )
 
 type CheckoutPremiumUC struct {
-	Assembler PayerAssembler
+	Assembler   PayerAssembler
+	PlanService pkgplan.PlanService
 }
+
 type PayerAssembler struct {
 	UserID uint              `json:"userId"`
 	Payer  mercadopago.Payer `json:"payer"`
@@ -26,20 +29,36 @@ type CheckoutPremiumOutput struct {
 	Status       string  `json:"status"`
 }
 
-func NewCheckoutPremiumUC() *CheckoutPremiumUC {
-	return &CheckoutPremiumUC{}
+type CheckoutPremiumUCParams struct {
+	PlanService pkgplan.PlanService
+}
+
+func NewCheckoutPremiumUC(params CheckoutPremiumUCParams) *CheckoutPremiumUC {
+	return &CheckoutPremiumUC{
+		PlanService: params.PlanService,
+	}
 }
 
 func (uc *CheckoutPremiumUC) Execute() (*CheckoutPremiumOutput, error) {
+	// Busca o plano de profissional do banco de dados
+	plan, err := uc.PlanService.FindByUserType(pkgplan.UserTypeProfessional)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find professional plan: %w", err)
+	}
+
+	if !plan.IsActive {
+		return nil, fmt.Errorf("professional plan is not active")
+	}
+
 	mpClient := mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
 
-	price := 19.90
+	price := plan.Price
 	// appURL := os.Getenv("APP_PUBLIC_URL")
 	// notificationURL := fmt.Sprintf("%s/webhooks/mercadopago", appURL)
 
 	idem := uuid.NewString()
-	desc := "Assinatura Premium mensal"
-	extRef := fmt.Sprintf("user:%d:%d", uc.Assembler.UserID, time.Now().Unix())
+	desc := plan.Name
+	extRef := fmt.Sprintf("professional:%d:%d", uc.Assembler.UserID, time.Now().Unix())
 
 	paymentInput := mercadopago.PixPaymentInput{
 		Amount:      price,
@@ -54,6 +73,7 @@ func (uc *CheckoutPremiumUC) Execute() (*CheckoutPremiumOutput, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &CheckoutPremiumOutput{
 		PaymentID:    res.PaymentID,
 		Amount:       price,

@@ -2,7 +2,9 @@ package store_repository_impl
 
 import (
 	pkgstore "construir_mais_barato/app/domain/store"
+	"encoding/json"
 	"errors"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -154,6 +156,42 @@ func (r *repository) FindLastStores(quantityRecords int) ([]pkgstore.Store, erro
 
 	return professionais, nil
 }
+func (r *repository) FindByCategoryAndSubCategory(categoryID, cityID int, subCategories []int) ([]*pkgstore.Store, error) {
+	stores := make([]*pkgstore.Store, 0)
+
+	query := r.DB.
+		Preload("City").
+		Where("category_product_id = ?", categoryID).
+		Where("city_id = ?", cityID)
+
+	// Se há subcategorias solicitadas, verificar se a loja tem PELO MENOS UMA delas
+	if len(subCategories) > 0 {
+		// Construir condição OR para cada subcategoria
+		// Exemplo: (JSON_CONTAINS(sub_categories, '1') OR JSON_CONTAINS(sub_categories, '2'))
+		orConditions := make([]string, 0, len(subCategories))
+		args := make([]interface{}, 0, len(subCategories))
+
+		for _, subCat := range subCategories {
+			// Cada subcategoria é um elemento individual
+			subCatJSON, err := json.Marshal(subCat)
+			if err != nil {
+				return nil, err
+			}
+			orConditions = append(orConditions, "JSON_CONTAINS(sub_categories, ?)")
+			args = append(args, string(subCatJSON))
+		}
+
+		// Combinar com OR: (cond1 OR cond2 OR cond3)
+		whereClause := "(" + strings.Join(orConditions, " OR ") + ")"
+		query = query.Where(whereClause, args...)
+	}
+
+	if err := query.Find(&stores).Error; err != nil {
+		return nil, err
+	}
+
+	return stores, nil
+}
 
 /*
 	func (r *repository) CountStoresByProfession() ([]pkgstore.ProfessionCount, error) {
@@ -250,4 +288,170 @@ func (r *repository) Remove(id uint) error {
 		return err
 	}
 	return nil
+}
+
+// CountByCategory conta quantas lojas usam uma categoria específica
+// Verifica TANTO category_product_id (categoria principal)
+// QUANTO sub_categories (array JSON de subcategorias)
+func (r *repository) CountByCategory(categoryID uint) (int64, error) {
+	var count int64
+
+	// Preparar JSON para busca
+	categoryJSON, err := json.Marshal(categoryID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Contar lojas que usam esta categoria como:
+	// 1. Categoria principal (category_product_id) OU
+	// 2. Dentro do array de subcategorias (sub_categories)
+	if err := r.DB.Model(&pkgstore.Store{}).
+		Where("category_product_id = ? OR JSON_CONTAINS(sub_categories, ?)", categoryID, string(categoryJSON)).
+		Where("stores.deleted_at IS NULL").
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// CountBySubCategory conta quantas lojas usam uma subcategoria específica
+func (r *repository) CountBySubCategory(subCategoryID uint) (int64, error) {
+	var count int64
+
+	// Construir JSON para busca (subcategoria como número individual)
+	subCatJSON, err := json.Marshal(subCategoryID)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := r.DB.Model(&pkgstore.Store{}).
+		Where("JSON_CONTAINS(sub_categories, ?)", string(subCatJSON)).
+		Where("stores.deleted_at IS NULL").
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// MigrateCategoryBulk migra todas as lojas de uma categoria para outra
+// Processa TANTO category_product_id QUANTO sub_categories
+func (r *repository) MigrateCategoryBulk(fromCategoryID, toCategoryID uint) (int64, error) {
+	var totalAffected int64
+
+	// Parte 1: Migrar lojas que usam como categoria principal (category_product_id)
+	resultMain := r.DB.Model(&pkgstore.Store{}).
+		Where("category_product_id = ?", fromCategoryID).
+		Where("stores.deleted_at IS NULL").
+		Update("category_product_id", toCategoryID)
+
+	if resultMain.Error != nil {
+		return 0, resultMain.Error
+	}
+	totalAffected += resultMain.RowsAffected
+
+	// Parte 2: Migrar lojas que têm a categoria no array sub_categories
+	fromCatJSON, err := json.Marshal(fromCategoryID)
+	if err != nil {
+		return totalAffected, err
+	}
+
+	var stores []*pkgstore.Store
+	if err := r.DB.
+		Where("JSON_CONTAINS(sub_categories, ?)", string(fromCatJSON)).
+		Where("stores.deleted_at IS NULL").
+		Find(&stores).Error; err != nil {
+		return totalAffected, err
+	}
+
+	// Atualizar cada loja que tem a categoria no array
+	for _, store := range stores {
+		subCategories := store.SubCategories
+
+		// Remover categoria antiga e adicionar nova
+		newSubCategories := make(pkgstore.UintSlice, 0)
+		for _, subCat := range subCategories {
+			if subCat != fromCategoryID {
+				newSubCategories = append(newSubCategories, subCat)
+			}
+		}
+
+		// Adicionar nova categoria se ainda não existir
+		hasNew := false
+		for _, subCat := range newSubCategories {
+			if subCat == toCategoryID {
+				hasNew = true
+				break
+			}
+		}
+		if !hasNew {
+			newSubCategories = append(newSubCategories, toCategoryID)
+		}
+
+		// Atualizar no banco
+		if err := r.DB.Model(&pkgstore.Store{}).
+			Where("id = ?", store.ID).
+			Update("sub_categories", newSubCategories).Error; err != nil {
+			continue
+		}
+
+		totalAffected++
+	}
+
+	return totalAffected, nil
+}
+
+// MigrateSubCategoryBulk migra todas as lojas de uma subcategoria para outra
+// Remove a subcategoria antiga do array JSON e adiciona a nova
+func (r *repository) MigrateSubCategoryBulk(fromSubCategoryID, toSubCategoryID uint) (int64, error) {
+	// Buscar todas as lojas que usam a subcategoria antiga
+	fromSubCatJSON, err := json.Marshal(fromSubCategoryID)
+	if err != nil {
+		return 0, err
+	}
+
+	var stores []*pkgstore.Store
+	if err := r.DB.
+		Where("JSON_CONTAINS(sub_categories, ?)", string(fromSubCatJSON)).
+		Where("stores.deleted_at IS NULL").
+		Find(&stores).Error; err != nil {
+		return 0, err
+	}
+
+	// Atualizar cada loja
+	var affected int64
+	for _, store := range stores {
+		// Trabalhar diretamente com o UintSlice
+		subCategories := store.SubCategories
+
+		// Remover antiga
+		newSubCategories := make(pkgstore.UintSlice, 0)
+		for _, subCat := range subCategories {
+			if subCat != fromSubCategoryID {
+				newSubCategories = append(newSubCategories, subCat)
+			}
+		}
+
+		// Adicionar nova (se ainda não existir)
+		hasNew := false
+		for _, subCat := range newSubCategories {
+			if subCat == toSubCategoryID {
+				hasNew = true
+				break
+			}
+		}
+		if !hasNew {
+			newSubCategories = append(newSubCategories, toSubCategoryID)
+		}
+
+		// Atualizar no banco
+		if err := r.DB.Model(&pkgstore.Store{}).
+			Where("id = ?", store.ID).
+			Update("sub_categories", newSubCategories).Error; err != nil {
+			continue
+		}
+
+		affected++
+	}
+
+	return affected, nil
 }

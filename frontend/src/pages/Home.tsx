@@ -18,6 +18,7 @@ import Dashboard from "./Dashboard";
 import PrivacyPolicy from "./PrivacyPolicy";
 import CookieBanner from "../components/CookieBanner";
 import VideoPopup from "../components/VideoPopup";
+import QuoteProducts from "./QuoteProducts";
 // import Carousel from "../components/Carousel";
 
 function Home() {
@@ -39,6 +40,8 @@ function Home() {
     switch (currentPage) {
       case "search":
         return <SearchProfessionals onNavigate={setCurrentPage} />;
+      case "quoteProduct":
+        return <QuoteProducts onNavigate={setCurrentPage} />;
       case "marketplace":
         return <Marketplace onNavigate={setCurrentPage} />;
       case "login":
@@ -61,7 +64,8 @@ function Home() {
             {/* Home Page Content */}
             <main className="max-w-7xl mx-auto px-4 py-8">
               <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div>
+                <div className="h-full">
+                  <div className="flex flex-row space-x-3 mb-3">
                    <button
                     onClick={() => {
                       setCurrentPage("search");
@@ -71,6 +75,16 @@ function Home() {
                   >
                     Encontrar Profissionais
                   </button>
+                   <button
+                    onClick={() => {
+                      setCurrentPage("quoteProduct");
+                      setCarouselPage("CP");
+                    }}
+                    className="bg-[#FF6B35] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#E55A2B] transition-colors"
+                  >
+                    Consultar preços
+                  </button>
+                  </div>
                   <h1 className="text-4xl font-bold text-gray-900 mb-4">
                     Encontre os Melhores Profissionais da Construção Civil
                   </h1>

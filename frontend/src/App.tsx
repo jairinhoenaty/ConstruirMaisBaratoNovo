@@ -14,6 +14,8 @@ import Header from "./components/Header";
 import BannerHeader from "./components/BannerHeader";
 import SearchResults from "./pages/SearchResults";
 import ResetPassword from "./pages/ResetPassword";
+import QuoteProducts from "./pages/QuoteProducts";
+import ProductCategoriesAdmin from "./pages/ProductCategoriesAdmin";
 
 function App() {
   return (
@@ -28,6 +30,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/search" element={<SearchProfessionals />} />
+            <Route path="/quote-product" element={<QuoteProducts />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/checkout-unlock" element={<CheckoutUnlock />} />
@@ -35,6 +38,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/professional-panel" element={<ProfessionalPanel />} />
+            <Route path="/product-categories-admin" element={<ProductCategoriesAdmin />} />
             <Route path="/confirmar-senha/:token" element={<ResetPassword />} />
           </Routes>
         </BrowserRouter>
