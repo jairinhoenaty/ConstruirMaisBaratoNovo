@@ -173,11 +173,13 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    const quoteMessage= "Preciso dos preços destes produtos, os itens selecionados: "
     const currentFormData = { ...formData };
     const currentCities = [...citiesByState];
     const currentSelectedCity = selectedCity;
     const currentSelectedCategory = selectedCategoryProduct;
+    const currentSelectedSubCategories = subcategories.filter(item => selectedSubcategories.includes(item.id)).map(item => item.name)
+    const resultSubCategories = currentSelectedSubCategories.join(', ');
 
     const loadedStores = await handleOpenModal();
 
@@ -201,7 +203,8 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
       email: currentFormData.email,
       telephone: currentFormData.phone,
       storesId: [],
-      description: currentFormData.message,
+      description: quoteMessage+resultSubCategories,
+      // description: "Preciso dos preços destes produtos, os itens selecionados",
       termResponsabilityAccepted: true,
       cityId: parseInt(currentSelectedCity),
       professionalsId: [],

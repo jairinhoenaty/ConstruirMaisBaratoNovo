@@ -581,7 +581,7 @@ function QuotesPanel() {
                 profile == "profissional" ||
                 profile == "store") &&
                 renderClientInfoPreview(quote)}
-              {budgetFilter !== "store" && (
+              {quote.description && (
                 <div className="border-t border-gray-100 pt-4">
                   <div className="flex items-start gap-2">
                     <MessageSquare className="w-5 h-5 text-gray-400 mt-1" />
