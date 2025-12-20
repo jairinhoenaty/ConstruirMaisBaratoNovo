@@ -146,15 +146,17 @@ func (r *repository) FindByName(name string) ([]*pkgstore.Store, error) {
 	}
 */
 func (r *repository) FindLastStores(quantityRecords int) ([]pkgstore.Store, error) {
-	var professionais []pkgstore.Store
+	var stores []pkgstore.Store
 
-	result := r.DB.Preload("City").
-		Where("stores.deleted_at IS NULL").Order("created_at desc").Order("id desc").Limit(quantityRecords).Find(&professionais)
+	result := r.DB.
+		Preload("City").
+		Preload("Category").
+		Where("stores.deleted_at IS NULL").Order("created_at desc").Order("id desc").Limit(quantityRecords).Find(&stores)
 	if result.Error != nil {
 		return nil, errors.New("Erro ao selecionar o lojas: " + result.Error.Error())
 	}
 
-	return professionais, nil
+	return stores, nil
 }
 func (r *repository) FindByCategoryAndSubCategory(categoryID, cityID int, subCategories []int) ([]*pkgstore.Store, error) {
 	stores := make([]*pkgstore.Store, 0)
@@ -219,7 +221,7 @@ func (r *repository) FindAll(limit, offset int) ([]*pkgstore.Store, int64, error
 	if err := r.DB.Model(&pkgstore.Store{}).Where("stores.deleted_at IS NULL").Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	if err := r.DB.Preload("City").Where("stores.deleted_at IS NULL").Order("name ASC").Limit(limit).Offset(offset).Find(&stores).Error; err != nil {
+	if err := r.DB.Preload("City").Preload("Category").Where("stores.deleted_at IS NULL").Order("name ASC").Limit(limit).Offset(offset).Find(&stores).Error; err != nil {
 		return nil, 0, err
 	}
 	return stores, total, nil

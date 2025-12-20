@@ -18,6 +18,7 @@ type StorePresenter struct {
 	IsPremiumStore  *bool                 `json:"isPremiumStore"`
 	CategoryId      int                   `json:"categoryId"`
 	SubCategoriesId []int                 `json:"subCategoriesId"`
+	Especialidade   string                `json:"especialidade"`
 }
 
 type CidadePresenter struct {

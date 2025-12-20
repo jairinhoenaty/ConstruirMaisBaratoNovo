@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	pkgcity "construir_mais_barato/app/domain/city"
+	pkgcategory "construir_mais_barato/app/domain/productCategory"
 )
 
 type Store struct {
@@ -27,7 +28,8 @@ type Store struct {
 	CreatedAt         time.Time `gorm:"<-:create"`
 	IsPremiumStore    *bool     `gorm:"default:false"`
 	CategoryProductID uint
-	SubCategories     UintSlice `gorm:"type:json"`
+	Category          *pkgcategory.ProductCategory `gorm:"foreignKey:CategoryProductID"`
+	SubCategories     UintSlice                    `gorm:"type:json"`
 }
 
 type StoreCount struct {

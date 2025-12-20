@@ -33,7 +33,7 @@ function DashboardProfessional() {
       if (professions.length == 0) {
         const professions = await ProfessionService.getProfessionsPublic();
         const json_professions = await professions.data;
-        if ((professions.status == 200)) {
+        if (professions.status == 200) {
           setProfessions(json_professions);
         }
       }
@@ -52,12 +52,12 @@ function DashboardProfessional() {
         setTotalPage(Math.ceil(total / 10));
         const json = await response.data.profissionais;
 
-        if ((response.status == 200)) {
+        if (response.status == 200) {
           setProfessionalList(json);
         }
       } else if (selectedTipo == "client") {
         const response = await ClientService.getClients(10, (page - 1) * 10);
-        if ((response.status == 200)) {
+        if (response.status == 200) {
           const total = await response.data.total;
           setTotalPage(Math.ceil(total / 10));
           const json = await response.data.clients;
@@ -66,7 +66,7 @@ function DashboardProfessional() {
         }
       } else if (selectedTipo == "store") {
         const response = await StoreService.getStores(10, (page - 1) * 10);
-        if ((response.status == 200)) {
+        if (response.status == 200) {
           const total = await response.data.total;
           setTotalPage(Math.ceil(total / 10));
           const json = await response.data.stores;
@@ -124,7 +124,7 @@ function DashboardProfessional() {
       }
       console.log(response);
 
-      if ((response.status == 200)) {
+      if (response.status == 200) {
         Swal.fire({
           position: "center",
           icon: "success",
@@ -143,7 +143,7 @@ function DashboardProfessional() {
     console.log(email);
     const profile = selectedTipo;
     const response = await UserService.findbyemail({ email: email });
-    if ((response.status == 200)) {
+    if (response.status == 200) {
       const json = await response.data;
       console.log(json);
       const id = json.oid;
@@ -230,23 +230,25 @@ function DashboardProfessional() {
               ))}
             </select>
           </div>
-          <div className="w-full md:w-48">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Profissão
-            </label>
-            <select
-              value={selectedProfession}
-              onChange={(e) => setSelectedProfession(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Todas</option>
-              {professions.map((prof) => (
-                <option key={prof.id} value={prof.id}>
-                  {prof.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {selectedTipo === "profissional" && (
+            <div className="w-full md:w-48">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Profissão
+              </label>
+              <select
+                value={selectedProfession}
+                onChange={(e) => setSelectedProfession(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Todas</option>
+                {professions.map((prof) => (
+                  <option key={prof.id} value={prof.id}>
+                    {prof.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
       {/* All Professionals Table */}
@@ -262,7 +264,12 @@ function DashboardProfessional() {
       {professionalsList != null && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">
-            Todos os Profissionais
+            {selectedTipo === "store"
+              ? "Todos os Lojistas"
+              : selectedTipo === "profissional"
+              ? "Todos os Profissionais"
+              : "Todos os Clientes"}
+            {/* Todos os Profissionais */}
           </h3>
           <Pagination
             currentPage={page}
@@ -297,7 +304,7 @@ function DashboardProfessional() {
                     Cidade
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Profissão
+                    {selectedTipo === "store" ? "Especialidade" : "Profissão"}
                   </th>
                   {/*<th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
                     Status
@@ -344,19 +351,18 @@ function DashboardProfessional() {
                       {prof.cidade.nome}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      {
-                        /*professionals.find((p) => p.id === prof.profissoes)?.nome*/
-                        prof.profissoes != null ? (
-                          prof.profissoes.map((prof1) => (
-                            <span>
-                              {prof1.nome}
-                              <br></br>
-                            </span>
-                          ))
-                        ) : (
-                          <span></span>
-                        )
-                      }
+                      {selectedTipo === "store" ? (
+                        prof.especialidade
+                      ) : prof.profissoes != null ? (
+                        prof.profissoes.map((prof1) => (
+                          <span>
+                            {prof1.nome}
+                            <br></br>
+                          </span>
+                        ))
+                      ) : (
+                        <span></span>
+                      )}
                     </td>
                     {/*<td className="px-4 py-3">
                       <span
