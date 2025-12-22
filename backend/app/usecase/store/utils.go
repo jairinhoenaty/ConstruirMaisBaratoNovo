@@ -62,6 +62,10 @@ func GenerateStorePresenter(store *pkgstore.Store) StorePresenter {
 		presenter.Image = store.Image
 		presenter.IsPremiumStore = store.IsPremiumStore
 		presenter.CategoryId = int(store.CategoryProductID)
+
+		if store.Category != nil {
+			presenter.Especialidade = store.Category.Name
+		}
 	}
 	for _, sub := range store.SubCategories {
 		presenter.SubCategoriesId = append(presenter.SubCategoriesId, int(sub))

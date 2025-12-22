@@ -1,7 +1,6 @@
 package product
 
 import (
-	pkgproductCategory "construir_mais_barato/app/domain/productCategory"
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgstore "construir_mais_barato/app/domain/store"
 	"time"
@@ -23,9 +22,9 @@ type Product struct {
 	ProfessionalID *uint
 	Professional   pkgprofessional.Professional `gorm:"foreignkey:ProfessionalID"`
 	Description    string
-	CategoryID     uint
-	Category       pkgproductCategory.ProductCategory `gorm:"foreignkey:CategoryID"`
-	CreatedAt      time.Time                          `gorm:"<-:create"`
-	StoreID        *uint
-	Store          pkgstore.Store `gorm:"foreignkey:StoreID"`
+	// CategoryID     uint
+	// Category       pkgproductCategory.ProductCategory `gorm:"foreignkey:CategoryID"`
+	CreatedAt time.Time `gorm:"<-:create"`
+	StoreID   *uint
+	Store     pkgstore.Store `gorm:"foreignkey:StoreID"`
 }

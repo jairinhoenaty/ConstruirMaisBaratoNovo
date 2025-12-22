@@ -170,14 +170,33 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
       setSelectedSubcategories(subcategories.map((sub) => sub.id));
     }
   };
+  
+  const cleanForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      message: "",
+      clientId: 0,
+      cityId: 0,
+    });
+    setSelectedState("");
+    setSelectedCity("");
+    setcitiesByState([]);
+    setCategoryProducts([]);
+    setSelectedCategoryProduct("standardCategory")
+    setSelectedSubcategories([]);
+  }
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    const quoteMessage= "Preciso dos preços destes produtos, os itens selecionados: "
     const currentFormData = { ...formData };
     const currentCities = [...citiesByState];
     const currentSelectedCity = selectedCity;
     const currentSelectedCategory = selectedCategoryProduct;
+    const currentSelectedSubCategories = subcategories.filter(item => selectedSubcategories.includes(item.id)).map(item => item.name)
+    const resultSubCategories = currentSelectedSubCategories.join(', ');
 
     const loadedStores = await handleOpenModal();
 
@@ -201,7 +220,8 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
       email: currentFormData.email,
       telephone: currentFormData.phone,
       storesId: [],
-      description: currentFormData.message,
+      description: quoteMessage+resultSubCategories,
+      // description: "Preciso dos preços destes produtos, os itens selecionados",
       termResponsabilityAccepted: true,
       cityId: parseInt(currentSelectedCity),
       professionalsId: [],
@@ -219,7 +239,9 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
         text: "Os lojistas entrarão em contato em breve.",
         showConfirmButton: false,
         timer: 1500,
+        
       });
+      cleanForm()
       // Filtrar lojistas premium usando loadedStores
       //       const premiumStores = loadedStores.filter(
       //         (store) => store.isPremiumStore === true
@@ -524,7 +546,7 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
                   onChange={(e) => setSelectedCategoryProduct(e.target.value)}
                   className="block w-full pl-10 pr-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
                 >
-                  <option value="">Seleciona uma Categoria</option>
+                  <option value="standardCategory">Seleciona uma Categoria</option>
                   {categoryProducts.map((cp: ICategoryProduct) => (
                     <option key={cp.id} value={cp.id}>
                       {cp.name}

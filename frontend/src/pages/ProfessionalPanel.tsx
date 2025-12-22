@@ -51,6 +51,7 @@ import { IContact } from "../interfaces/IContact";
 import { ContactService } from "../services/ContactService";
 import Pagination from "../components/Pagination";
 import EditProduct from "./EditProduct";
+import { IProduct } from "../interfaces";
 
 interface Product {
   id: string;
@@ -93,18 +94,7 @@ function ProfessionalPanel() {
 
   const [isProfessional, setIsProfessional] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [products, setProducts] = useState([
-    {
-      id: "0",
-      name: "",
-      price: 0,
-      image: "",
-      status: "",
-      dayoffer: false,
-      professionalID: 0,
-      storeID: 0,
-    },
-  ]);
+  const [products, setProducts] = useState<IProduct[]>([]);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
   const [productID, setProductID] = useState(0);
@@ -273,8 +263,10 @@ function ProfessionalPanel() {
 
         if (result_products.status == 200) {
           const json_products = await result_products.data.products;
-          setTotalPage(Math.ceil(result_products.data.total / limit));
-          setProducts(json_products);
+          if (json_products.length > 0) {
+            setTotalPage(Math.ceil(result_products.data.total / limit));
+            setProducts(json_products);
+          }
           renderProducts();
         }
       }
@@ -373,7 +365,7 @@ function ProfessionalPanel() {
         LgpdAceito: "S",
         Password: null,
         image: null,
-        isPremiumStore: formData.isPremiumStore
+        isPremiumStore: formData.isPremiumStore,
       });
     }
 
@@ -472,6 +464,7 @@ function ProfessionalPanel() {
           showConfirmButton: false,
           timer: 1500,
         });
+        setProducts([])
         setIsUpdate(!isUpdate);
       }
       //setProducts(products.filter((product) => product.id !== productId));
@@ -539,77 +532,83 @@ function ProfessionalPanel() {
       />
       <br></br>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
-          >
-            <div className="relative h-48">
-              <img
-                src={"data:image;base64," + product.image}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-              <div
-                className={`absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium ${
-                  product.status === "approved"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {product.approved ? (
-                  <div className="flex items-center gap-1">
-                    <Tag className="w-4 h-4" />
-                    <span>Aprovado</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>Aguardando Aprovação</span>
+      {products.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
+            >
+              <div className="relative h-48">
+                <img
+                  src={"data:image;base64," + product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+                <div
+                  className={`absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium ${
+                    product.status === "approved"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}
+                >
+                  {product.approved ? (
+                    <div className="flex items-center gap-1">
+                      <Tag className="w-4 h-4" />
+                      <span>Aprovado</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>Aguardando Aprovação</span>
+                    </div>
+                  )}
+                </div>
+                {product.dayoffer && (
+                  <div className="absolute top-10 right-2 bg-red-600 text-white px-2 py-1 rounded-md text-sm font-semibold">
+                    {product.dayoffer ? "Em destaque" : product.dayoffer}
                   </div>
                 )}
               </div>
-              {product.dayoffer && (
-                <div className="absolute top-10 right-2 bg-red-600 text-white px-2 py-1 rounded-md text-sm font-semibold">
-                  {product.dayoffer ? "Em destaque" : product.dayoffer}
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {product.name}
+                </h3>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold text-blue-600">
+                    R${" "}
+                    {new Intl.NumberFormat("pt-BR", {
+                      style: "decimal",
+                      minimumFractionDigits: 2,
+                    }).format(product.price)}
+                  </span>
+                  <button
+                    onClick={() => {
+                      //console.log("EDITAR");
+                      setProductID(parseInt(product.id));
+                      setActiveTab("editproduct");
+                    }}
+                    className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    <span>Editar</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
-              )}
-            </div>
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {product.name}
-              </h3>
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-blue-600">
-                  R${" "}
-                  {new Intl.NumberFormat("pt-BR", {
-                    style: "decimal",
-                    minimumFractionDigits: 2,
-                  }).format(product.price)}
-                </span>
-                <button
-                  onClick={() => {
-                    //console.log("EDITAR");
-                    setProductID(parseInt(product.id));
-                    setActiveTab("editproduct");
-                  }}
-                  className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  <span>Editar</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(product.id)}
-                  className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-10 text-gray-500">
+          <p className="text-lg font-medium">Nenhum produto encontrado</p>
+        </div>
+      )}
     </div>
   );
 
@@ -766,7 +765,8 @@ function ProfessionalPanel() {
               onClick={() => {
                 const userId = parseInt(localStorage.getItem("id") || "0");
                 const userName = localStorage.getItem("name") || "Profissional";
-                const userEmail = localStorage.getItem("email") || "email@exemplo.com";
+                const userEmail =
+                  localStorage.getItem("email") || "email@exemplo.com";
                 const nameParts = userName.split(" ");
 
                 navigate("/checkout", {
@@ -775,7 +775,7 @@ function ProfessionalPanel() {
                     userName: userName,
                     userEmail: userEmail,
                     planId: 1,
-                    userType: 'professional',
+                    userType: "professional",
                     payer: {
                       first_name: nameParts[0] || "Nome",
                       last_name: nameParts.slice(1).join(" ") || "Sobrenome",
@@ -785,10 +785,18 @@ function ProfessionalPanel() {
                         number: "00000000000",
                       },
                       address: {
-                        zip_code: (formData.cep && formData.cep.trim().replace(/\D/g, '')) || "00000000",
-                        street_name: (formData.street && formData.street.trim()) || "Rua Exemplo",
+                        zip_code:
+                          (formData.cep &&
+                            formData.cep.trim().replace(/\D/g, "")) ||
+                          "00000000",
+                        street_name:
+                          (formData.street && formData.street.trim()) ||
+                          "Rua Exemplo",
                         street_number: "123",
-                        neighborhood: (formData.neighborhood && formData.neighborhood.trim()) || "Centro",
+                        neighborhood:
+                          (formData.neighborhood &&
+                            formData.neighborhood.trim()) ||
+                          "Centro",
                         // city: (formData.city && typeof formData.city === 'string' ? formData.city.trim() : formData.city) || "São Paulo",
                         city: formData.city.toString(),
                         federal_unit: formData.state || "SP",
@@ -800,7 +808,9 @@ function ProfessionalPanel() {
               className="pulse-slow-animation w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg hover:shadow-xl"
             >
               <Star className="w-6 h-6" />
-              <span className="text-lg">Torne-se Premium - Acesso Ilimitado!</span>
+              <span className="text-lg">
+                Torne-se Premium - Acesso Ilimitado!
+              </span>
               <Shield className="w-6 h-6" />
             </button>
           </div>
@@ -822,7 +832,8 @@ function ProfessionalPanel() {
               onClick={() => {
                 const userId = parseInt(localStorage.getItem("id") || "0");
                 const userName = localStorage.getItem("name") || "Lojista";
-                const userEmail = localStorage.getItem("email") || "email@exemplo.com";
+                const userEmail =
+                  localStorage.getItem("email") || "email@exemplo.com";
                 const nameParts = userName.split(" ");
 
                 navigate("/checkout", {
@@ -831,7 +842,7 @@ function ProfessionalPanel() {
                     userName: userName,
                     userEmail: userEmail,
                     planId: 1,
-                    userType: 'store',
+                    userType: "store",
                     payer: {
                       first_name: nameParts[0] || "Nome",
                       last_name: nameParts.slice(1).join(" ") || "Sobrenome",
@@ -841,10 +852,18 @@ function ProfessionalPanel() {
                         number: "00000000000",
                       },
                       address: {
-                        zip_code: (formData.cep && formData.cep.trim().replace(/\D/g, '')) || "00000000",
-                        street_name: (formData.street && formData.street.trim()) || "Rua Exemplo",
+                        zip_code:
+                          (formData.cep &&
+                            formData.cep.trim().replace(/\D/g, "")) ||
+                          "00000000",
+                        street_name:
+                          (formData.street && formData.street.trim()) ||
+                          "Rua Exemplo",
                         street_number: "123",
-                        neighborhood: (formData.neighborhood && formData.neighborhood.trim()) || "Centro",
+                        neighborhood:
+                          (formData.neighborhood &&
+                            formData.neighborhood.trim()) ||
+                          "Centro",
                         // city: (formData.city && typeof formData.city === 'string' ? formData.city.trim() : formData.city) || "São Paulo",
                         city: formData.city.toString(),
                         federal_unit: formData.state || "SP",
@@ -856,7 +875,9 @@ function ProfessionalPanel() {
               className="pulse-slow-animation w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg hover:shadow-xl"
             >
               <Star className="w-6 h-6" />
-              <span className="text-lg">Torne-se Premium - Destaque sua Loja!</span>
+              <span className="text-lg">
+                Torne-se Premium - Destaque sua Loja!
+              </span>
               <Shield className="w-6 h-6" />
             </button>
           </div>
@@ -942,91 +963,92 @@ function ProfessionalPanel() {
               Dados da Conta
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {formData.isPremium || formData.isPremiumStore && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-6 h-6 text-yellow-500" />
-                      <h3 className="text-base font-bold text-[#FF6B35] sm:text-xl">
-                        Profissional Premium
-                      </h3>
-                      <Shield className="w-6 h-6 text-green-600" />
+              {formData.isPremium ||
+                (formData.isPremiumStore && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-6 h-6 text-yellow-500" />
+                        <h3 className="text-base font-bold text-[#FF6B35] sm:text-xl">
+                          Profissional Premium
+                        </h3>
+                        <Shield className="w-6 h-6 text-green-600" />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Foto de Perfil Premium */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Foto de Profissional Premium
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      <div className="relative">
-                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-300 flex items-center justify-center bg-gray-50">
-                          {previewUrl ? (
-                            <img
-                              src={previewUrl}
-                              alt="Foto de perfil"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Camera className="w-8 h-8 text-gray-400" />
-                          )}
+                    {/* Foto de Perfil Premium */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Foto de Profissional Premium
+                      </label>
+                      <div className="flex items-center space-x-6">
+                        <div className="relative">
+                          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-300 flex items-center justify-center bg-gray-50">
+                            {previewUrl ? (
+                              <img
+                                src={previewUrl}
+                                alt="Foto de perfil"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <Camera className="w-8 h-8 text-gray-400" />
+                            )}
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 bg-blue-600 rounded-full p-1">
+                            <Star className="w-4 h-4 text-white" />
+                          </div>
                         </div>
-                        <div className="absolute -bottom-1 -right-1 bg-blue-600 rounded-full p-1">
-                          <Star className="w-4 h-4 text-white" />
+                        <div className="flex-1">
+                          <label
+                            htmlFor="photo-upload"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35] hover:bg-[#E55A2B] text-white rounded-lg cursor-pointer transition-colors text-xs sm:text-base whitespace-nowrap"
+                          >
+                            <Upload className="w-4 h-4" />
+                            Atualizar Foto
+                          </label>
+                          <input
+                            id="photo-upload"
+                            name="photo"
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            className="hidden"
+                          />
+                          <p className="text-xs text-gray-600 mt-2">
+                            JPG, PNG ou WebP. Máximo 5MB.
+                          </p>
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <label
-                          htmlFor="photo-upload"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35] hover:bg-[#E55A2B] text-white rounded-lg cursor-pointer transition-colors text-xs sm:text-base whitespace-nowrap"
-                        >
-                          <Upload className="w-4 h-4" />
-                          Atualizar Foto
-                        </label>
+                    </div>
+
+                    {/* Informações Premium em Grid */}
+                    {/* <div className="grid grid-cols-6 gap-6"> */}
+                    {/* Data de Nascimento */}
+                    <div className="w-full sm:w-64 md:w-48">
+                      <label
+                        htmlFor="dateOfBirth"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Data de Nascimento
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Calendar className="h-5 w-5 text-gray-400" />
+                        </div>
                         <input
-                          id="photo-upload"
-                          name="photo"
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoChange}
-                          className="hidden"
+                          type="date"
+                          name="dateOfBirth"
+                          id="dateOfBirth"
+                          value={formData.dateOfBirth}
+                          onChange={handleChange}
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                          readOnly
                         />
-                        <p className="text-xs text-gray-600 mt-2">
-                          JPG, PNG ou WebP. Máximo 5MB.
-                        </p>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Informações Premium em Grid */}
-                  {/* <div className="grid grid-cols-6 gap-6"> */}
-                  {/* Data de Nascimento */}
-                  <div className="w-full sm:w-64 md:w-48">
-                    <label
-                      htmlFor="dateOfBirth"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Data de Nascimento
-                    </label>
-                    <div className="mt-1 relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        id="dateOfBirth"
-                        value={formData.dateOfBirth}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        readOnly
-                      />
-                    </div>
-                  </div>
-
-                  {/* MEI/CNPJ */}
-                  {/* <div>
+                    {/* MEI/CNPJ */}
+                    {/* <div>
                       <label
                         htmlFor="meiCnpj"
                         className="block text-sm font-medium text-gray-700"
@@ -1048,7 +1070,7 @@ function ProfessionalPanel() {
                       </div>
                     </div> */}
 
-                  {/* Certificado Negativo
+                    {/* Certificado Negativo
                     <div>
                       <label
                         htmlFor="negativeCertificateNumber"
@@ -1082,53 +1104,53 @@ function ProfessionalPanel() {
                         </a>
                       </div>
                     </div> */}
-                  {/* </div> */}
+                    {/* </div> */}
 
-                  {/* Experiência */}
-                  <div className="mt-6">
-                    <label
-                      htmlFor="experience"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Experiência Profissional
-                    </label>
-                    <textarea
-                      id="experience"
-                      name="experience"
-                      rows={4}
-                      value={formData.experience}
-                      onChange={handleChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Descreva sua experiência, projetos anteriores, certificações..."
-                    />
-                  </div>
+                    {/* Experiência */}
+                    <div className="mt-6">
+                      <label
+                        htmlFor="experience"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Experiência Profissional
+                      </label>
+                      <textarea
+                        id="experience"
+                        name="experience"
+                        rows={4}
+                        value={formData.experience}
+                        onChange={handleChange}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Descreva sua experiência, projetos anteriores, certificações..."
+                      />
+                    </div>
 
-                  {/* Benefícios Premium */}
-                  <div className="mt-6 bg-white p-4 rounded-lg border border-blue-200">
-                    <h4 className="text-sm font-semibold text-[#FF6B35] mb-3">
-                      🚀 Benefícios Premium Ativos
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-green-700">
-                        <Check className="w-4 h-4" />
-                        <span>Perfil destacado nas buscas</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-green-700">
-                        <Check className="w-4 h-4" />
-                        <span>Selo de verificação</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-green-700">
-                        <Check className="w-4 h-4" />
-                        <span>Prioridade em orçamentos</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-green-700">
-                        <Check className="w-4 h-4" />
-                        <span>Portfolio profissional</span>
+                    {/* Benefícios Premium */}
+                    <div className="mt-6 bg-white p-4 rounded-lg border border-blue-200">
+                      <h4 className="text-sm font-semibold text-[#FF6B35] mb-3">
+                        🚀 Benefícios Premium Ativos
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center gap-2 text-green-700">
+                          <Check className="w-4 h-4" />
+                          <span>Perfil destacado nas buscas</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-green-700">
+                          <Check className="w-4 h-4" />
+                          <span>Selo de verificação</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-green-700">
+                          <Check className="w-4 h-4" />
+                          <span>Prioridade em orçamentos</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-green-700">
+                          <Check className="w-4 h-4" />
+                          <span>Portfolio profissional</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                ))}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
                 <div className="space-y-4">
                   <div>

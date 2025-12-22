@@ -215,7 +215,7 @@ function ProductDetails({ product, onBack }: ProductDetailsProps) {
                       product.professional.Name*/
                     }
                   </h3>
-                  <p className="text-xs text-gray-600">Vendedor</p>
+                  <p className="text-xs text-gray-600">Lojista</p>
                 </div>
               </div>
 
@@ -517,7 +517,7 @@ function ProductDetails({ product, onBack }: ProductDetailsProps) {
                 <div className="flex items-center gap-2">
                   <Tag className="w-5 h-5 text-blue-600" />
                   <span className="text-gray-600">
-                    {product.category.Name || "Ferramentas"}
+                    {product.category.Name || "Produto"}
                   </span>
                 </div>
               </div>
@@ -585,7 +585,7 @@ function ProductDetails({ product, onBack }: ProductDetailsProps) {
                 onClick={() => setShowContactPopup(true)}
                 className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors"
               >
-                Entrar em Contato com Vendedor
+                Entrar em Contato com Lojista
               </button>
 
               <div className="pt-6 border-t border-gray-200">

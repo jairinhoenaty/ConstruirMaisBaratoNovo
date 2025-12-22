@@ -22,6 +22,7 @@ import (
 	pkgregion "construir_mais_barato/app/domain/region"
 	pkgstore "construir_mais_barato/app/domain/store"
 	pkgsubscription "construir_mais_barato/app/domain/subscription"
+	pkgunlockprice "construir_mais_barato/app/domain/unlock-price"
 	pkgunlockedbudget "construir_mais_barato/app/domain/unlocked-budget"
 	pkguser "construir_mais_barato/app/domain/user"
 )
@@ -87,6 +88,7 @@ func ConnectionDB(params *ConfigParams) *gorm.DB {
 	db.AutoMigrate(&pkgunlockedbudget.UnlockedBudget{})
 	db.AutoMigrate(&pkgplan.Plan{})
 	db.AutoMigrate(&pkgsubscription.Subscription{})
+	db.AutoMigrate(&pkgunlockprice.UnlockPrice{})
 
 	// Seed de planos (popula planos iniciais se não existirem)
 	if err := pkgplan.SeedPlans(db); err != nil {

@@ -580,7 +580,7 @@ function Dashboard() {
                     Cidade
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Profissão
+                    Especialização
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
                     Data
@@ -622,7 +622,7 @@ function Dashboard() {
                       {prof.cidade.nome}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      <span></span>
+                      {prof.especialidade}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       {new Date(prof.created_at).toLocaleDateString("pt-BR")}
