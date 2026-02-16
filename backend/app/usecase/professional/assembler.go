@@ -14,8 +14,10 @@ type ProfessionalAssembler struct {
 	Neighborhood              string `json:"neighborhood"`
 	Image                     []byte `json:"image"`
 	Verified                  *bool  `json:"verified"`
-	OnLine                    *bool  `json:"online"`
-	IsPremium                 *bool  `json:"isPremium"`
+	OnLine                    *bool   `json:"online"`
+	Latitude                  float64 `json:"latitude"`
+	Longitude                 float64 `json:"longitude"`
+	IsPremium                 *bool   `json:"isPremium"`
 	DateOfBirth               string `json:"dateOfBirth"`
 	Experience                string `json:"experience"`
 	CodeVerification          string `json:"codeVerification"`

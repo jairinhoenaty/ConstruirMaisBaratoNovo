@@ -34,6 +34,8 @@ func GenerateProfessional(assembler *ProfessionalAssembler) pkgprofessional.Prof
 		professional.Image = assembler.Image
 		professional.Verified = assembler.Verified
 		professional.OnLine = assembler.OnLine
+		professional.Latitude = assembler.Latitude
+		professional.Longitude = assembler.Longitude
 		professional.IsPremium = assembler.IsPremium
 		professional.DateOfBirth = assembler.DateOfBirth
 		professional.Experience = assembler.Experience

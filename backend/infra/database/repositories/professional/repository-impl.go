@@ -211,24 +211,25 @@ func (r *repository) FindByCityAndProfession(cityID, professionID uint, limit, o
 */
 func (r *repository) FindByProfessionAndLocation(professionID uint, latitude float32, longitude float32, distance, limit, offset int) ([]*pkgprofessional.Professional, int64, error) {
 	var professionals []*pkgprofessional.Professional
-	var where string = ""
-	var latitudeStr = fmt.Sprintf("%f", latitude)
-	var longitudeStr = fmt.Sprintf("%f", longitude)
-	where = "professionals.verified = true and professionals.on_line=true"
 
-	// Buscar os profissionais com paginação
+	lat := float64(latitude)
+	lng := float64(longitude)
+
+	distanceFormula := fmt.Sprintf(
+		"(6371 * acos(LEAST(1.0, cos(radians(%.8f)) * cos(radians(latitude)) * cos(radians(longitude) - radians(%.8f)) + sin(radians(%.8f)) * sin(radians(latitude)))))",
+		lat, lng, lat,
+	)
+
 	if err := r.DB.
-		Select("professionals.*,(6371*acos(cos(radians("+latitudeStr+"))*cos(radians(latitude))"+
-			"*cos( radians( longitude ) - radians("+longitudeStr+") ) +"+
-			"sin( radians("+latitudeStr+") ) * sin( radians( latitude ) ) ) ) as distance").
+		Select("professionals.*, "+distanceFormula+" as distance").
 		Preload("City").
 		Preload("Professions").
 		Joins("JOIN professional_professions ON professional_professions.professional_id = professionals.id").
 		Where("professional_professions.profession_id = ?", professionID).
 		Where("professionals.deleted_at IS NULL").
-		Where(where).
-		Having("distance <= ?", distance).
-		Order("name ASC").
+		Where("professionals.verified = true AND professionals.on_line = true").
+		Where(distanceFormula+" <= ?", distance).
+		Order("distance ASC").
 		Limit(limit).
 		Offset(offset).
 		Find(&professionals).
@@ -366,14 +367,14 @@ func (r *repository) Save(professional pkgprofessional.Professional) (*pkgprofes
 			}
 		}
 
-		// Limpar associações existentes (opcional, dependendo dos requisitos)
-		if err := tx.Model(&professional).Association("Professions").Clear(); err != nil {
-			return err
-		}
-
-		// Adicionar novas associações
-		var professions []pkgprofession.Profession
+		// Só atualizar associações de profissões se o request enviou professionIds
 		if len(professional.ProfessionIDs) > 0 {
+			// Limpar associações existentes antes de re-associar
+			if err := tx.Model(&professional).Association("Professions").Clear(); err != nil {
+				return err
+			}
+
+			var professions []pkgprofession.Profession
 			if err := tx.Where("id IN ?", professional.ProfessionIDs).Find(&professions).Error; err != nil {
 				return err
 			}
@@ -407,56 +408,55 @@ func (r *repository) Remove(id uint) error {
 }
 
 func (r *repository) FindRandom(
-    professionID *uint,
-    professionName *string,
-    verified *bool,
-    online *bool,
-    seed *int64,
-    limit, offset int,
+	professionID *uint,
+	professionName *string,
+	verified *bool,
+	online *bool,
+	seed *int64,
+	limit, offset int,
 ) ([]*pkgprofessional.Professional, int64, error) {
 
-    var professionals []*pkgprofessional.Professional
+	var professionals []*pkgprofessional.Professional
 
-    q := r.DB.
-        Joins("JOIN professional_professions pp ON pp.professional_id = professionals.id").
-        Joins("JOIN professions ON professions.id = pp.profession_id").
-        Where("professionals.deleted_at IS NULL").
-        Preload("City").
-        Preload("Professions")
+	q := r.DB.
+		Joins("JOIN professional_professions pp ON pp.professional_id = professionals.id").
+		Joins("JOIN professions ON professions.id = pp.profession_id").
+		Where("professionals.deleted_at IS NULL").
+		Preload("City").
+		Preload("Professions")
 
-    // Filtro por profissão: ID tem prioridade; se não tiver, usa nome (LIKE)
-    if professionID != nil && *professionID > 0 {
-        q = q.Where("pp.profession_id = ?", *professionID)
-    } else if professionName != nil && *professionName != "" {
-        q = q.Where("UPPER(professions.name) LIKE CONCAT('%', UPPER(?), '%')", *professionName)
-    }
+	// Filtro por profissão: ID tem prioridade; se não tiver, usa nome (LIKE)
+	if professionID != nil && *professionID > 0 {
+		q = q.Where("pp.profession_id = ?", *professionID)
+	} else if professionName != nil && *professionName != "" {
+		q = q.Where("UPPER(professions.name) LIKE CONCAT('%', UPPER(?), '%')", *professionName)
+	}
 
-    // Filtros opcionais de flags
-    if verified != nil {
-        q = q.Where("professionals.verified = ?", *verified)
-    }
-    if online != nil {
-        q = q.Where("professionals.on_line = ?", *online)
-    }
+	// Filtros opcionais de flags
+	if verified != nil {
+		q = q.Where("professionals.verified = ?", *verified)
+	}
+	if online != nil {
+		q = q.Where("professionals.on_line = ?", *online)
+	}
 
-    // Ordenação aleatória com seed (se informado)
-    if seed != nil {
-        q = q.Order(fmt.Sprintf("RAND(%d)", *seed))
-    } else {
-        q = q.Order("RAND()")
-    }
+	// Ordenação aleatória com seed (se informado)
+	if seed != nil {
+		q = q.Order(fmt.Sprintf("RAND(%d)", *seed))
+	} else {
+		q = q.Order("RAND()")
+	}
 
-    // Paginação
-    if limit > 0 {
-        q = q.Limit(limit)
-    }
-    if offset > 0 {
-        q = q.Offset(offset)
-    }
+	// Paginação
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	if offset > 0 {
+		q = q.Offset(offset)
+	}
 
-    if err := q.Find(&professionals).Error; err != nil {
-        return nil, 0, err
-    }
-    return professionals, int64(len(professionals)), nil
+	if err := q.Find(&professionals).Error; err != nil {
+		return nil, 0, err
+	}
+	return professionals, int64(len(professionals)), nil
 }
-
