@@ -20,6 +20,8 @@ import CookieBanner from "../components/CookieBanner";
 import VideoPopup from "../components/VideoPopup";
 import QuoteProducts from "./QuoteProducts";
 // import Carousel from "../components/Carousel";
+import { useNavigate } from "react-router-dom";
+
 
 function Home() {
   const [currentPage, setCurrentPage] = useState(() => {
@@ -29,6 +31,8 @@ function Home() {
   const [carouselPage, setCarouselPage] = useState("H");
   const [showDashboardPopup, setShowDashboardPopup] = useState(false);
   const [isVideoPopupOpen, setIsVideoPopupOpen] = useState(false);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     //    if (currentPage === 'professional-panel') {
@@ -37,7 +41,9 @@ function Home() {
   }, [currentPage, carouselPage]);
 
   const renderContent = () => {
+    
     switch (currentPage) {
+      
       case "search":
         return <SearchProfessionals onNavigate={setCurrentPage} />;
       case "quoteProduct":
@@ -58,8 +64,10 @@ function Home() {
         return <MarketplaceProducts/>;      */
       case "privacy":
         return <PrivacyPolicy onBack={() => setCurrentPage("home")} />;
+
       default:
         return (
+          
           <>
             {/* Home Page Content */}
             <main className="max-w-7xl mx-auto px-4 py-8">
@@ -67,19 +75,13 @@ function Home() {
                 <div className="h-full">
                   <div className="flex flex-row space-x-3 mb-3">
                    <button
-                    onClick={() => {
-                      setCurrentPage("search");
-                      setCarouselPage("S");
-                    }}
+                   onClick={() => navigate("/search")}
                     className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                   >
                     Encontrar Profissionais
                   </button>
                    <button
-                    onClick={() => {
-                      setCurrentPage("quoteProduct");
-                      setCarouselPage("CP");
-                    }}
+                  onClick={() => navigate("/quote-product")}
                     className="bg-[#FF6B35] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#E55A2B] transition-colors"
                   >
                     Consultar preços

@@ -119,17 +119,19 @@ function Navigation({
     <>
       <nav className="fixed top-0 left-0 right-0 bg-blue-600 text-white shadow-lg z-50">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-16 md:h-20 lg:h-24">
             {/* Logo */}
             <div className="flex items-center space-x-2">
+            <Link to="/">
               <img
                 src="/images/c+b.png"
                 alt="Construir Mais Barato"
-                className="w-full h-full object-cover"
-                style={{ width: 50 }}
+                className="h-10 md:h-12 lg:h-14 w-auto object-contain"
+                //style={{ width: 50 }}
               />
+            </Link>
 
-              <span className="font-bold text-lg">Construir Mais Barato</span>
+              <span className="block md:hidden lg:block font-bold text-lg" >Construir Mais Barato</span>
             </div>
 
             {/* Desktop Menu */}
@@ -141,9 +143,9 @@ function Navigation({
                     <button
                       key={item.id}
                       onClick={() => handleMenuClick(item.id)}
-                      className={`flex items-center h-16 px-3 text-sm font-medium hover:bg-blue-700 transition-colors ${
-                        currentPage === item.id ? "bg-blue-700" : ""
-                      }`}
+                      className={`flex items-center h-full px-3 text-sm font-medium hover:bg-blue-700 transition-colors ${
+                      currentPage === item.id ? "bg-blue-700" : ""
+                    }`}
                     >
                       <Icon className="w-4 h-4 mr-1.5" />
                       <span>{item.label}</span>

@@ -133,9 +133,10 @@ function Marketplace({ onNavigate }: MarketplaceProps) {
               </div>
             </div>
 
-            <div className="flex gap-2 items-end">
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
+
               <button
-                className="flex-1 h-[42px] px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 h-[42px] px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                 onClick={() => SearchProducts()}
               >
                 <Search className="w-5 h-5" />
@@ -144,7 +145,7 @@ function Marketplace({ onNavigate }: MarketplaceProps) {
               <Link to="/login">
                 <button
                   onClick={() => onNavigate && onNavigate("login")}
-                  className="h-[42px] px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto h-[42px] px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <PlusCircle className="w-5 h-5" />
                   Vender

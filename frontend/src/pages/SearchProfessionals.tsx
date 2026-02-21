@@ -13,6 +13,7 @@ import {
   IProfissional,
 } from "../interfaces";
 import { IProfessionSearchProfessionals } from "../interfaces/IProfession";
+import { ArrowLeft } from "lucide-react";
 
 interface SearchProfessionalsProps {
   onNavigate?: (page: string) => void;
@@ -199,6 +200,14 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
       {/* Formulário de seleção */}
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="bg-white rounded-xl shadow-lg p-3">
+          <button 
+            onClick={() => 
+            navigate("/")}
+            className="flex items-center gap-2 text-orange-600 hover:text-orange-900 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Voltar para início
+          </button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Encontrar Profissional
           </h1>

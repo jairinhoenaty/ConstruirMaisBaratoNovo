@@ -27,6 +27,7 @@ import {
 import { ICategoryProduct } from "../interfaces/ICategoryProduct";
 import Swal from "sweetalert2";
 import { BudgetService } from "../services/Budget";
+import { ArrowLeft } from "lucide-react";
 
 interface SearchProductsProps {
   onNavigate?: (page: string) => void;
@@ -482,8 +483,18 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
       )}
 
       {/* Formulário de seleção */}
+      
       <div className="max-w-4xl mx-auto px-4 py-12">
+        
         <div className="bg-white rounded-xl shadow-lg p-3">
+          <button 
+            onClick={() => 
+            navigate("/")}
+            className="flex items-center gap-2 text-orange-600 hover:text-orange-900 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Voltar para início
+          </button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Encontrar Produtos
           </h1>
