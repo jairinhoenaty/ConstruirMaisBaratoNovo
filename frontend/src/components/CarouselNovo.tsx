@@ -207,7 +207,7 @@ function CarouselNovo({ page }: CarouselNovoProps) {
               //className="w-full h-full object-cover"
               //              className="w-full h-[300px] md:h-[400px] xl:h-[500px] object-cover rounded-lg"
               // className={`w-full sm:h-64 object-cover rounded-lg shadow-lg transition-transform duration-300 hover:scale-105 ${image.link ?"cursor-pointer" :""}`} 
-              className={`w-full h-44 sm:h-64 md:h-80 lg:h-96 xl:h-[420px] object-cover rounded-lg transition-transform duration-300 hover:scale-105 ${image.link ?"cursor-pointer" :""}`}
+              className={`w-full h-44 sm:h-64 md:h-80 lg:h-96 xl:h-[420px] object-contain md:object-cover md:rounded-lg transition-transform duration-300 hover:scale-105 ${image.link ?"cursor-pointer" :""}`}
             />
             </div>
         ))}
