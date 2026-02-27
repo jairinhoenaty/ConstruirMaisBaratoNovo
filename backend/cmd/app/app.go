@@ -80,6 +80,7 @@ import (
 	pkgplaninfra "construir_mais_barato/infra/database/repositories/plan"
 
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
+	pkgnotificationuc "construir_mais_barato/app/usecase/notification"
 
 	pkgcontrollers "construir_mais_barato/infra/web/controllers"
 
@@ -107,7 +108,8 @@ type dependenceParams struct {
 	ClientService          pkgclient.ClientService
 	RegionService          pkgregion.RegionService
 	PlanService            pkgplan.PlanService
-	MercadoPagoClient      *mercadopago.MPClient
+	MercadoPagoClient           *mercadopago.MPClient
+	SendAppNotificationUCParams pkgnotificationuc.SendAppNotificationUCParams
 }
 
 func buildDependenciesParams(db *gorm.DB) dependenceParams {
@@ -130,6 +132,10 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
 	params.PlanService = pkgplan.NewPlanService(pkgplaninfra.NewPlanRepositoryImpl(db))
 	params.MercadoPagoClient = mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
+	params.SendAppNotificationUCParams = pkgnotificationuc.SendAppNotificationUCParams{
+		UserService:         params.UserService,
+		FirebaseCredentials: os.Getenv("FIREBASE_CREDENTIALS_PATH"),
+	}
 
 	// Seed plans and unlock prices on startup
 	pkgplan.SeedPlans(db)
@@ -886,6 +892,13 @@ func buildProductCategoryAdminEndPoint(dependenceParams *dependenceParams, g *ec
 	pkgcontrollers.NewProductCategoryAdminController(&productCategoryAdminControllerParams, g)
 }
 
+func buildNotificationEndPoint(dependency *dependenceParams, g *echo.Group) {
+	notificationControllerParams := pkgcontrollers.NotificationControllerParams{
+		SendAppNotificationUCParams: dependency.SendAppNotificationUCParams,
+	}
+	pkgcontrollers.NewNotificationController(&notificationControllerParams, g)
+}
+
 func Start(db *gorm.DB) {
 
 	dependency := buildDependenciesParams(db)
@@ -929,6 +942,7 @@ func Start(db *gorm.DB) {
 	buildStoreEndPoint(&dependency, routerGroup)
 	buildClientEndPoint(&dependency, routerGroup)
 	buildRegionEndPoint(&dependency, routerGroup)
+	buildNotificationEndPoint(&dependency, routerGroup)
 
 	// Adicione a rotina de desativação de orçamentos
 	go deactivateExpiredBudgetsRoutine(dependency.BudgetService)

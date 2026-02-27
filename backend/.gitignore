@@ -1,6 +1,10 @@
 # Arquivos de ambiente
 .env
 
+# Credenciais Firebase
+*firebase-adminsdk*.json
+*serviceAccountKey*.json
+
 # Arquivos de lock (geral)
 *.lock
 

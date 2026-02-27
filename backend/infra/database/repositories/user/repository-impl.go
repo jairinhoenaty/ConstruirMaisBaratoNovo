@@ -43,6 +43,22 @@ func (r *repository) FindByEmail(email string) (*pkguser.User, error) {
 
 }
 
+func (r *repository) FindTokensByIds(ids []uint) ([]string, error) {
+	var tokens []string
+	if err := r.DB.Raw(`
+		SELECT u.google_token
+		FROM users u
+		INNER JOIN professionals p ON p.email = u.email
+		WHERE p.id IN ?
+		AND u.google_token != ''
+		AND u.google_token IS NOT NULL
+		AND u.deleted_at IS NULL
+	`, ids).Scan(&tokens).Error; err != nil {
+		return nil, err
+	}
+	return tokens, nil
+}
+
 func (r *repository) Save(user pkguser.User) (*pkguser.User, error) {
 	if err := r.DB.Save(&user).Error; err != nil {
 		return nil, err

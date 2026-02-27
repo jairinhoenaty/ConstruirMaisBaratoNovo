@@ -4,6 +4,7 @@ type UserService interface {
 	FindAll() ([]*User, error)
 	FindById(id uint) (*User, error)
 	FindByEmail(email string) (*User, error)
+	FindTokensByIds(ids []uint) ([]string, error)
 	Save(user User) (*User, error)
 	Remove(id uint) error
 }
@@ -48,6 +49,10 @@ func (s *userService) Save(user User) (*User, error) {
 		return nil, err
 	}
 	return newUser, nil
+}
+
+func (s *userService) FindTokensByIds(ids []uint) ([]string, error) {
+	return s.repository.FindTokensByIds(ids)
 }
 
 func (s *userService) Remove(id uint) error {
