@@ -58,12 +58,7 @@ function Navigation({
           },
         ]
       : []),
-    {
-      id: "privacy",
-      label: "Política de Privacidade",
-      icon: Shield,
-      page: "P",
-    },
+   
     ...(isLoggedIn
       ? isAdmin
         ? [
@@ -119,7 +114,7 @@ function Navigation({
     <>
       <nav className="fixed top-0 left-0 right-0 bg-blue-600 text-white shadow-lg z-50">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16 md:h-20 lg:h-24">
+          <div className="flex justify-between items-center h-16 md:h-20 lg:h-16">
             {/* Logo */}
             <div className="flex items-center space-x-2">
             <Link to="/">
@@ -131,11 +126,13 @@ function Navigation({
               />
             </Link>
 
-              <span className="block md:hidden lg:block font-bold text-lg" >Construir Mais Barato</span>
+              <span className="block font-bold text-lg">
+                Construir Mais Barato
+              </span>
             </div>
 
             {/* Desktop Menu */}
-            <div className="hidden md:flex items-center">
+            <div className="hidden lg:flex items-center">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -163,8 +160,33 @@ function Navigation({
               </button>*/}
             </div>
 
+           {/* Mobile / Tablet Visible Buttons */}
+             <div className="hidden md:flex lg:hidden items-center space-x-2">
+              {menuItems
+                .filter(
+                  (item) =>
+                    item.id === "search" ||
+                    item.id === "login" ||
+                    item.id === "register"
+                )
+                .map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link key={item.id} to={"/" + item.id}>
+                      <button
+                        onClick={() => handleMenuClick(item.id)}
+                        className="flex items-center px-2 py-1 text-xs font-medium hover:bg-blue-700 rounded-md transition-colors"
+                      >
+                        <Icon className="w-4 h-4 mr-1" />
+                        <span>{item.label}</span>
+                      </button>
+                    </Link>
+                  );
+                })}
+            </div>
+
             {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -181,7 +203,7 @@ function Navigation({
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;

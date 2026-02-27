@@ -94,6 +94,12 @@ function Home() {
                     Conectamos você aos melhores profissionais do mercado, com
                     preços justos e qualidade garantida.
                   </p>
+                   <button
+                   onClick={() => navigate("/Privacy")}
+                    className="bg-gray-400 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Veja nossa política de privacidade
+                  </button>
                 </div>
                 <div className="relative h-[300px] md:h-[400px]">
                   <img
