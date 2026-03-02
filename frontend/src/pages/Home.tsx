@@ -7,6 +7,8 @@ import {
   ChevronRight,
   LayoutDashboard,
   Youtube,
+  Store,
+  Briefcase,
 } from "lucide-react";
 import SearchProfessionals from "./SearchProfessionals";
 import Marketplace from "./Marketplace";
@@ -70,33 +72,55 @@ function Home() {
           
           <>
             {/* Home Page Content */}
-            <main className="max-w-7xl mx-auto px-4 py-8">
+          <main className="max-w-7xl mx-auto px-4 py-8">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div className="h-full">
-                  <div className="flex flex-row space-x-3 mb-3">
-                   <button
-                   onClick={() => navigate("/search")}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    Encontrar Profissionais
-                  </button>
-                   <button
-                  onClick={() => navigate("/quote-product")}
-                    className="bg-[#FF6B35] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#E55A2B] transition-colors"
-                  >
-                    Consultar preços
-                  </button>
+                  
+                  {/* Bloco de Cadastros - Mobile: Coluna | Desktop: Linha */}
+                  <div className="flex flex-col md:hidden md:space-x-3 space-y-3 md:space-y-0 mb-4">
+                    <button
+                      onClick={() => navigate("/register")}
+                      className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center gap-3"
+                    >
+                      <Briefcase size={22} strokeWidth={2} />
+                      Cadastre-se como Profissional
+                    </button>
+                    <button
+                      onClick={() => navigate("/register")}
+                      className="w-full bg-[#FF6B35] text-white px-6 py-4 rounded-xl font-semibold hover:bg-[#E55A2B] transition-all shadow-sm flex items-center justify-center gap-3"
+                    >
+                       <Store size={22} strokeWidth={2} />
+                      Cadastre-se como Lojista
+                    </button>
                   </div>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    Encontre os Melhores Profissionais da Construção Civil
+
+                  {/* Botões Secundários - Outlined (Lado a lado em ambos, mas flexíveis) */}
+                  <div className="flex flex-row space-x-3 mb-8">
+                    <button
+                      onClick={() => navigate("/search")}
+                      className="flex-1 border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-xl font-medium hover:bg-blue-50 transition-colors text-sm md:text-base"
+                    >
+                      Encontrar Profissionais
+                    </button>
+                    <button
+                      onClick={() => navigate("/quote-product")}
+                      className="flex-1 border-2 border-[#FF6B35] text-[#FF6B35] px-4 py-3 rounded-xl font-medium hover:bg-orange-50 transition-colors text-sm md:text-base"
+                    >
+                      Consultar preços
+                    </button>
+                  </div>
+
+                  <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Encontre Profissionais de Qualidade para sua Construção Civil
                   </h1>
                   <p className="text-lg text-gray-600 mb-6">
-                    Conectamos você aos melhores profissionais do mercado, com
+                    Conectamos você aos melhores profissionais na área da Construção Civil do mercado, com
                     preços justos e qualidade garantida.
                   </p>
-                   <button
-                   onClick={() => navigate("/Privacy")}
-                    className="bg-gray-400 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+
+                  <button
+                    onClick={() => navigate("/Privacy")}
+                    className="text-gray-400 hover:text-blue-600 text-sm font-medium underline transition-colors"
                   >
                     Veja nossa política de privacidade
                   </button>
