@@ -58,7 +58,8 @@ function QuotesPanel() {
       } else if (profile == "store") {
         response = await BudgetService.getBudgetsbyMonth({
           month: "April",
-          storeID: profile == "store" ? id : 0,
+          userID: profile == "store" ? id : 0,
+          storeID: profile == "store" ? post_id : 0,
           clientID: profile == "client" ? post_id : 0,
           page: 1,
           pagesize: 10,
@@ -67,7 +68,8 @@ function QuotesPanel() {
       } else {
         response = await BudgetService.getBudgetsbyMonth({
           month: "April",
-          professionalID: profile == "profissional" ? id : 0,
+          userID: profile == "profissional" ? id : 0,
+          professionalID: profile == "profissional" ? post_id : 0,
           clientID: profile == "client" ? post_id : 0,
           page: 1,
           pagesize: 10,

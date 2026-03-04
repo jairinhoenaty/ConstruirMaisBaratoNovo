@@ -32,6 +32,7 @@ type FindBudgetByMontAndProfessionalIDAssembler struct {
 	Page           uint   `json:"page"`
 	Month          string `json:"month"`
 	PageSize       uint   `json:"pagesize"`
+	UserID         *uint  `json:"userID"`
 	ProfessionalID *uint  `json:"professionalID"`
 	StoreID        *uint  `json:"storeID"`
 	ClientID       int    `json:"clientID"`

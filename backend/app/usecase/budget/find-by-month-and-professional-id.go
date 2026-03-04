@@ -5,8 +5,6 @@ import (
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgstore "construir_mais_barato/app/domain/store"
 	pkguser "construir_mais_barato/app/domain/user"
-	pkgprofessionaluc "construir_mais_barato/app/usecase/professional"
-	pkgstoreuc "construir_mais_barato/app/usecase/store"
 	pkguseruc "construir_mais_barato/app/usecase/user"
 	"fmt"
 )
@@ -51,11 +49,14 @@ func (uc *FindByMonthAndProfessionalIDUC) Execute() ([]BudgetPresenter, error) {
 	}
 	userUC := pkguseruc.NewFindByIdUC(userParams)
 
-	if uc.Assembler.ProfessionalID != nil && uint64(*uc.Assembler.ProfessionalID) != 0 {
-		userUC.ID = uc.Assembler.ProfessionalID
-	} else if uc.Assembler.StoreID != nil && uint64(*uc.Assembler.StoreID) != 0 {
-		userUC.ID = uc.Assembler.StoreID
-	}
+	// if uc.Assembler.ProfessionalID != nil && uint64(*uc.Assembler.ProfessionalID) != 0 {
+	// 	userUC.ID = uc.Assembler.ProfessionalID
+	// } else if uc.Assembler.StoreID != nil && uint64(*uc.Assembler.StoreID) != 0 {
+	// 	userUC.ID = uc.Assembler.StoreID
+	// }
+
+	userUC.ID = uc.Assembler.UserID
+
 	if uc.Assembler.ClientID != 0 {
 		uClientID := uint(uc.Assembler.ClientID)
 		userUC.ID = &uClientID
@@ -112,48 +113,46 @@ func (uc *FindByMonthAndProfessionalIDUC) Execute() ([]BudgetPresenter, error) {
 func (uc *FindByMonthAndProfessionalIDUC) GetProfessionalOrStore(user *pkguseruc.UserPresenter) error {
 	if uint64(*uc.Assembler.ProfessionalID) != 0 {
 		//então devo pesquisar na tabela de profissional pelo nome profissional vinculado ao orçamento
-		professionalParams := pkgprofessionaluc.FindByNamedUCParams{
-			Service: uc.ServiceProfessional,
-		}
-		professionalUC := pkgprofessionaluc.NewFindByNamedUC(professionalParams)
-		professionalUC.Assembler = &pkgprofessionaluc.FindByNameAssembler{
-			Name: user.Name,
-		}
-		foundProfessionals, err := professionalUC.Execute()
+		// professionalParams := pkgprofessionaluc.FindByNamedUCParams{
+		// 	Service: uc.ServiceProfessional,
+		// }
+		// professionalUC := pkgprofessionaluc.NewFindByNamedUC(professionalParams)
+		// professionalUC.Assembler = &pkgprofessionaluc.FindByNameAssembler{
+		// 	Name: user.Name,
+		// }
+		profissional, err := uc.ServiceProfessional.FindById(*uc.Assembler.ProfessionalID)
+		// foundProfessionals, err := professionalUC.Execute()
 		if err != nil {
 			return fmt.Errorf("Profissional não encontrado com o id informado")
 		}
 		// Verifica se a lista de profissionais não está vazia
-		if len(*foundProfessionals) == 0 {
-			return fmt.Errorf("Nenhum profissional encontrado")
-		}
 
 		// Desreferencia o ponteiro para acessar a fatia real
-		professionals := *foundProfessionals
+		// professionals := *foundProfessionals
 		//fmt.Println(professionals)
 
 		// Obtém o ID do primeiro profissional
-		firstProfessionalID := professionals[0].ID
+		// firstProfessionalID := professionals[0].ID
 
 		// Faz algo com o ID (por exemplo, retorná-lo ou usá-lo em outra lógica)
-		fmt.Printf("ID do primeiro profissional: %d\n", firstProfessionalID)
-		uc.Assembler.ProfessionalID = &firstProfessionalID
+		fmt.Printf("ID do primeiro profissional: %d\n", profissional.ID)
+		uc.Assembler.ProfessionalID = &profissional.ID
 	} else if uc.Assembler.StoreID != nil && uint64(*uc.Assembler.StoreID) != 0 {
 
-		storeParams := pkgstoreuc.FindByNamedUCParams{
-			Service: uc.ServiceStore,
-		}
-		storeUC := pkgstoreuc.NewFindByNamedUC(storeParams)
-		storeUC.Assembler = &pkgstoreuc.FindByNameAssembler{
-			Name: user.Name,
-		}
-		foundStore, err := storeUC.Execute()
+		// storeParams := pkgstoreuc.FindByNamedUCParams{
+		// 	Service: uc.ServiceStore,
+		// }
+		// storeUC := pkgstoreuc.NewFindByNamedUC(storeParams)
+		// storeUC.Assembler = &pkgstoreuc.FindByNameAssembler{
+		// 	Name: user.Name,
+		// }
+		foundStore, err := uc.ServiceStore.FindById(*uc.Assembler.StoreID)
 		if err != nil {
 			return fmt.Errorf("Lojista não encontrado com o id informado")
 		}
-		Stores := *foundStore
-		firstStore := Stores[0].ID
-		uc.Assembler.StoreID = &firstStore
+		// Stores := *foundStore
+		// firstStore := Stores[0].ID
+		uc.Assembler.StoreID = &foundStore.ID
 	}
 	return nil
 }
