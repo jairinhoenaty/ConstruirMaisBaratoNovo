@@ -20,6 +20,7 @@ import (
 	pkgprofession "construir_mais_barato/app/domain/profession"
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgregion "construir_mais_barato/app/domain/region"
+	pkgsolicitationapp "construir_mais_barato/app/domain/solicitationAPP"
 	pkgstore "construir_mais_barato/app/domain/store"
 	pkgsubscription "construir_mais_barato/app/domain/subscription"
 	pkgunlockprice "construir_mais_barato/app/domain/unlock-price"
@@ -89,6 +90,7 @@ func ConnectionDB(params *ConfigParams) *gorm.DB {
 	db.AutoMigrate(&pkgplan.Plan{})
 	db.AutoMigrate(&pkgsubscription.Subscription{})
 	db.AutoMigrate(&pkgunlockprice.UnlockPrice{})
+	db.AutoMigrate(&pkgsolicitationapp.SolicitationApp{})
 
 	// Seed de planos (popula planos iniciais se não existirem)
 	if err := pkgplan.SeedPlans(db); err != nil {

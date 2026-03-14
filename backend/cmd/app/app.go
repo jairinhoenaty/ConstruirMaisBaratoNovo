@@ -79,6 +79,10 @@ import (
 	pkgplanuc "construir_mais_barato/app/usecase/plan"
 	pkgplaninfra "construir_mais_barato/infra/database/repositories/plan"
 
+	pkgsolicitationapp "construir_mais_barato/app/domain/solicitationAPP"
+	pkgsolicitationappuc "construir_mais_barato/app/usecase/solicitation"
+	pkgsolicitationappinfra "construir_mais_barato/infra/database/repositories/solicitationAPP"
+
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
 	pkgnotificationuc "construir_mais_barato/app/usecase/notification"
 
@@ -108,6 +112,7 @@ type dependenceParams struct {
 	ClientService          pkgclient.ClientService
 	RegionService          pkgregion.RegionService
 	PlanService            pkgplan.PlanService
+	SolicitationAppService pkgsolicitationapp.SolicitationAppService
 	MercadoPagoClient           *mercadopago.MPClient
 	SendAppNotificationUCParams pkgnotificationuc.SendAppNotificationUCParams
 }
@@ -131,6 +136,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.ClientService = pkgclient.NewClientService(pkgclientinfra.NewClientRepositoryImpl(db))
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
 	params.PlanService = pkgplan.NewPlanService(pkgplaninfra.NewPlanRepositoryImpl(db))
+	params.SolicitationAppService = pkgsolicitationapp.NewSolicitationAppService(pkgsolicitationappinfra.NewSolicitationAppRepositoryImpl(db))
 	params.MercadoPagoClient = mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
 	params.SendAppNotificationUCParams = pkgnotificationuc.SendAppNotificationUCParams{
 		UserService:         params.UserService,
@@ -266,6 +272,18 @@ func buildCityEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	pkgcontrollers.NewCityController(&cityControllerParams, g)
+}
+
+func buildSolicitationEndPoint(dependency *dependenceParams, g *echo.Group) {
+	saveParams := pkgsolicitationappuc.SaveSolicitationUCParams{
+		Service: dependency.SolicitationAppService,
+	}
+
+	solicitationControllerParams := pkgcontrollers.SolicitationControllerParams{
+		SaveSolicitationUCParams: saveParams,
+	}
+
+	pkgcontrollers.NewSolicitationController(&solicitationControllerParams, g)
 }
 
 func buildContactEndPoint(dependency *dependenceParams, g *echo.Group) {
@@ -943,6 +961,7 @@ func Start(db *gorm.DB) {
 	buildClientEndPoint(&dependency, routerGroup)
 	buildRegionEndPoint(&dependency, routerGroup)
 	buildNotificationEndPoint(&dependency, routerGroup)
+	buildSolicitationEndPoint(&dependency, routerGroup)
 
 	// Adicione a rotina de desativação de orçamentos
 	go deactivateExpiredBudgetsRoutine(dependency.BudgetService)
