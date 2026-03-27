@@ -32,6 +32,7 @@ type Professional struct {
 	CreatedAt                 time.Time `gorm:"<-:create"`
 	Distance                  float64   `gorm:"->"` //`gorm:"-"`
 	IsPremium                 *bool     `gorm:"default:false"`
+	OnService                 *bool     `gorm:"default:false"`
 	CodeVerification          string    `json:"codeVerification"`
 	DateOfBirth               string
 	Experience                string

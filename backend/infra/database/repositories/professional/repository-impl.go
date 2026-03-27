@@ -227,7 +227,7 @@ func (r *repository) FindByProfessionAndLocation(professionID uint, latitude flo
 		Joins("JOIN professional_professions ON professional_professions.professional_id = professionals.id").
 		Where("professional_professions.profession_id = ?", professionID).
 		Where("professionals.deleted_at IS NULL").
-		Where("professionals.is_premium = true AND professionals.on_line = true").
+		Where("professionals.is_premium = true AND professionals.on_line = true AND professionals.on_service = false").
 		Where(distanceFormula+" <= ?", distance).
 		Order("distance ASC").
 		Limit(limit).

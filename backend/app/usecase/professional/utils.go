@@ -42,6 +42,7 @@ func GenerateProfessional(assembler *ProfessionalAssembler) pkgprofessional.Prof
 		professional.MeiCnpj = assembler.MeiCnpj
 		professional.CodeVerification = assembler.CodeVerification
 		professional.NegativeCertificateNumber = assembler.NegativeCertificateNumber
+		professional.OnService = assembler.OnService
 
 	}
 	return professional
