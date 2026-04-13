@@ -47,7 +47,6 @@ type FindProfessionalByCityAndProfessionAssembler struct {
 	PageSize     int    `json:"pageSize"`
 	ProfessionId uint   `json:"professionId"`
 }
-
 type FindByProfessionAndLocationAssembler struct {
 	Limit        int     `json:"limit"`
 	Offset       int     `json:"offset"`
