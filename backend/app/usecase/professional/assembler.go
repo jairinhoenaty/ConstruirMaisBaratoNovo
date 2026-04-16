@@ -24,6 +24,7 @@ type ProfessionalAssembler struct {
 	NegativeCertificateNumber int64   `json:"negativeCertificateNumber"`
 	MeiCnpj                   string  `json:"meiCnpj"`
 	OnService                 *bool   `json:"onService"`
+	Zona                      string  `json:"zona"`
 }
 
 type CityAssembler struct {

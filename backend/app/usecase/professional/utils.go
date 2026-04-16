@@ -43,6 +43,7 @@ func GenerateProfessional(assembler *ProfessionalAssembler) pkgprofessional.Prof
 		professional.CodeVerification = assembler.CodeVerification
 		professional.NegativeCertificateNumber = assembler.NegativeCertificateNumber
 		professional.OnService = assembler.OnService
+		professional.Zona = assembler.Zona
 
 	}
 	return professional
@@ -93,6 +94,7 @@ func GenerateProfessionalPresenter(professional *pkgprofessional.Professional) P
 			presenter.NegativeCertificateNumber = professional.NegativeCertificateNumber
 			presenter.DateOfBirth = professional.DateOfBirth
 			presenter.Experience = professional.Experience
+			presenter.Zona = professional.Zona
 		}
 
 	}

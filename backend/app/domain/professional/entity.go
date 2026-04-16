@@ -38,6 +38,7 @@ type Professional struct {
 	Experience                string
 	// CodeVerification string
 	MeiCnpj string
+	Zona    string
 }
 
 type ProfessionCount struct {
