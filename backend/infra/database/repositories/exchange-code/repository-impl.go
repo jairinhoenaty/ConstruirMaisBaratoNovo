@@ -39,9 +39,13 @@ func (r *repository) Redeem(code string) (*pkgexchangecode.ExchangeCode, error) 
 	}
 
 	var ec pkgexchangecode.ExchangeCode
-	if err := r.DB.First(&ec, "code = ?", code).Error; err != nil {
+	if err := r.DB.Preload("User").First(&ec, "code = ?", code).Error; err != nil {
 		return nil, err
 	}
+	// Estudar alternativa para usar apenas colunas utilizáveis no futuro:
+	// r.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+	// 	return db.Select("id, name, profile, email")
+	// }).First(&ec, "code = ?", code)
 
 	return &ec, nil
 }

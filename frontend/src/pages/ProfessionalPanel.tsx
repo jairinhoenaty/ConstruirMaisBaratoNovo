@@ -137,6 +137,7 @@ function ProfessionalPanel() {
    
         searchParams.delete("code");                                                                    
         setSearchParams(searchParams, { replace: true });   
+        Swal.fire({ icon: "success", title: "Autenticação bem sucedida" });
       } catch {
         Swal.fire({ icon: "error", title: "Sessão inválida ou expirada" });                             
         navigate("/login");                                                                             
@@ -308,7 +309,7 @@ function ProfessionalPanel() {
       }
     };
     fetchData();
-  }, [activeTab, page, isUpdate]);
+  }, [activeTab, page, isUpdate, profile]);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
