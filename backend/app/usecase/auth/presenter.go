@@ -13,3 +13,7 @@ type UserPresenter struct {
 	Email       string  `json:"email"`
 	GoogleToken string  `json:"google_token"`
 }
+
+type ExchangeCodePresenter struct {
+	Code string `json:"code"`
+}

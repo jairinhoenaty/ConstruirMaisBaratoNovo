@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   User,
   Mail,
@@ -34,7 +34,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import InputMask from "react-input-mask";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 //import { states, citiesByState } from '../data';
 //import { professionals_data } from "../data";
 import { states } from "../data";
@@ -42,7 +42,7 @@ import QuotesPanel from "./QuotesPanelNew";
 import ClientMessages from "./ClientMessages";
 import PasswordPanel from "./PasswordPanel";
 import { ProfessionalService } from "../services/ProfessionalService";
-import { CityService, ProductService, ProfessionService } from "../services";
+import { CityService, LoginService, ProductService, ProfessionService } from "../services";
 import Swal from "sweetalert2";
 import NewProduct from "./NewProduct";
 import { StoreService } from "../services/StoreService";
@@ -68,7 +68,12 @@ function ProfessionalPanel() {
   const [showProfessions, setShowProfessions] = useState(false);
   const [supportMessage, setSupportMessage] = useState("");
   const [citiesByState, setcitiesByState] = useState([{ id: 0, name: "" }]);
-  const profile = localStorage.getItem("profile");
+  // const profile = localStorage.getItem("profile");
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [profile, setProfile] = useState(localStorage.getItem("profile"));                              
+  const [autenticando, setAutenticando] = useState(
+    !!searchParams.get("code")                                                                          
+  );                            
 
   const [professions, setProfessions] = useState([
     { id: "", name: "", description: "" },
@@ -110,6 +115,38 @@ function ProfessionalPanel() {
 
   const [verified, setVerified] = useState(false); // Variável para verificar se o profissional está verificado
   const [previewUrl, setPreviewUrl] = useState("");
+
+  const redeemedRef = useRef(false);
+
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (!code) return;
+    if (redeemedRef.current) return;
+    redeemedRef.current = true;
+
+    (async () => {
+      try {
+        const { data } = await LoginService.redeemCode(code);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("isLoggedIn", data.isLoged);                                               
+        localStorage.setItem("id", data.user.id);
+        localStorage.setItem("name", data.user.name);                                                   
+        localStorage.setItem("profile", data.user.profile); 
+        localStorage.setItem("email", data.user.email);                                                 
+        setProfile(data.user.profile);                                                                  
+   
+        searchParams.delete("code");                                                                    
+        setSearchParams(searchParams, { replace: true });   
+        Swal.fire({ icon: "success", title: "Autenticação bem sucedida" });
+      } catch {
+        Swal.fire({ icon: "error", title: "Sessão inválida ou expirada" });                             
+        navigate("/login");                                                                             
+      } finally {                                                                                       
+        setAutenticando(false);                                                                         
+      }                                                     
+    })();
+  }, []);
+  
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -272,7 +309,7 @@ function ProfessionalPanel() {
       }
     };
     fetchData();
-  }, [activeTab, page, isUpdate]);
+  }, [activeTab, page, isUpdate, profile]);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
