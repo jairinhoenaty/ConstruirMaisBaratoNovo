@@ -79,8 +79,10 @@ import (
 	pkgplanuc "construir_mais_barato/app/usecase/plan"
 	pkgplaninfra "construir_mais_barato/infra/database/repositories/plan"
 
+	pkgexchangecodes "construir_mais_barato/app/domain/exchange-codes"
 	pkgsolicitationapp "construir_mais_barato/app/domain/solicitationAPP"
 	pkgsolicitationappuc "construir_mais_barato/app/usecase/solicitation"
+	pkgexchangecodeinfra "construir_mais_barato/infra/database/repositories/exchange-code"
 	pkgsolicitationappinfra "construir_mais_barato/infra/database/repositories/solicitationAPP"
 
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
@@ -96,23 +98,24 @@ type Server struct {
 }
 
 type dependenceParams struct {
-	UserService            pkguser.UserService
-	ProfessionService      pkgprofession.ProfessionService
-	CityService            pkgcity.CityService
-	ContactService         pkgcontact.ContactService
-	ChatService            pkgchat.ChatService
-	ProfessionalService    pkgprofessional.ProfessionalService
-	BudgetService          pkgbudget.BudgetService
-	UnlockedBudgetService  pkgunlockedbudget.UnlockedBudgetService
-	UnlockPriceService     pkgunlockprice.UnlockPriceService
-	BannerService          pkgbanner.BannerService
-	ProductService         pkgproduct.ProductService
-	ProductCategoryService pkgproductCategory.ProductCategoryService
-	StoreService           pkgstore.StoreService
-	ClientService          pkgclient.ClientService
-	RegionService          pkgregion.RegionService
-	PlanService            pkgplan.PlanService
-	SolicitationAppService pkgsolicitationapp.SolicitationAppService
+	UserService                 pkguser.UserService
+	ExchangeCodeService         pkgexchangecodes.ExchangeCodeService
+	ProfessionService           pkgprofession.ProfessionService
+	CityService                 pkgcity.CityService
+	ContactService              pkgcontact.ContactService
+	ChatService                 pkgchat.ChatService
+	ProfessionalService         pkgprofessional.ProfessionalService
+	BudgetService               pkgbudget.BudgetService
+	UnlockedBudgetService       pkgunlockedbudget.UnlockedBudgetService
+	UnlockPriceService          pkgunlockprice.UnlockPriceService
+	BannerService               pkgbanner.BannerService
+	ProductService              pkgproduct.ProductService
+	ProductCategoryService      pkgproductCategory.ProductCategoryService
+	StoreService                pkgstore.StoreService
+	ClientService               pkgclient.ClientService
+	RegionService               pkgregion.RegionService
+	PlanService                 pkgplan.PlanService
+	SolicitationAppService      pkgsolicitationapp.SolicitationAppService
 	MercadoPagoClient           *mercadopago.MPClient
 	SendAppNotificationUCParams pkgnotificationuc.SendAppNotificationUCParams
 }
@@ -121,6 +124,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params := dependenceParams{}
 
 	params.UserService = pkguser.NewUserService(pkguserinfra.NewUserRepositoryImpl(db))
+	params.ExchangeCodeService = pkgexchangecodes.NewExchangeCodeService(pkgexchangecodeinfra.NewExchangeCodeRepositoryImpl(db))
 	params.ProfessionService = pkgprofession.NewProfessionService(pkgprofessioninfra.NewProfessionRepositoryImpl(db))
 	params.CityService = pkgcity.NewCityService(pkgcityinfra.NewCityRepositoryImpl(db))
 	params.ContactService = pkgcontact.NewContactService(pkgcontactinfra.NewContactRepositoryImpl(db))
@@ -183,6 +187,18 @@ func buildUserEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	pkgcontrollers.NewUserController(&userControllerParams, g)
+
+	exchangeCodeUCParams := pkgauthenticateuc.ExchangeCodeUCParams{
+		UserService:         dependency.UserService,
+		ProfessionalService: dependency.ProfessionalService,
+		ExchangeCodeService: dependency.ExchangeCodeService,
+	}
+
+	authenticateControllerParams := pkgcontrollers.AuthControllerParams{
+		ExchangeCodeUCParams: exchangeCodeUCParams,
+	}
+
+	pkgcontrollers.NewAuthAuthenticatedController(authenticateControllerParams, g)
 }
 
 func buildProfessionEndPoint(dependency *dependenceParams, g *echo.Group) {
@@ -625,9 +641,15 @@ func buildLoginEndPoint(dependency *dependenceParams, g *echo.Group) {
 		UserService:         dependency.UserService,
 		ProfessionalService: dependency.ProfessionalService,
 	}
+	redeemCodeUCParams := pkgauthenticateuc.RedeemCodeUCParams{
+		UserService:         dependency.UserService,
+		ProfessionalService: dependency.ProfessionalService,
+		ExchangeCodeService: dependency.ExchangeCodeService,
+	}
 
 	authenticateControllerParams := pkgcontrollers.AuthControllerParams{
 		AuthenticateUCParams: authenticateParams,
+		RedeemCodeUCParams:   redeemCodeUCParams,
 	}
 
 	pkgcontrollers.NewAuthController(authenticateControllerParams, g)
