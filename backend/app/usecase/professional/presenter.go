@@ -24,6 +24,7 @@ type ProfessionalPresenter struct {
 	CodeVerification          string                `json:"codeVerification"`
 	NegativeCertificateNumber int64                 `json:"negativeCertificateNumber"`
 	MeiCnpj                   string                `json:"meiCnpj"`
+	Zona                      string                `json:"zona"`
 }
 
 type CidadePresenter struct {

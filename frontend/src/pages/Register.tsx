@@ -72,7 +72,7 @@ function Register() {
     experience: "",
     codeVerification: "",
     meiCnpj: "",
-    negativeCertificateNumber: "",
+    zona: "",
     isPremium: false,
     isPremiumStore: false,
   });
@@ -83,14 +83,14 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showBasicConfirmPopup, setShowBasicConfirmPopup] = useState(false);
   const [showStoreModal, setShowStoreModal] = useState(false);
   const [premiumStore, setPremiumStore] = useState(false);
   const [premiumForm, setPremiumForm] = useState(false);
-  const [clickedCertificateButton, setclickedCertificateButton] =
-    useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [citiesByState, setcitiesByState] = useState([{}]);
+  const [selectedCityName, setSelectedCityName] = useState("");
   const [professions, setProfessions] = useState([
     { id: "", name: "", description: "" },
   ]);
@@ -100,6 +100,8 @@ function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [codigoEnviado, setCodigoEnviado] = useState(false);
   const [loadingSMS, setLoadingSMS] = useState(false);
+  const [smsCountdown, setSmsCountdown] = useState(0);
+  const [clickedCertificateButton, setclickedCertificateButton] = useState(false); // segundos restantes para reenvio
   const [choose, setChoose] = useState(false);
   const [isUpgradeMode, setIsUpgradeMode] = useState(false);
   const [professionalPlan, setProfessionalPlan] = useState<Plan | null>(null);
@@ -242,13 +244,21 @@ function Register() {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-      ...(name === "state" ? { city: "" } : {}),
+      ...(name === "state" ? { city: "", zona: "" } : {}),
     }));
+
+    // Rastrear nome da cidade selecionada para lógica da Zona (SP capital)
+    if (name === "city") {
+      const found = (citiesByState as any[]).find(
+        (c: any) => String(c.id) === String(value)
+      );
+      setSelectedCityName(found?.name || "");
+      // Limpar zona se trocar de cidade
+      setFormData((prev) => ({ ...prev, zona: "" }));
+    }
   };
 
-  const handleGerarCertidao = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleGerarCertidao = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     window.open("https://servicos.pf.gov.br/epol-sinic-publico/", "_blank");
     setclickedCertificateButton(true);
@@ -395,7 +405,8 @@ function Register() {
             if (response.data.user.profile === "admin") {
               navigate("/dashboard");
             } else {
-              navigate("/professional-panel");
+              // Lojista básico vai para a home
+              navigate("/");
             }
           } else {
             setError("Login Inválido!!");
@@ -452,20 +463,34 @@ function Register() {
   
 
   const handleClosePremiumModal = async () => {
+    // Ao clicar em "Continuar como básico", mostrar popup de confirmação
     setShowPremiumModal(false);
+    setShowBasicConfirmPopup(true);
+  };
+
+  const handleConfirmBasic = async () => {
+    // Usuário confirmou que quer continuar como básico
+    setShowBasicConfirmPopup(false);
     setChoose(true);
     setPremiumForm(false);
+    setCodigoEnviado(false);
 
+    // Limpar campos premium do state (para UI)
     setFormData((prev) => ({
       ...prev,
       dateOfBirth: "",
       experience: "",
       codeVerification: "",
       meiCnpj: "",
-      negativeCertificate: "",
+      zona: "",
       isPremium: false,
     }));
-    setCodigoEnviado(false);
+
+    // Validar senha antes de prosseguir
+    if (formData.password !== formData.confirmPassword) {
+      setErrorPass("Senhas não estão iguais!");
+      return;
+    }
 
     const registrationSuccess = await processBasicRegistration();
 
@@ -486,10 +511,9 @@ function Register() {
 
             if (response.data.user.profile === "admin") {
               navigate("/dashboard");
-              //onNavigate && onNavigate("dashboard");
             } else {
-              navigate("/professional-panel");
-              //onNavigate && onNavigate("professional-panel");
+              // Profissional básico vai para a home do app
+              navigate("/");
             }
           } else {
             setError("Login Inválido!!");
@@ -502,6 +526,16 @@ function Register() {
     }
   };
 
+  const handleGoToPremiumFromPopup = () => {
+    // Usuário mudou de ideia e quer ser premium
+    setShowBasicConfirmPopup(false);
+    setPremiumForm(true);
+    setChoose(true);
+    setShowPremiumModal(false);
+  };
+
+  const SMS_COOLDOWN_SECONDS = 120; // 2 minutos
+
   const enviarCodigoSMS = async () => {
     if (!formData.phone) {
       setError("Preencha o telefone antes de solicitar o código");
@@ -511,16 +545,34 @@ function Register() {
     setLoadingSMS(true);
     try {
       // Simular envio de SMS (substituir pela API real)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       setCodigoEnviado(true);
       setError("");
-      // Aqui você faria a chamada real para sua API de SMS
       console.log("Código enviado para:", formData.phone);
+
+      // Inicia o countdown de 2 minutos para liberar o botão de reenvio
+      setSmsCountdown(SMS_COOLDOWN_SECONDS);
+      const interval = setInterval(() => {
+        setSmsCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (error) {
       setError("Erro ao enviar código SMS. Tente novamente.");
     } finally {
       setLoadingSMS(false);
     }
+  };
+
+  // Formata o countdown em mm:ss
+  const formatCountdown = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
   const validateBasicForm = () => {
@@ -590,12 +642,6 @@ function Register() {
       // Validar foto (obrigatória para premium)
       if (!formData.photo) {
         setError("Foto é obrigatória para cadastro premium");
-        isValid = false;
-      }
-
-      // Validar certificado negativo (obrigatória para premium)
-      if (!formData.negativeCertificateNumber) {
-        setError("Certificado negativo é obrigatório");
         isValid = false;
       }
     }
@@ -965,10 +1011,9 @@ function Register() {
                     dateOfBirth: formData.dateOfBirth,
                     experience: formData.experience,
                     meiCnpj: formData.meiCnpj,
-                    telefoneVerificado: !!formData.codeVerification,
-                    negativeCertificateNumber: parseInt(
-                      formData.negativeCertificateNumber
-                    ),
+                    // telefoneVerificado usa o próprio Telephone já enviado acima
+                    codeVerification: formData.codeVerification,
+                    zona: formData.zona || null,
                   }),
                 };
 
@@ -1044,52 +1089,20 @@ function Register() {
             }
 
             if (postReturn.status == 200) {
-              const professionalId = postReturn.data.oid;
               Swal.fire({
                 position: "center",
                 icon: "success",
                 title: "Cadastro Realizado!",
-                text: premiumForm ? "Redirecionando para o pagamento..." : "",
+                text: premiumForm
+                  ? "Cadastro premium enviado! Faça login para continuar."
+                  : "",
                 showConfirmButton: false,
-                timer: 3000,
+                timer: 2500,
               });
-              if (premiumForm || formData.isPremiumStore) {
-                setTimeout(() => {
-                  const payer: Payer = {
-                    first_name: formData.name.split(" ")[0],
-                    last_name: formData.name.split(" ").slice(1).join(" "),
-                    email: formData.email,
-                    identification: {
-                      type: "CPF",
-                      number: formData.meiCnpj || "",
-                    },
-                    address: {
-                      zip_code: "",
-                      street_name: "",
-                      street_number: "",
-                      neighborhood: "",
-                      city: formData.city,
-                      federal_unit: formData.state,
-                    },
-                  };
-
-                  // Selecionar plano e userType baseado no selectedRole
-                  const currentPlan =
-                    selectedRole === "store" ? storePlan : professionalPlan;
-                  const checkoutState: CheckoutState = {
-                    userId: professionalId,
-                    userName: formData.name,
-                    userEmail: formData.email,
-                    planId: currentPlan?.id || 0,
-                    userType: selectedRole as "professional" | "store",
-                    payer: payer,
-                  };
-
-                  navigate("/checkout", { state: checkoutState });
-                }, 2000);
-              } else {
-                navigate("/");
-              }
+              // Critério 3: após premium → tela de login. Básico → home.
+              setTimeout(() => {
+                navigate("/login");
+              }, 2500);
             } else {
               Swal.fire({
                 position: "center",
@@ -1257,141 +1270,96 @@ function Register() {
       )}
       {showPremiumModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
-          <div className="relative max-w-4xl w-full max-h-[95vh] rounded-lg overflow-hidden shadow-xl bg-white">
+          <div className="relative max-w-lg w-full max-h-[95vh] rounded-2xl overflow-y-auto shadow-2xl bg-white">
             <button
               onClick={handleClosePremiumModal}
-              className="absolute top-4 right-4 z-10 text-gray-600 hover:text-gray-800 text-2xl bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full w-10 h-10 flex items-center justify-center shadow-lg"
+              className="absolute top-4 right-4 z-10 text-gray-500 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center transition-colors"
             >
               ✕
             </button>
 
-            {/* <div className="grid grid-cols-1 lg:grid-cols-2 h-full"> */}
-            {/* Lado esquerdo - Imagem */}
-            {/* <div className="relative bg-black flex items-center justify-center min-h-[300px] lg:min-h-[500px]">
-                <img
-                  src="images/premiumBanner.jpeg"
-                  alt="Construir Mais Barato Premium"
-                  className="max-h-full object-cover w-full h-full lg:object-contain"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent lg:hidden"></div>
-              </div> */}
-
-            {/* Lado direito - Conteúdo */}
-            <div className="p-6 lg:p-8 flex flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                  🚀 Torne-se Premium
-                  {/* Torne-se Premium */}
-                </h2>
-                <div className="mb-3">
-                  <span className="text-3xl font-bold text-[#FF6B35]">
-                    {professionalPlan
-                      ? `R$ ${professionalPlan.price
-                          .toFixed(2)
-                          .replace(".", ",")}`
-                      : "Carregando..."}
-                  </span>
-                  <span className="text-gray-500 text-sm ml-1">/mês</span>
-                </div>
-                <p className="text-gray-600 text-sm lg:text-base">
-                  Destaque-se da concorrência e conquiste mais clientes
-                </p>
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-t-2xl text-white text-center">
+              <div className="text-4xl mb-2">🚀</div>
+              <h2 className="text-2xl font-bold mb-1">Torne-se Premium</h2>
+              <p className="text-blue-100 text-sm">
+                Receba solicitações em tempo real e destaque-se da concorrência
+              </p>
+              <div className="mt-3">
+                <span className="text-4xl font-extrabold">
+                  {professionalPlan
+                    ? `R$ ${professionalPlan.price.toFixed(2).replace(".", ",")}`
+                    : "..."}
+                </span>
+                <span className="text-blue-200 text-sm ml-1">/mês</span>
               </div>
+            </div>
 
-              <div className="space-y-4 mb-8">
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">
-                      Perfil Destacado
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Apareça nas primeiras posições das buscas
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">
-                      Portifólio do profissional
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Permite que o cliente veja vídeos e fotos dos seus
-                      trabalhos
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">
-                      Recebimento dos orçamentos em primeira mão
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Quando um cliente quiser solicitar um orçamento, o nome do
-                      profissional premium apareçe primeiro
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                  {/* <div>
-                    <h4 className="font-semibold text-gray-900">
-                      Selo de premium
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Passa confiança no seu trabalho
-                    </p>
-                  </div> */}
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold text-gray-900">
-                          Selo de premium
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          Passa confiança no seu trabalho
-                        </p>
+            <div className="p-6">
+              {/* Vantagens Premium */}
+              <div className="mb-5">
+                <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-3">
+                  ✅ Com o Premium você ganha
+                </p>
+                <div className="space-y-3">
+                  {[
+                    {
+                      title: "Solicitações em tempo real",
+                      desc: "Receba pedidos de clientes próximos a você no momento em que surgem",
+                    },
+                    {
+                      title: "Perfil destacado",
+                      desc: "Apareça nas primeiras posições das buscas e seja visto primeiro",
+                    },
+                    {
+                      title: "Portfólio completo",
+                      desc: "Exiba fotos e vídeos dos seus trabalhos para conquistar clientes",
+                    },
+                    {
+                      title: "Orçamentos em primeira mão",
+                      desc: "Seu nome aparece antes dos profissionais básicos nas solicitações",
+                    },
+                    {
+                      title: "Selo de profissional verificado",
+                      desc: "Transmita confiança e credibilidade aos seus clientes",
+                    },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Check className="w-3 h-3 text-white" />
                       </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-bold text-[#FF6B35]">
-                          {professionalPlan
-                            ? `R$ ${professionalPlan.price
-                                .toFixed(2)
-                                .replace(".", ",")}`
-                            : "..."}
-                        </span>
-                        <span className="text-gray-500 text-sm ml-1">/mês</span>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                        <p className="text-xs text-gray-500">{item.desc}</p>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-                {/*                 
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                  <div>
-                    <span className="text-3xl font-bold text-blue-600">
-                      R$ 19,90
-                    </span>
-                    <span className="text-gray-500 text-sm ml-1">/mês</span>
-                  </div>
-                </div> */}
               </div>
 
+              {/* Divisor */}
+              <div className="border-t border-dashed border-gray-200 my-5" />
+
+              {/* Desvantagens Básico */}
+              <div className="mb-6">
+                <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-3">
+                  ❌ Sem Premium você perde
+                </p>
+                <div className="space-y-2 bg-red-50 rounded-xl p-4">
+                  {[
+                    "Não recebe solicitações urgentes em tempo real",
+                    "Fica abaixo dos profissionais premium nas buscas",
+                    "Sem selo de verificação — menos confiança para o cliente",
+                    "Sem portfólio de fotos e vídeos dos seus trabalhos",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="text-red-500 text-sm mt-0.5">✗</span>
+                      <p className="text-sm text-red-700">{item}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botões */}
               <div className="space-y-3">
                 <button
                   onClick={() => {
@@ -1399,26 +1367,61 @@ function Register() {
                     setChoose(true);
                     setShowPremiumModal(false);
                   }}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg text-base"
                 >
-                  ✨ Quero ser Premium
+                  ✨ Ser profissional premium
                 </button>
 
                 <button
-                  onClick={() => {
-                    handleClosePremiumModal();
-                  }}
-                  className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  onClick={handleClosePremiumModal}
+                  className="w-full bg-gray-100 text-gray-500 py-2.5 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors text-sm"
                 >
-                  Continuar com cadastro gratuito
+                  Continuar como profissional básico
                 </button>
               </div>
 
-              <p className="text-xs text-gray-500 text-center mt-4">
+              <p className="text-xs text-gray-400 text-center mt-4">
                 * Você pode migrar para premium a qualquer momento
               </p>
             </div>
-            {/* </div> */}
+          </div>
+        </div>
+      )}
+
+      {/* Popup de confirmação - "Quer mesmo sair?" */}
+      {showBasicConfirmPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
+          <div className="relative max-w-sm w-full rounded-2xl shadow-2xl bg-white overflow-hidden">
+            {/* Cabeçalho colorido */}
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 p-5 text-white text-center">
+              <div className="text-4xl mb-2">😕</div>
+              <h3 className="text-lg font-bold">Tem certeza?</h3>
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-700 text-center text-sm leading-relaxed mb-6">
+                Poxa! Para ser um <strong>profissional urgente</strong> e receber
+                solicitações de serviços perto de você em{" "}
+                <strong>tempo real</strong> é necessário ser um profissional
+                premium. Quer mesmo sair?
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={handleGoToPremiumFromPopup}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
+                >
+                  ✨ Ser premium
+                </button>
+
+                <button
+                  onClick={handleConfirmBasic}
+                  className="w-full bg-gray-100 text-gray-500 py-2.5 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors text-sm"
+                >
+                  Sair
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -2289,6 +2292,41 @@ function Register() {
                   </p>
                 </div>
 
+                {/* Zona — somente para São Paulo capital */}
+                {formData.state === "SP" &&
+                  selectedCityName.toLowerCase() === "são paulo" && (
+                  <div className="mb-4">
+                    <label
+                      htmlFor="zona"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Zona (São Paulo capital)
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <select
+                        id="zona"
+                        name="zona"
+                        value={formData.zona}
+                        onChange={handleChange}
+                        className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Selecione sua zona</option>
+                        <option value="Leste">Zona Leste</option>
+                        <option value="Oeste">Zona Oeste</option>
+                        <option value="Norte">Zona Norte</option>
+                        <option value="Sul">Zona Sul</option>
+                        <option value="Centro">Centro</option>
+                      </select>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ajuda a conectar você com clientes próximos na capital
+                    </p>
+                  </div>
+                )}
+
                 {/* Experiência */}
                 <div className="mb-4">
                   <label
@@ -2330,13 +2368,15 @@ function Register() {
                     <button
                       type="button"
                       onClick={enviarCodigoSMS}
-                      disabled={loadingSMS || !formData.phone}
-                      className="flex-shrink-0 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={loadingSMS || !formData.phone || smsCountdown > 0}
+                      className="flex-shrink-0 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
                     >
                       {loadingSMS
                         ? "Enviando..."
                         : codigoEnviado
-                        ? "Reenviar"
+                        ? smsCountdown > 0
+                          ? `Reenviar em ${formatCountdown(smsCountdown)}`
+                          : "Reenviar código"
                         : "Enviar Código"}
                     </button>
 
@@ -2359,6 +2399,11 @@ function Register() {
                   {codigoEnviado && (
                     <p className="text-xs text-green-600 mt-1">
                       ✓ Código enviado para {formData.phone}
+                      {smsCountdown > 0 && (
+                        <span className="text-gray-400 ml-2">
+                          — reenvio disponível em {formatCountdown(smsCountdown)}
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>

@@ -87,6 +87,9 @@ const CountProfessionalsByProfessionByCitie = (data: { cityID: string }) =>
 const checkoutUserPremium = (data: CheckoutPremiumInput) =>
   ApiPublica.post<CheckoutPremiumOutput>("/professional/checkout/premium", data);
 
+const getPaymentStatus = (paymentId: number) =>
+  ApiPublica.get<{ status: string; status_detail: string }>(`/payment/status/${paymentId}`);
+
 const lastProfessionals = (data: { quantity: number }) =>
   Api.post("/last/professionals", data);
 
@@ -117,6 +120,7 @@ export const ProfessionalService = {
   countProfessionalByProfession,
   countProfessionalByState,
   checkoutUserPremium,
+  getPaymentStatus,
   lastProfessionals,
   deleteProfessional,
   getProfessionalbyName,

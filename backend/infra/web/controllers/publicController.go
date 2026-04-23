@@ -15,6 +15,7 @@ import (
 	pkgregionuc "construir_mais_barato/app/usecase/region"
 	pkgstoreuc "construir_mais_barato/app/usecase/store"
 	pkguseruc "construir_mais_barato/app/usecase/user"
+	"construir_mais_barato/infra/adapters/gateway-payment/mercadopago"
 	"fmt"
 	"io"
 	"log"
@@ -131,6 +132,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.POST("/find/professions-with-count", controller.FindProfessionsWithCount)
 	g.POST("/find-banner-city-and-profession", controller.FindByCityAndProfession)
 	g.POST("/professional/checkout/premium", controller.CheckoutProfissionalPremium)
+	g.GET("/payment/status/:paymentId", controller.GetPaymentStatus)
 	g.POST("/search-all-professionals-and-city-and-profession", controller.PublicFindAllProfessionalsByCityAndProfession)
 	g.POST("/search-professionals-by-name-and-city-and-profession", controller.FindByNameProfessinalsAndCityAndProfession)
 	g.POST("/products/dayoffer", controller.FindProductsByDayOffer)
@@ -215,6 +217,29 @@ func (c *PublicController) CheckoutProfissionalPremium(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, result)
+}
+
+func (c *PublicController) GetPaymentStatus(ctx echo.Context) error {
+	paymentIdStr := ctx.Param("paymentId")
+	paymentId, err := strconv.ParseInt(paymentIdStr, 10, 64)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "paymentId inválido"})
+	}
+
+	mpClient := mercadopago.NewMPClient(
+		os.Getenv("MERCADOPAGO_ACCESS_TOKEN"),
+		os.Getenv("MERCADOPAGO_BASE_URL_API"),
+	)
+
+	result, err := mpClient.GetPayment(paymentId)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, map[string]string{
+		"status":        result.Status,
+		"status_detail": result.StatusDetail,
+	})
 }
 
 func (c *PublicController) FindByCityAndProfession(ctx echo.Context) error {
