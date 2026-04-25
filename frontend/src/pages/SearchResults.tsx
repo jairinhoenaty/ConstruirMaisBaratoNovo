@@ -1023,6 +1023,30 @@ function SearchResults() {
                 </div>
               </div>
 
+              {selectedProfessional.isPremium && selectedProfessional.youtubeUrl && (
+                <div className="border-b border-gray-200 pb-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                    Projetos já realizados
+                  </h4>
+                  <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                    <iframe
+                      className="absolute inset-0 w-full h-full rounded-lg"
+                      src={(() => {
+                        const match = selectedProfessional.youtubeUrl.match(
+                          /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/
+                        );
+                        return match
+                          ? `https://www.youtube.com/embed/${match[1]}`
+                          : selectedProfessional.youtubeUrl;
+                      })()}
+                      title="Vídeo do profissional"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => {

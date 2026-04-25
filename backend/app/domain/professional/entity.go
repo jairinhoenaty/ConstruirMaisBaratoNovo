@@ -37,7 +37,8 @@ type Professional struct {
 	DateOfBirth               string
 	Experience                string
 	// CodeVerification string
-	MeiCnpj string
+	MeiCnpj    string
+	YoutubeUrl string
 }
 
 type ProfessionCount struct {

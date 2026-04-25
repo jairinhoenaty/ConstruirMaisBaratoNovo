@@ -48,9 +48,10 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
     city: "",
     state: "",
     professions: [] as string[],
-    verified: false, // Added the verified field
+    verified: false,
     isPremium: false,
     isPremiumStore: false,
+    youtubeUrl: "",
   });
 
   React.useEffect(() => {
@@ -115,8 +116,9 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
             city: json.cidade.oid,
             state: json.cidade.uf,
             professions: json.profissoes.map((x: any) => x.oid),
-            verified: json.verified || false, // Assuming 'verified' field exists in professional data
+            verified: json.verified || false,
             isPremium: json.isPremium || false,
+            youtubeUrl: json.youtubeUrl || "",
           }));
           setIsProfessional(true);
           const citiesResponse = await CityService.citiesByState({
@@ -228,8 +230,9 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
       Password: null,
       image: null,
       verified: formData.verified, // Include the verified status
-      isPremium: formData.isPremium, // Include the premium status
+      isPremium: formData.isPremium,
       isPremiumStore: formData.isPremiumStore,
+      youtubeUrl: formData.youtubeUrl,
     };
 
     if (currentProfile === "client") {
@@ -511,10 +514,38 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
           </div>
         )}
 
+        {isProfessional && (
+          <div>
+            <label
+              htmlFor="youtubeUrl"
+              className="block text-sm font-medium text-gray-700"
+            >
+              URL do Vídeo YouTube
+            </label>
+            <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </div>
+              <input
+                type="url"
+                name="youtubeUrl"
+                id="youtubeUrl"
+                value={formData.youtubeUrl}
+                onChange={handleChange}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <p className="mt-1 text-xs text-gray-500">Cole aqui a URL do vídeo do Youtube do profissional</p>
+          </div>
+        )}
+
         {/* Verified Checkbox */}
         {(profile === "admin" ||
           profile === "profissional" ||
-          profile === "store") && ( // Only show for admin or professional profiles
+          profile === "store") && (
           <div className="flex items-center mt-4">
             <input
               id={profile == "profissional" ? "isPremium" : "isPremiumStore"}

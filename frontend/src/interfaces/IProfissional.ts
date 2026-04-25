@@ -21,4 +21,5 @@ export interface IProfissional {
   meiCnpj: string | null;
   telefoneVerificado: string | null;
   negativeCertificateNumber: string | null;
+  youtubeUrl: string | null;
 }
