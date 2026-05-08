@@ -137,7 +137,8 @@ function ProfessionalPanel() {
    
         searchParams.delete("code");                                                                    
         setSearchParams(searchParams, { replace: true });   
-        Swal.fire({ icon: "success", title: "Autenticação bem sucedida" });
+        // Removido a mensagem de sucesso de login - Jairo solicitou
+        // Swal.fire({ icon: "success", title: "Autenticação bem sucedida" });
       } catch {
         Swal.fire({ icon: "error", title: "Sessão inválida ou expirada" });                             
         navigate("/login");                                                                             
