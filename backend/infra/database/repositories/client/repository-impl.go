@@ -198,7 +198,14 @@ func (r *repository) FindByEmail(email string) (*pkgclient.Client, error) {
 		return nil, err
 	}
 	return &client, nil
+}
 
+func (r *repository) FindByTelephone(telephone string) (*pkgclient.Client, error) {
+	client := pkgclient.Client{}
+	if err := r.DB.Where("telephone = ?", telephone).First(&client).Error; err != nil {
+		return nil, err
+	}
+	return &client, nil
 }
 
 func (r *repository) Save(client pkgclient.Client) (*pkgclient.Client, error) {

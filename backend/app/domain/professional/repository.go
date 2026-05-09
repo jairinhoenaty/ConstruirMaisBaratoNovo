@@ -4,6 +4,7 @@ type ProfessionalRepository interface {
 	FindAll(limit, offset int, filter string, uf string, professionalID int, order string) ([]*Professional, int64, error)
 	FindById(id uint) (*Professional, error)
 	FindByEmail(email string) (*Professional, error)
+	FindByTelephone(telephone string) (*Professional, error)
 	FindByName(name string) ([]*Professional, error)
 	FindByCityAndProfession(cityID, professionID uint, limit, offset int) ([]*Professional, int64, error)
 	FindByProfessionAndLocation(professionID uint, latitude float32, longitude float32, distance, limit, offset int) ([]*Professional, int64, error)

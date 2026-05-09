@@ -4,6 +4,7 @@ type ProfessionalService interface {
 	FindAll(limit, offset int, filter string, uf string, professionID int, order string) ([]*Professional, int64, error)
 	FindById(id uint) (*Professional, error)
 	FindByEmail(email string) (*Professional, error)
+	FindByTelephone(telephone string) (*Professional, error)
 	FindByName(email string) ([]*Professional, error)
 	FindByCityAndProfession(cityID, professionID uint, limit, offset int) ([]*Professional, int64, error)
 	FindByProfessionAndLocation(professionID uint, latitude float32, longitude float32, distance, limit, offset int) ([]*Professional, int64, error)
@@ -130,6 +131,14 @@ func (s *professionalService) FindByEmail(email string) (*Professional, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *professionalService) FindByTelephone(telephone string) (*Professional, error) {
+	professional, err := s.repository.FindByTelephone(telephone)
+	if err != nil {
+		return nil, err
+	}
+	return professional, nil
 }
 
 func (s *professionalService) FindByName(name string) ([]*Professional, error) {

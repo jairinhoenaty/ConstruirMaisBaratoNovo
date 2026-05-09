@@ -332,7 +332,14 @@ func (r *repository) FindByEmail(email string) (*pkgprofessional.Professional, e
 	}
 	print("PASSOU finfbyemail")
 	return &professional, nil
+}
 
+func (r *repository) FindByTelephone(telephone string) (*pkgprofessional.Professional, error) {
+	professional := pkgprofessional.Professional{}
+	if err := r.DB.Where("telephone = ?", telephone).First(&professional).Error; err != nil {
+		return nil, err
+	}
+	return &professional, nil
 }
 
 func (r *repository) Save(professional pkgprofessional.Professional) (*pkgprofessional.Professional, error) {
