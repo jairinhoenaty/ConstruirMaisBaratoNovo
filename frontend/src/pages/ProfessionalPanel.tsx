@@ -265,6 +265,9 @@ function ProfessionalPanel() {
             isPremiumStore: json.isPremiumStore,
             //professions: json.profissoes.map((x: any) => x.oid),
           }));
+          if (json.isPremiumStore && json.image) {
+            setPreviewUrl(`data:image/jpeg;base64,${json.image}`);
+          }
           const citiesByState = await CityService.citiesByState({
             uf: json.cidade.uf,
           });
@@ -354,15 +357,7 @@ function ProfessionalPanel() {
         image: null,
       });
     } else if (profile == "profissional") {
-      // Processar imagem se houver uma nova
-      let base64image = null;
-      if (previewUrl && previewUrl.startsWith("data:image")) {
-        base64image = previewUrl
-          .replace("data:image/png;base64,", "")
-          .replace("data:image/jpg;base64,", "")
-          .replace("data:image/jpeg;base64,", "")
-          .replace("data:image/webp;base64,", "");
-      }
+      const base64image = extractBase64FromDataUrl(previewUrl);
 
       const professionalData = {
         oid: parseInt(post_id),
@@ -389,20 +384,19 @@ function ProfessionalPanel() {
 
       postReturn = await ProfessionalService.postProfessional(professionalData);
     } else if (profile == "store") {
+      const storeBase64image = extractBase64FromDataUrl(previewUrl);
       postReturn = await StoreService.postStore({
         oid: parseInt(post_id),
         Name: formData.fullName,
         Email: formData.email,
         Telephone: formData.whatsapp,
-        //LgpdAceito: "S",
-        //created_at:  "time.Date(2025, time.March, 16, 19, 41, 30, 309000000, time.Local)",
         cep: formData.cep,
         street: formData.street,
         neighborhood: formData.neighborhood,
         cityId: parseInt(formData.city),
         LgpdAceito: "S",
         Password: null,
-        image: null,
+        image: storeBase64image,
         isPremiumStore: formData.isPremiumStore,
       });
     }
@@ -507,6 +501,15 @@ function ProfessionalPanel() {
       }
       //setProducts(products.filter((product) => product.id !== productId));
     }
+  };
+
+  const extractBase64FromDataUrl = (dataUrl: string): string | null => {
+    if (!dataUrl || !dataUrl.startsWith("data:image")) return null;
+    return dataUrl
+      .replace("data:image/png;base64,", "")
+      .replace("data:image/jpg;base64,", "")
+      .replace("data:image/jpeg;base64,", "")
+      .replace("data:image/webp;base64,", "");
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1001,8 +1004,7 @@ function ProfessionalPanel() {
               Dados da Conta
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {formData.isPremium ||
-                (formData.isPremiumStore && (
+              {(formData.isPremium || formData.isPremiumStore) && (
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="flex items-center gap-2">
@@ -1188,7 +1190,7 @@ function ProfessionalPanel() {
                       </div>
                     </div>
                   </div>
-                ))}
+              )}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
                 <div className="space-y-4">
                   <div>
