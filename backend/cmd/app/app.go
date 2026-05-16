@@ -665,6 +665,11 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.UserService,
 	}
 
+	FindByPhoneUCParams := pkguseruc.FindByPhoneUCParams{
+		ClientService:       dependency.ClientService,
+		ProfessionalService: dependency.ProfessionalService,
+	}
+
 	SaveClientUCParams := pkgclientuc.SaveClientUCParams{
 		Service:     dependency.ClientService,
 		ServiceUser: dependency.UserService,
@@ -768,6 +773,7 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 	publicControllerParams := pkgcontrollers.PublicControllerParams{
 		FindRegionByCityIdUCParams:                          findRegionByCityUCParams,
 		FindByEmailUCParams:                                 FindByEmailUCParams,
+		FindByPhoneUCParams:                                 FindByPhoneUCParams,
 		SaveClientUCParams:                                  SaveClientUCParams,
 		SaveStoreUCParams:                                   SaveStoreUCParams,
 		FindByPageUCParams:                                  FindByPageUCParams,

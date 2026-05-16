@@ -4,6 +4,7 @@ type ClientService interface {
 	FindAll(limit, offset int) ([]*Client, int64, error)
 	FindById(id uint) (*Client, error)
 	FindByEmail(email string) (*Client, error)
+	FindByTelephone(telephone string) (*Client, error)
 	FindByName(email string) ([]*Client, error)
 	/*
 		FindByCityAndProfession(cityID, professionID uint, limit, offset int) ([]*Client, int64, error)
@@ -109,6 +110,14 @@ func (s *clientService) FindByEmail(email string) (*Client, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *clientService) FindByTelephone(telephone string) (*Client, error) {
+	client, err := s.repository.FindByTelephone(telephone)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
 
 func (s *clientService) FindByName(name string) ([]*Client, error) {

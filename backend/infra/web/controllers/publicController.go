@@ -31,6 +31,7 @@ import (
 
 type PublicController struct {
 	FindByEmailUCParams                                 pkguseruc.FindByEmailUCParams
+	FindByPhoneUCParams                                 pkguseruc.FindByPhoneUCParams
 	FindStoreByCategoryAndSubCategoryParams             pkgstoreuc.FindStoreByCategoryAndSubCategoryParams
 	SaveClientUCParams                                  pkgclientuc.SaveClientUCParams
 	SaveStoreUCParams                                   pkgstoreuc.SaveStoreUCParams
@@ -60,6 +61,7 @@ type PublicController struct {
 
 type PublicControllerParams struct {
 	FindByEmailUCParams                                 pkguseruc.FindByEmailUCParams
+	FindByPhoneUCParams                                 pkguseruc.FindByPhoneUCParams
 	FindStoreByCategoryAndSubCategoryParams             pkgstoreuc.FindStoreByCategoryAndSubCategoryParams
 	SaveClientUCParams                                  pkgclientuc.SaveClientUCParams
 	SaveStoreUCParams                                   pkgstoreuc.SaveStoreUCParams
@@ -90,6 +92,7 @@ type PublicControllerParams struct {
 func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	controller := PublicController{
 		FindByEmailUCParams:                                 params.FindByEmailUCParams,
+		FindByPhoneUCParams:                                 params.FindByPhoneUCParams,
 		SaveClientUCParams:                                  params.SaveClientUCParams,
 		SaveStoreUCParams:                                   params.SaveStoreUCParams,
 		FindByPageUCParams:                                  params.FindByPageUCParams,
@@ -123,6 +126,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.POST("/save/budget", controller.SaveBudget)
 	g.POST("/user/send-mail", controller.SendMail)
 	g.POST("/user/find-by-email", controller.FindUserByEmail)
+	g.POST("/user/find-by-phone", controller.FindUserByPhone)
 	g.POST("/reset/password", controller.ResetPassword)
 	g.GET("/professions/all", controller.FindProfessionAll)
 	g.POST("/save/professional", controller.SaveProfessional)
@@ -607,6 +611,25 @@ func (c *PublicController) FindUserByEmail(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, false)
 
+}
+
+func (c *PublicController) FindUserByPhone(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+	var request struct {
+		Telephone string `json:"telephone"`
+	}
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
+	}
+
+	usecase := pkguseruc.NewFindByPhoneUC(c.FindByPhoneUCParams)
+	usecase.Telephone = &request.Telephone
+
+	err := usecase.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusOK, false)
+	}
+	return ctx.JSON(http.StatusOK, true)
 }
 
 /*

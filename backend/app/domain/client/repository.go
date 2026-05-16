@@ -4,6 +4,7 @@ type ClientRepository interface {
 	FindAll(limit, offset int) ([]*Client, int64, error)
 	FindById(id uint) (*Client, error)
 	FindByEmail(email string) (*Client, error)
+	FindByTelephone(telephone string) (*Client, error)
 	FindByName(name string) ([]*Client, error)
 	/*
 		FindByCityAndProfession(cityID, professionID uint, limit, offset int) ([]*Professional, int64, error)

@@ -1,5 +1,6 @@
 import {
   Building2,
+  Camera,
   Check,
   ChevronDown,
   HardHat,
@@ -7,6 +8,7 @@ import {
   MapPin,
   Phone,
   Save,
+  Upload,
   User,
   X,
 } from "lucide-react";
@@ -37,6 +39,7 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
   ]);
   const [isProfessional, setIsProfessional] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -120,6 +123,9 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
             isPremium: json.isPremium || false,
             youtubeUrl: json.youtubeUrl || "",
           }));
+          if (json.image) {
+            setPreviewUrl(`data:image/jpeg;base64,${json.image}`);
+          }
           setIsProfessional(true);
           const citiesResponse = await CityService.citiesByState({
             uf: json.cidade.uf,
@@ -187,6 +193,27 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
     }));
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire({ icon: "error", title: "Arquivo muito grande", text: "A imagem deve ter no máximo 5MB" });
+      return;
+    }
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      Swal.fire({ icon: "error", title: "Formato inválido", text: "Use apenas arquivos JPG, PNG ou WebP" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -217,6 +244,15 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
     let postReturn: any;
     console.log(currentProfile);
 
+    let base64image = null;
+    if (previewUrl && previewUrl.startsWith("data:image")) {
+      base64image = previewUrl
+        .replace("data:image/png;base64,", "")
+        .replace("data:image/jpg;base64,", "")
+        .replace("data:image/jpeg;base64,", "")
+        .replace("data:image/webp;base64,", "");
+    }
+
     const commonData = {
       oid: parseInt(post_id),
       Name: formData.fullName,
@@ -228,8 +264,8 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
       cityId: parseInt(formData.city),
       LgpdAceito: "S",
       Password: null,
-      image: null,
-      verified: formData.verified, // Include the verified status
+      image: base64image,
+      verified: formData.verified,
       isPremium: formData.isPremium,
       isPremiumStore: formData.isPremiumStore,
       youtubeUrl: formData.youtubeUrl,
@@ -274,6 +310,40 @@ function EditProfileDashboard({ id, profile, onClose }: EditProps) {
     <div className="bg-white rounded-lg shadow-md p-8">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Dados da Conta</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Foto de Perfil - visível para profissionais premium */}
+        {isProfessional && formData.isPremium && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Foto de Perfil
+            </label>
+            <div className="flex items-center space-x-6">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-300 flex items-center justify-center bg-gray-50">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="w-8 h-8 text-gray-400" />
+                )}
+              </div>
+              <div>
+                <label
+                  htmlFor="admin-photo-upload"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer transition-colors text-sm"
+                >
+                  <Upload className="w-4 h-4" />
+                  {previewUrl ? "Alterar Foto" : "Carregar Foto"}
+                </label>
+                <input
+                  id="admin-photo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+                <p className="text-xs text-gray-500 mt-1">JPG, PNG ou WebP. Máximo 5MB.</p>
+              </div>
+            </div>
+          </div>
+        )}
         <div>
           <label
             htmlFor="fullName"
