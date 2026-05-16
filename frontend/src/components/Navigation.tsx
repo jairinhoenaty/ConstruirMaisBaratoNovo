@@ -119,15 +119,15 @@ function Navigation({
             <div className="flex items-center space-x-2">
             <Link to="/">
               <img
-                src="/images/c+b.png"
-                alt="Construir Mais Barato"
-                className="h-10 md:h-12 lg:h-14 w-auto object-contain"
+                src="../../public/images/Hassiscompany.png"
+                alt="HASSIS CONECTA"
+                className="h-10 md:h-12 lg:h-14 w-auto object-contain rounded-full"
                 //style={{ width: 50 }}
               />
             </Link>
 
               <span className="block font-bold text-lg">
-                Construir Mais Barato
+               HASSIS CONECTA
               </span>
             </div>
 

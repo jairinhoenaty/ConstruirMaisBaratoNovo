@@ -1187,7 +1187,7 @@ function Register() {
                       Possibilidade de anunciar
                     </h4>
                     <p className="text-sm text-gray-600">
-                      Venda na plataforma Construir Mais Barato!
+                      Venda na plataforma Hassis Conecta!
                     </p>
                   </div>
                 </div>
@@ -1457,14 +1457,14 @@ function Register() {
 
                 <h3 className="text-xl font-bold text-gray-900">Quem somos?</h3>
                 <p>
-                  Mais que um site, a C + B é uma plataforma online que busca
-                  reunir prestadores de serviços e clientes de uma forma rápida
-                  e barata, facilitando o encontro entre profissional e sua
+                  Mais que um site, Hassis Conecta é uma plataforma online que busca
+                  reunir prestadores de serviços e clientes de uma forma rápida,
+                 facilitando o encontro entre profissional e sua
                   obra.
                 </p>
                 <p>
                   O nosso contato é realizado por meio do e-mail:
-                  atendimento@construirmaisbarato.com.br
+                  hassisconecta@gmail.com
                 </p>
                 <p>
                   Nós temos também um responsável pela proteção de dados,
@@ -1473,7 +1473,7 @@ function Register() {
                   encarregado de dados:
                 </p>
                 <p>
-                  Jairo Assis lgpd@construirmaisbarato.com.br (14) 98835-0791
+                  Jairo Assis hassisconecta@gmail.com (14) 98835-0791
                 </p>
 
                 <h3 className="text-xl font-bold text-gray-900">
@@ -1567,7 +1567,7 @@ function Register() {
                   informações que temos sobre ele em nosso banco de dados, além
                   de ser garantido o direito de correção, se as informações
                   estiverem imprecisas, por meio do e-mail
-                  lgpd@construirmaisbarato.com.br. Se solicitarmos o seu
+                  hassisconecta@gmail.com. Se solicitarmos o seu
                   consentimento para processar seus dados, você poderá retirar
                   esse consentimento a qualquer momento, bem como solicitar a
                   exclusão de dados. Caso queira enviar uma solicitação sobre a
@@ -1814,7 +1814,7 @@ function Register() {
                         onChange={handleChange}
                         minLength={10}
                         className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Construir LTDA"
+                        placeholder="Hassis LTDA"
                       />
                     </div>
                   </div>

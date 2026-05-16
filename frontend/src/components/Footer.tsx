@@ -16,11 +16,11 @@ const Footer = () => {
   return (
     <div className="footer bg-blue-600 text-white text-center small">
       <span className="block sm:inline ml-2">
-        construirmaisbarato.com.br - CNPJ: 59.887.176/0001-50
+        hassisconecta.com.br - CNPJ: 59.887.176/0001-50
       </span>
       <FloatingWhatsApp
         phoneNumber="+551499166-5023"
-        accountName={"Construir Mais Barato"}
+        accountName={"Hassis conecta"}
         /*        onClick={() => {
           console.log("TESTE");
       }}

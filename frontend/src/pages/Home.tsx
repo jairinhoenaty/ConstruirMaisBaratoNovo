@@ -167,7 +167,7 @@ function Home() {
               </div>
             </main>
             {/* Floating YouTube Button */}
-            <button
+            {/*<button
               onClick={() => setIsVideoPopupOpen(true)}
               className="fixed bottom-24 right-1 z-40 flex flex-col items-center"
             >
@@ -177,7 +177,7 @@ function Home() {
               <div className="w-16 h-16 bg-red-600 rounded-full shadow-lg hover:bg-red-700 transition-colors flex items-center justify-center">
                 <Youtube className="w-8 h-8 text-white" />
               </div>
-            </button>
+            </button>*/}
           </>
         );
     }
@@ -231,11 +231,11 @@ function Home() {
         )}
       </div>
       <CookieBanner onNavigate={setCurrentPage} />
-      <VideoPopup
+      {/*<VideoPopup
         isOpen={isVideoPopupOpen}
         onClose={() => setIsVideoPopupOpen(false)}
         url="https://www.youtube.com/embed/EpOykD8vDRU"
-      />
+      /> */}
       {/*}
       <Footer></Footer>
           */}

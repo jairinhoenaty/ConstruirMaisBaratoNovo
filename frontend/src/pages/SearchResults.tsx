@@ -417,19 +417,14 @@ function SearchResults() {
                 </p>
 
                 <p>
-                  Eu, o Cliente, ao utilizar os serviços fornecidos pela
-                  plataforma digital CONSTRUIR MAIS BARATO, reconheço e concordo
-                  com os termos e condições estabelecidos neste documento.
+                  Eu, o Cliente, ao utilizar os serviços fornecidos pela plataforma digital HASSIS CONECTA, reconheço e concordo com os termos e condições estabelecidos neste documento.
                 </p>
 
                 <h4 className="font-semibold text-gray-900">
                   Responsabilidade pelos Dados Fornecidos:
                 </h4>
                 <p>
-                  Eu reconheço e concordo que sou totalmente responsável por
-                  quaisquer dados pessoais, informações ou conteúdos que eu
-                  solicite, receba ou de qualquer forma obtenha através da
-                  plataforma CONSTRUIR MAIS BARATO.
+                  Eu reconheço e concordo que sou totalmente responsável por quaisquer dados pessoais, informações ou conteúdos que eu solicite, receba ou de qualquer forma obtenha através da plataforma HASSIS CONECTA.
                 </p>
 
                 <h4 className="font-semibold text-gray-900">
@@ -444,50 +439,30 @@ function SearchResults() {
                   Finalidade e Consentimento:
                 </h4>
                 <p>
-                  Eu reconheço que a CONSTRUIR MAIS BARATO pode coletar,
-                  armazenar e utilizar meus dados pessoais conforme necessário
-                  para a prestação de serviços ou cumprimento de obrigações
-                  contratuais, desde que em conformidade com as disposições da
-                  LGPD e mediante consentimento explícito do titular dos dados,
-                  quando aplicável.
+                  Eu reconheço que a HASSIS CONECTA pode coletar, armazenar e utilizar meus dados pessoais conforme necessário para a prestação de serviços ou cumprimento de obrigações contratuais, desde que em conformidade com as disposições da LGPD e mediante consentimento explícito do titular dos dados, quando aplicável.
                 </p>
 
                 <h4 className="font-semibold text-gray-900">
                   Segurança dos Dados:
                 </h4>
                 <p>
-                  A CONSTRUIR MAIS BARATO adota medidas técnicas e
-                  organizacionais adequadas para proteger os dados pessoais
-                  contra acesso não autorizado, uso indevido, divulgação,
-                  alteração e destruição não autorizados, em conformidade com as
-                  disposições da LGPD.
+                  A HASSIS CONECTA adota medidas técnicas e organizacionais adequadas para proteger os dados pessoais contra acesso não autorizado, uso indevido, divulgação, alteração e destruição não autorizados, em conformidade com as disposições da LGPD.
                 </p>
 
                 <h4 className="font-semibold text-gray-900">
                   Direitos dos Titulares dos Dados:
                 </h4>
                 <p>
-                  Eu reconheço e concordo em respeitar os direitos dos titulares
-                  dos dados, conforme previsto na LGPD, incluindo o direito de
-                  acesso, retificação, exclusão, anonimização, portabilidade e
-                  revogação do consentimento.
+                  Eu reconheço e concordo em respeitar os direitos dos titulares dos dados, conforme previsto na LGPD, incluindo o direito de acesso, retificação, exclusão, anonimização, portabilidade e revogação do consentimento.
                 </p>
 
                 <h4 className="font-semibold text-gray-900">Indenização:</h4>
                 <p>
-                  Eu concordo em indenizar e isentar a CONSTRUIR MAIS BARATO,
-                  seus diretores, funcionários e agentes de qualquer
-                  responsabilidade, perda, reclamação ou despesa (incluindo
-                  honorários advocatícios razoáveis) decorrentes ou relacionados
-                  com o tratamento de dados pessoais pelo Cliente ou com o uso
-                  da plataforma.
+                  Eu concordo em indenizar e isentar a HASSIS CONECTA, seus diretores, funcionários e agentes de qualquer responsabilidade, perda, reclamação ou despesa (incluindo honorários advocatícios razoáveis) decorrentes ou relacionados com o tratamento de dados pessoais pelo Cliente ou com o uso da plataforma.
                 </p>
 
                 <p>
-                  Ao clicar no botão "Concordo", eu confirmo que li, entendi e
-                  concordo com os termos e condições estabelecidos neste Termo
-                  de Responsabilidade e Isenção de Responsabilidade por Dados
-                  Fornecidos.
+                  Ao clicar no botão "Concordo", eu confirmo que li, entendi e concordo com os termos e condições estabelecidos neste Termo de Responsabilidade e Isenção de Responsabilidade por Dados Fornecidos.
                 </p>
               </div>
 

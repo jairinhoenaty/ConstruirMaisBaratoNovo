@@ -37,8 +37,8 @@ function PrivacyPolicy() {
               Quem somos?
             </h2>
             <p>
-              Mais que um site, a C + B é uma plataforma online que busca reunir
-              prestadores de serviços e clientes de uma forma rápida e barata,
+              Mais que um site, a Hassis Conecta é uma plataforma online que busca reunir
+              prestadores de serviços e clientes de uma forma rápida,
               facilitando o encontro entre profissional e sua obra.
             </p>
             <p>
@@ -50,7 +50,7 @@ function PrivacyPolicy() {
               quaisquer dúvidas ou solicitações sobre o uso de seus dados
               pessoais devem ser encaminhadas para o nosso encarregado de dados:
             </p>
-            <p>Jairo Assis lgpd@construirmaisbarato.com.br (14) 98835-0791</p>
+            <p>Jairo Assis hassisconecta@gmail.com (14) 98835-0791</p>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-8">
               COMO USAMOS OS SEUS DADOS:
@@ -138,7 +138,7 @@ function PrivacyPolicy() {
               Por lei, qualquer indivíduo poderá nos perguntar quais são as
               informações que temos sobre ele em nosso banco de dados, além de
               ser garantido o direito de correção, se as informações estiverem
-              imprecisas, por meio do e-mail lgpd@construirmaisbarato.com.br. Se
+              imprecisas, por meio do e-mail hassisconecta@gmail.com. Se
               solicitarmos o seu consentimento para processar seus dados, você
               poderá retirar esse consentimento a qualquer momento, bem como
               solicitar a exclusão de dados. Caso queira enviar uma solicitação
