@@ -43,7 +43,7 @@ function PrivacyPolicy() {
             </p>
             <p>
               O nosso contato é realizado por meio do e-mail:
-              atendimento@construirmaisbarato.com.br
+              hassisconecta@gmail.com
             </p>
             <p>
               Nós temos também um responsável pela proteção de dados, portanto,
