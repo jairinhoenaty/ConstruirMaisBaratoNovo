@@ -2479,7 +2479,8 @@ function Register() {
           </form>
         </div>
       </div>
-      {/* Floating YouTube Button */}
+      {/*
+      
       <button
         onClick={() => setIsVideoPopupOpen(true)}
         className="fixed bottom-24 right-1 z-40 flex flex-col items-center"
@@ -2497,7 +2498,7 @@ function Register() {
         isOpen={isVideoPopupOpen}
         onClose={() => setIsVideoPopupOpen(false)}
         url="https://www.youtube.com/embed/a5Orf5iu9EQ"
-      />
+      />*/}
     </div>
   );
 }
