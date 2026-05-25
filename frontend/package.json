@@ -22,7 +22,7 @@
     "react-input-mask": "^3.0.0-alpha.2",
     "react-paginate": "^8.3.0",
     "react-router-dom": "^7.5.3",
-    "react-select": "^5.10.1",
+    "react-select": "^5.10.2",
     "react-slick": "^0.30.3",
     "sweetalert2": "^11.17.2",
     "upgrade": "^1.1.0",

@@ -7,6 +7,7 @@ import { ProfessionService } from "../services/ProfessionService";
 import { BannerService } from "../services/BannerService";
 import { RegionService } from "../services";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 import {
   IBannerSearchProfessionals,
   ICitySearchProfessionals,
@@ -166,6 +167,12 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
     }
   };
 
+  const cityOptions = citiesByState.map(
+  (city: ICitySearchProfessionals) => ({
+    value: city.id,
+    label: city.name,
+  })
+);
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Modal */}
@@ -242,19 +249,34 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
               </label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  disabled={!selectedState}
-                  className="block w-full pl-10 pr-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                >
-                  <option value="">Selecione a cidade</option>
-                  {citiesByState.map((city: ICitySearchProfessionals) => (
-                    <option key={city.id} value={city.id}>
-                      {city.name}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  options={cityOptions}
+                  placeholder="Digite sua cidade"
+                  isSearchable
+                  isDisabled={!selectedState}
+                  noOptionsMessage={() => "Cidade não encontrada"}
+                  value={
+                    cityOptions.find(
+                      (option) =>
+                        option.value.toString() === selectedCity
+                    ) || null
+                  }
+                  onChange={(selectedOption: any) =>
+                    setSelectedCity(
+                      selectedOption?.value?.toString() || ""
+                    )
+                  }
+                  className="text-black"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: "46px",
+                      borderColor: "#d1d5db",
+                      paddingLeft: "30px",
+                      borderRadius: "0.5rem",
+                    }),
+                  }}
+                />
               </div>
             </div>
 

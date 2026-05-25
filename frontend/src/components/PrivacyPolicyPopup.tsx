@@ -29,16 +29,16 @@ function PrivacyPolicyPopup({ isOpen, onClose }: PrivacyPolicyPopupProps) {
 
             <h3 className="text-lg font-semibold text-gray-900">Quem somos?</h3>
             <p>
-              Mais que um site, a C + B é uma plataforma online que busca reunir prestadores de serviços e clientes de uma forma rápida e barata, facilitando o encontro entre profissional e sua obra.
+              Mais que um site, a Hassis Conecta é uma plataforma online que busca reunir prestadores de serviços e clientes de uma forma rápida, facilitando o encontro entre profissional e sua obra.
             </p>
             <p>
-              O nosso contato é realizado por meio do e-mail: atendimento@construirmaisbarato.com.br
+              O nosso contato é realizado por meio do e-mail: hassisconecta.com.br
             </p>
             <p>
               Nós temos também um responsável pela proteção de dados, portanto, quaisquer dúvidas ou solicitações sobre o uso de seus dados pessoais devem ser encaminhadas para o nosso encarregado de dados:
             </p>
             <p>
-              Jairo Assis lgpd@construirmaisbarato.com.br (14) 98835-0791
+              Jairo Assis hassisconecta.com.br (14) 98835-0791
             </p>
 
             <h3 className="text-lg font-semibold text-gray-900">COMO USAMOS OS SEUS DADOS:</h3>
@@ -81,7 +81,7 @@ function PrivacyPolicyPopup({ isOpen, onClose }: PrivacyPolicyPopupProps) {
 
             <h3 className="text-lg font-semibold text-gray-900">Seus direitos como titular de dados</h3>
             <p>
-              Por lei, qualquer indivíduo poderá nos perguntar quais são as informações que temos sobre ele em nosso banco de dados, além de ser garantido o direito de correção, se as informações estiverem imprecisas, por meio do e-mail lgpd@construirmaisbarato.com.br. Se solicitarmos o seu consentimento para processar seus dados, você poderá retirar esse consentimento a qualquer momento, bem como solicitar a exclusão de dados. Caso queira enviar uma solicitação sobre a utilização de seus dados pessoais (informações, correções e exclusão), use o endereço eletrônico fornecido nesta política.
+              Por lei, qualquer indivíduo poderá nos perguntar quais são as informações que temos sobre ele em nosso banco de dados, além de ser garantido o direito de correção, se as informações estiverem imprecisas, por meio do e-mail hassisconecta.com.br. Se solicitarmos o seu consentimento para processar seus dados, você poderá retirar esse consentimento a qualquer momento, bem como solicitar a exclusão de dados. Caso queira enviar uma solicitação sobre a utilização de seus dados pessoais (informações, correções e exclusão), use o endereço eletrônico fornecido nesta política.
             </p>
 
             <h3 className="text-lg font-semibold text-gray-900">Atualizações para esta política de privacidade</h3>

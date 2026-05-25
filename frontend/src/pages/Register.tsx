@@ -43,6 +43,7 @@ import { useNavigate, useLocation, Form } from "react-router-dom";
 import LoadingText from "../components/LoadingText";
 import VideoPopup from "../components/VideoPopup";
 import { ICategoryProduct } from "../interfaces/ICategoryProduct";
+import Select from 'react-select';
 
 type UserRole = "client" | "professional" | "store";
 
@@ -1146,6 +1147,11 @@ function Register() {
           .join(", ")
       : "Selecione suas profissões";
 
+  const cityOptions = citiesByState.map((city: any) => ({
+  value: city.id,
+  label: city.name,
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       {showStoreModal && (
@@ -1990,7 +1996,7 @@ function Register() {
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <MapPin className="h-5 w-5 text-gray-400" />
                       </div>
-                      <select
+                      {/*<select
                         id="city"
                         name="city"
                         required
@@ -2006,7 +2012,34 @@ function Register() {
                               {city.name}
                             </option>
                           ))}
-                      </select>
+                      </select>*/}
+                      <Select
+                          options={cityOptions}
+                          placeholder="Digite sua cidade"
+                          isSearchable
+                          isDisabled={!formData.state}
+                          noOptionsMessage={() => "Cidade não encontrada"}
+                          value={
+                            cityOptions.find(
+                              (option) => option.value == formData.city
+                            ) || null
+                          }
+                          onChange={(selectedOption: any) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              city: selectedOption?.value || "",
+                            }));
+                          }}
+                          className="text-black"
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: "42px",
+                              borderColor: "#d1d5db",
+                              paddingLeft: "30px",
+                            }),
+                          }}
+                        />
                     </div>
                   </div>
                 </div>
