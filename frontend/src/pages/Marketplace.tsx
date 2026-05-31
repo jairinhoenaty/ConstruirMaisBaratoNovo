@@ -5,7 +5,8 @@ import { CityService } from "../services/CityService";
 import { ProductService } from "../services/ProductService";
 import ProductDetails from "./ProductDetails";
 import { Link } from "react-router-dom";
-
+import Select from "react-select";
+import {ICitySearchProfessionals} from "../interfaces";
 interface MarketplaceProps {
   onNavigate?: (page: string) => void;
 }
@@ -76,7 +77,12 @@ function Marketplace({ onNavigate }: MarketplaceProps) {
       />
     );
   }
-
+const cityOptions = citiesByState.map(
+  (city: ICitySearchProfessionals) => ({
+    value: city.id,
+    label: city.name,
+  })
+);
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Search Section */}
@@ -115,21 +121,29 @@ function Marketplace({ onNavigate }: MarketplaceProps) {
                 Cidade
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  disabled={!selectedState}
-                  className="block w-full pl-10 pr-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                >
-                  <option value="">Selecione a cidade</option>
-                  {selectedState &&
-                    citiesByState.map((city: any) => (
-                      <option key={city.id} value={city.id}>
-                        {city.name}
-                      </option>
-                    ))}
-                </select>
+                <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5 z-10" />
+                <Select
+                  options={cityOptions}
+                  value={
+                    cityOptions.find(
+                      (option) => option.value.toString() === selectedCity
+                    ) || null
+                  }
+                  onChange={(selectedOption) =>
+                    setSelectedCity(selectedOption?.value.toString() || "")
+                  }
+                  isDisabled={!selectedState}
+                  placeholder="Digite ou selecione a cidade"
+                  isSearchable
+                  className="text-sm"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: "42px",
+                      paddingLeft: "30px",
+                    }),
+                  }}
+                />
               </div>
             </div>
 
