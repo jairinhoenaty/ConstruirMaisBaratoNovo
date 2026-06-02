@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	pkguser "construir_mais_barato/app/domain/user"
 	pkgnotificationuc "construir_mais_barato/app/usecase/notification"
 	"net/http"
 
@@ -31,6 +32,11 @@ func (c *NotificationController) SendApp(ctx echo.Context) error {
 
 	if err := ctx.Bind(&assembler); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Formato de requisição inválido"})
+	}
+
+	// Por padrão, quando o idType não é informado, deixamos como profissional!!
+	if assembler.IDType == "" {
+		assembler.IDType = pkguser.IDTypeProfessional
 	}
 
 	usecase.Assembler = &assembler

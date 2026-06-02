@@ -580,7 +580,10 @@ func buildBudgetEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	saveParams := pkgbudgetuc.SaveBudgetUCParams{
-		Service: dependency.BudgetService,
+		Service:                     dependency.BudgetService,
+		StoreService:                dependency.StoreService,
+		UserService:                 dependency.UserService,
+		SendAppNotificationUCParams: dependency.SendAppNotificationUCParams,
 	}
 
 	deleteParams := pkgbudgetuc.DeleteBudgetUCParams{
@@ -718,7 +721,10 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	saveBudgetUCParams := pkgbudgetuc.SaveBudgetUCParams{
-		Service: dependency.BudgetService,
+		Service:                     dependency.BudgetService,
+		StoreService:                dependency.StoreService,
+		UserService:                 dependency.UserService,
+		SendAppNotificationUCParams: dependency.SendAppNotificationUCParams,
 	}
 
 	userSendEmailUCParams := pkguseruc.UserSendEmailUCParams{

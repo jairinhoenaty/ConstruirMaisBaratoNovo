@@ -80,6 +80,19 @@ function QuotesPanel() {
       console.log(json);
       setProfessionals([]);
 
+      // Popula professionalsId e storesId a partir dos arrays relacionados
+      if (json?.length > 0) {
+        json = json.map((quote: any) => ({
+          ...quote,
+          professionalsId: quote.professionalsId?.length > 0
+            ? quote.professionalsId
+            : (quote.professionals?.map((p: any) => p.id) ?? []),
+          storesId: quote.storesId?.length > 0
+            ? quote.storesId
+            : (quote.stores?.map((s: any) => s.id) ?? []),
+        }));
+      }
+
       if (response.status == 200) {
         // Log para debug - mostrar estrutura dos dados
         if (profile == "admin" && json?.length > 0) {

@@ -30,7 +30,7 @@ func NewSendAppNotificationUC(params SendAppNotificationUCParams) SendAppNotific
 }
 
 func (uc *SendAppNotificationUC) Execute() error {
-	tokens, err := uc.UserService.FindTokensByIds(uc.Assembler.UserIds)
+	tokens, err := uc.UserService.FindTokensByIds(uc.Assembler.Ids, uc.Assembler.IDType)
 	if err != nil {
 		return fmt.Errorf("erro ao buscar tokens: %w", err)
 	}
