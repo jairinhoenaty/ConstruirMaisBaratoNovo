@@ -59,3 +59,4 @@ pnpm-lock.yaml
 backend/go.mod
 /files
 /.claude
+frontend/vite.config.ts
