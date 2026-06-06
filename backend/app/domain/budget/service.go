@@ -10,6 +10,7 @@ type BudgetService interface {
 	FindExpiredBudgets(before time.Time) ([]*Budget, error)
 	Save(budget Budget) (*Budget, error)
 	Remove(id uint) error
+	Refuse(budgetID uint, recipientID uint, recipientType RecipientType) error
 }
 
 type budgetService struct {
@@ -72,4 +73,8 @@ func (s *budgetService) Save(budget Budget) (*Budget, error) {
 
 func (s *budgetService) Remove(id uint) error {
 	return s.repository.Remove(id)
+}
+
+func (s *budgetService) Refuse(budgetID uint, recipientID uint, recipientType RecipientType) error {
+	return s.repository.Refuse(budgetID, recipientID, recipientType)
 }

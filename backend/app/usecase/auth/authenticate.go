@@ -34,8 +34,7 @@ func (uc *AuthenticateUC) Execute() (*AuthenticatePresenter, error) {
 
 	// pesquisar na tabela de usuário.
 	user, _ := uc.UserService.FindByEmail(uc.Assembler.Email)
-	// usuário removido pelo administrador (soft delete) não pode logar.
-	// FindByEmail usa Unscoped(), então é necessário checar DeletedAt aqui.
+	// FindByEmail usa Unscoped(); bloqueia login de usuário removido.
 	if user != nil && user.DeletedAt.Valid {
 		return nil, errors.New("User Not found")
 	}

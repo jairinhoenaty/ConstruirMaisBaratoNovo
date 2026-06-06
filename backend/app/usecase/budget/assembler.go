@@ -46,3 +46,8 @@ type FindWithPaginationBudgetAssembler struct {
 type FindBudgetByEmailAssembler struct {
 	Email string `json:"email"`
 }
+
+type RefuseBudgetAssembler struct {
+	RecipientID   uint   `json:"recipientId"`
+	RecipientType string `json:"recipientType"`
+}

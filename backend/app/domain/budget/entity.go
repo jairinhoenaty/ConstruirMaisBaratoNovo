@@ -26,6 +26,23 @@ type Budget struct {
 	TermResponsabilityAccepted bool
 	// ClientID                   *uint `gorm:"default:null"`
 	// Client                     pkgclient.Client `gorm:"-"`
-	Approved  bool
-	CreatedAt time.Time `gorm:"<-:create"`
+	Approved bool
+	// Recusas individuais por destinatário (cada um só perde o que recusou).
+	Refusals  []BudgetRefusal `gorm:"foreignKey:BudgetID"`
+	CreatedAt time.Time       `gorm:"<-:create"`
+}
+
+type RecipientType string
+
+const (
+	RecipientTypeProfessional RecipientType = "professional"
+	RecipientTypeStore        RecipientType = "store"
+)
+
+// Recusa de um orçamento por um destinatário específico.
+type BudgetRefusal struct {
+	gorm.Model
+	BudgetID      uint          `gorm:"index;uniqueIndex:idx_budget_recipient"`
+	RecipientID   uint          `gorm:"uniqueIndex:idx_budget_recipient"`
+	RecipientType RecipientType `gorm:"size:20;uniqueIndex:idx_budget_recipient"`
 }

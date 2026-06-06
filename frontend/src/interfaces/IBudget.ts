@@ -11,5 +11,7 @@ export interface IBudget {
   cityId: number;
   termResponsabilityAccepted: boolean;
   approved: boolean;
+  refused?: boolean;
+  refusedCount?: number;
   // clientId: number;
 }

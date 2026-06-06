@@ -10,4 +10,5 @@ type BudgetRepository interface {
 	FindExpiredBudgets(before time.Time) ([]*Budget, error)
 	Save(orcamento Budget) (*Budget, error)
 	Remove(id uint) error
+	Refuse(budgetID uint, recipientID uint, recipientType RecipientType) error
 }

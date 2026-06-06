@@ -155,12 +155,27 @@ function QuotesPanel() {
   }, [page, isUpdate, profile]);
 
   const handleDeleteQuote = async (id: string) => {
-    if (window.confirm("Tem certeza que deseja excluir este orçamento?")) {
-      const response = await BudgetService.deleteBudget(id);
+    // Admin exclui (some para todos); profissional/lojista só recusa (some
+    // para ele, demais e admin continuam vendo).
+    const isAdmin = profile == "admin";
+    const confirmMessage = isAdmin
+      ? "Tem certeza que deseja excluir este orçamento?"
+      : "Tem certeza que deseja recusar este orçamento?";
+
+    if (window.confirm(confirmMessage)) {
+      let response;
+      if (isAdmin) {
+        response = await BudgetService.deleteBudget(id);
+      } else {
+        // post_id = id do profissional/lojista que está recusando.
+        const recipientId = parseInt(localStorage.getItem("post_id") || "");
+        const recipientType = profile == "store" ? "store" : "professional";
+        response = await BudgetService.refuseBudget(id, recipientId, recipientType);
+      }
       if (response.status == 200) {
         Swal.fire({
           icon: "success",
-          text: "Mensagem excluída",
+          text: isAdmin ? "Orçamento excluído" : "Orçamento recusado",
           showConfirmButton: false,
           timer: 1500,
         });
@@ -564,6 +579,13 @@ function QuotesPanel() {
                   <span className="text-gray-900">
                     {new Date(quote.created_at).toLocaleDateString("pt-BR")}
                   </span>
+                  {profile == "admin" && quote.refused && (
+                    <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                      {quote.refusedCount && quote.refusedCount > 1
+                        ? `Recusado (${quote.refusedCount})`
+                        : "Recusado"}
+                    </span>
+                  )}
                 </div>
                 <div className="flex justify-between items-center mb-4">
                   {profile == "admin" && (
@@ -583,6 +605,7 @@ function QuotesPanel() {
                   )}
                   <button
                     onClick={() => handleDeleteQuote(quote.id)}
+                    title={profile == "admin" ? "Excluir orçamento" : "Recusar orçamento"}
                     className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-5 h-5" />

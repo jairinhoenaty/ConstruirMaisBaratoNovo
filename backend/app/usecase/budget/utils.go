@@ -103,6 +103,8 @@ func GenerateBudgetPresenter(budget *pkgbudget.Budget) BudgetPresenter {
 		// 	},
 		// }
 		presenter.Approved = budget.Approved
+		presenter.RefusedCount = len(budget.Refusals)
+		presenter.Refused = presenter.RefusedCount > 0
 
 	}
 	return presenter

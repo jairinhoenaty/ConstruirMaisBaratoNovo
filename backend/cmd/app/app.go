@@ -591,6 +591,10 @@ func buildBudgetEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.BudgetService,
 	}
 
+	refuseParams := pkgbudgetuc.RefuseBudgetUCParams{
+		Service: dependency.BudgetService,
+	}
+
 	findByMonthAndProfessionalIDUCParams := pkgbudgetuc.FindByMonthAndProfessionalIDUCParams{
 		Service:             dependency.BudgetService,
 		ServiceUser:         dependency.UserService,
@@ -609,6 +613,7 @@ func buildBudgetEndPoint(dependency *dependenceParams, g *echo.Group) {
 		DeleteBudgetUCParams:                 deleteParams,
 		FindByMonthAndProfessionalIDUCParams: findByMonthAndProfessionalIDUCParams,
 		FindByEmailUCParams:                  FindByEmailUCParams,
+		RefuseBudgetUCParams:                 refuseParams,
 	}
 
 	pkgcontrollers.NewBudgetController(&budgetControllerParams, g)
