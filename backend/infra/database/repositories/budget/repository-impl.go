@@ -78,6 +78,26 @@ func (r *repository) FindBudgetsByMonthAndProfessionalID(
 	// Só aprovados
 	tx = tx.Where("budgets.approved = ?", true)
 
+	// Esconde apenas os orçamentos que ESTE destinatário recusou.
+	if professionalID != 0 {
+		tx = tx.Where(`NOT EXISTS (
+			SELECT 1 FROM budget_refusals br
+			WHERE br.budget_id = budgets.id
+			  AND br.recipient_id = ?
+			  AND br.recipient_type = ?
+			  AND br.deleted_at IS NULL)`,
+			professionalID, pkgpbudget.RecipientTypeProfessional)
+	}
+	if storeID != 0 {
+		tx = tx.Where(`NOT EXISTS (
+			SELECT 1 FROM budget_refusals br
+			WHERE br.budget_id = budgets.id
+			  AND br.recipient_id = ?
+			  AND br.recipient_type = ?
+			  AND br.deleted_at IS NULL)`,
+			storeID, pkgpbudget.RecipientTypeStore)
+	}
+
 	// Preloads
 	tx = tx.
 		Preload("City").
@@ -115,6 +135,7 @@ func (r *repository) FindAll(limit, offset int) ([]*pkgpbudget.Budget, int64, er
 		Preload("Professionals.Professions").
 		Preload("Professionals.City").
 		Preload("City").
+		Preload("Refusals").
 		Distinct("budgets.*").
 		// Preload("Client").
 		// Preload("Client.City").
@@ -204,6 +225,28 @@ func (r *repository) Remove(id uint) error {
 		return err
 	}
 	return nil
+}
+
+// Refuse marca o orçamento como recusado só para o destinatário informado,
+// sem removê-lo. Idempotente.
+func (r *repository) Refuse(budgetID uint, recipientID uint, recipientType pkgpbudget.RecipientType) error {
+	var budget pkgpbudget.Budget
+	if err := r.DB.Where("deleted_at IS NULL").First(&budget, budgetID).Error; err != nil {
+		return fmt.Errorf("orçamento não encontrado")
+	}
+
+	refusal := pkgpbudget.BudgetRefusal{
+		BudgetID:      budgetID,
+		RecipientID:   recipientID,
+		RecipientType: recipientType,
+	}
+	return r.DB.
+		Where(pkgpbudget.BudgetRefusal{
+			BudgetID:      budgetID,
+			RecipientID:   recipientID,
+			RecipientType: recipientType,
+		}).
+		FirstOrCreate(&refusal).Error
 }
 
 var monthMap = map[string]string{

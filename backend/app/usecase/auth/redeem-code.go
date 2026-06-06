@@ -39,8 +39,7 @@ func (uc *RedeemCodeUC) Execute() (*AuthenticatePresenter, error) {
 	validCode, _ := uc.ExchangeCodeService.Redeem(uc.Assembler.Code)
 
 	if validCode != nil && validCode.Code != "" {
-		// usuário removido pelo administrador (soft delete) não pode logar.
-		// FindById respeita o soft delete (deleted_at IS NULL).
+		// bloqueia login de usuário removido (FindById respeita soft delete).
 		if _, err := uc.UserService.FindById(validCode.UserID); err != nil {
 			return nil, errors.New("user disabled")
 		}

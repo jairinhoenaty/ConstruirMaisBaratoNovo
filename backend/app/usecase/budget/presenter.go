@@ -20,7 +20,9 @@ type BudgetPresenter struct {
 	TermResponsabilityAccepted bool                     `json:"termResponsabilityAccepted"`
 	// ClientID                   *uint                    `json:"clientId"`
 	// Client                     ClientPresenter          `json:"client"`
-	Approved bool `json:"approved"`
+	Approved     bool `json:"approved"`
+	Refused      bool `json:"refused"`
+	RefusedCount int  `json:"refusedCount"`
 }
 
 type CityPresenter struct {

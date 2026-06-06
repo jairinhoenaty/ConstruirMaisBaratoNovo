@@ -24,6 +24,8 @@ interface Quote {
   profession: string;
   state: string;
   city: string;
+  refused?: boolean;
+  refusedCount?: number;
 }
 
 function QuotesPanel() {
@@ -316,6 +318,13 @@ function QuotesPanel() {
                   <span className="text-gray-900">
                     {new Date(quote.created_at).toLocaleDateString("pt-BR")}
                   </span>
+                  {quote.refused && (
+                    <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                      {quote.refusedCount && quote.refusedCount > 1
+                        ? `Recusado (${quote.refusedCount})`
+                        : "Recusado"}
+                    </span>
+                  )}
                 </div>
                 <div className="flex justify-between items-center mb-4">
                   {profile == "admin" && (

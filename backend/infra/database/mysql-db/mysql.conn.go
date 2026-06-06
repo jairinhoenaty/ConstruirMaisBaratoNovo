@@ -80,6 +80,7 @@ func ConnectionDB(params *ConfigParams) *gorm.DB {
 	db.AutoMigrate(&pkgprofession.Profession{})
 	db.AutoMigrate(&pkgprofessional.Professional{})
 	db.AutoMigrate(&pkgbudget.Budget{})
+	db.AutoMigrate(&pkgbudget.BudgetRefusal{})
 	db.AutoMigrate(&pkgbanner.Banner{})
 	db.AutoMigrate(&pkgproduct.Product{})
 	db.AutoMigrate(&pkgproductCategory.ProductCategory{})

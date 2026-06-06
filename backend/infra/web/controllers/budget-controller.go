@@ -16,6 +16,7 @@ type BudgetController struct {
 	DeleteBudgetUCParams                 pkgpbudgetuc.DeleteBudgetUCParams
 	FindByEmailUCParams                  pkgpbudgetuc.FindByEmailUCParams
 	FindByMonthAndProfessionalIDUCParams pkgpbudgetuc.FindByMonthAndProfessionalIDUCParams
+	RefuseBudgetUCParams                 pkgpbudgetuc.RefuseBudgetUCParams
 }
 
 type BudgetControllerParams struct {
@@ -25,6 +26,7 @@ type BudgetControllerParams struct {
 	DeleteBudgetUCParams                 pkgpbudgetuc.DeleteBudgetUCParams
 	FindByEmailUCParams                  pkgpbudgetuc.FindByEmailUCParams
 	FindByMonthAndProfessionalIDUCParams pkgpbudgetuc.FindByMonthAndProfessionalIDUCParams
+	RefuseBudgetUCParams                 pkgpbudgetuc.RefuseBudgetUCParams
 }
 
 func NewBudgetController(params *BudgetControllerParams, g *echo.Group) {
@@ -35,12 +37,14 @@ func NewBudgetController(params *BudgetControllerParams, g *echo.Group) {
 		DeleteBudgetUCParams:                 params.DeleteBudgetUCParams,
 		FindByEmailUCParams:                  params.FindByEmailUCParams,
 		FindByMonthAndProfessionalIDUCParams: params.FindByMonthAndProfessionalIDUCParams,
+		RefuseBudgetUCParams:                 params.RefuseBudgetUCParams,
 	}
 
 	g.POST("/budget", controller.Save)
 	g.GET("/budgets", controller.FindAll)
 	g.GET("/budget/:id", controller.FindById)
 	g.DELETE("/budget/:id", controller.Delete)
+	g.PATCH("/budget/:id/refuse", controller.Refuse)
 	g.POST("/budgets/month", controller.FindBudgetByMonthAndId)
 	g.POST("/budget/email", controller.FindBudgetByEmail)
 }
@@ -198,4 +202,29 @@ func (c *BudgetController) Delete(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, nil)
 
+}
+
+// Refuse recusa o orçamento para um destinatário, sem removê-lo (≠ Delete).
+func (c *BudgetController) Refuse(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+	usecase := pkgpbudgetuc.NewRefuseBudgetUC(c.RefuseBudgetUCParams)
+	idAssembler := ctx.Param("id")
+	id, err := strconv.ParseUint(idAssembler, 10, 32)
+	if err != nil {
+		return ctx.JSON(http.StatusPreconditionFailed, err)
+	}
+	uintID := uint(id)
+
+	assembler := pkgpbudgetuc.RefuseBudgetAssembler{}
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusPreconditionFailed, err)
+	}
+
+	usecase.ID = &uintID
+	usecase.RecipientID = assembler.RecipientID
+	usecase.RecipientType = assembler.RecipientType
+	if err := usecase.Execute(); err != nil {
+		return ctx.JSON(http.StatusPreconditionFailed, nil)
+	}
+	return ctx.JSON(http.StatusOK, nil)
 }

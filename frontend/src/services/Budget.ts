@@ -11,6 +11,12 @@ const saveBudget = (data: IBudget) => {
   return ApiPublica.post("/save/budget", data);
 };
 const deleteBudget = (id: number) => Api.delete("/budget/"+ id);
+// Recusa: some só para o destinatário; não exclui o orçamento.
+const refuseBudget = (
+  id: number,
+  recipientId: number,
+  recipientType: "professional" | "store"
+) => Api.patch("/budget/" + id + "/refuse", { recipientId, recipientType });
 const getBudgetsbyMonth = (data: {month:number,year:number}) => Api.post("/budgets/month", data);
 const getBudgetsAll = (limit:number,offset:number) => Api.get("/budgets?limit=" +
   limit +
@@ -28,6 +34,7 @@ export const BudgetService = {
   getBudgetsbyMonth,
   getBudgetsAll,
   deleteBudget,
+  refuseBudget,
   checkBudgetAccess,
   unlockBudget,
 };
