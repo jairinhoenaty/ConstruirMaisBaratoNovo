@@ -103,8 +103,15 @@ func GenerateBudgetPresenter(budget *pkgbudget.Budget) BudgetPresenter {
 		// 	},
 		// }
 		presenter.Approved = budget.Approved
-		presenter.RefusedCount = len(budget.Refusals)
-		presenter.Refused = presenter.RefusedCount > 0
+		// Recusado só conta para profissional; lojista não marca recusado p/ admin.
+		refusedCount := 0
+		for _, refusal := range budget.Refusals {
+			if refusal.RecipientType == pkgbudget.RecipientTypeProfessional {
+				refusedCount++
+			}
+		}
+		presenter.RefusedCount = refusedCount
+		presenter.Refused = refusedCount > 0
 
 	}
 	return presenter
