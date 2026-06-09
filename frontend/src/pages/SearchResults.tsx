@@ -288,7 +288,7 @@ function SearchResults() {
     const budget: IBudget = {
       name: formData.name,
       email: formData.email,
-      telefone: formData.phone,
+      telephone: formData.phone,
       // clientId: formData.clientId,
       description: formData.message,
       termResponsabilityAccepted: true,
