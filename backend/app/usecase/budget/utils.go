@@ -70,6 +70,8 @@ func GenerateBudgetPresenter(budget *pkgbudget.Budget) BudgetPresenter {
 	var storePresenter *[]StorePresenter
 	if budget != nil {
 
+		// Analisar para no futuro não trazer dados de outros profissionais ou somente o profissional em questão, talvez criar uma função específica
+		// para o presenter de orçamentos de profissional. Para o administrador, acho legal manter como está.
 		if len(budget.Professionals) > 0 {
 			professionalsPresenter = generateProfessionalPresenter(budget.Professionals)
 
