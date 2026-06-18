@@ -15,6 +15,7 @@ import {
   Brain,
   Check,
   BadgeCheck,
+  Send,
   // Crown,
   // Trophy,
   // Diamond,
@@ -124,7 +125,6 @@ function SearchResults() {
   // const [isClient, setIsClient] = useState<boolean>(false);
   const [professionals, setProfessionals] = useState<IProfissional[]>([]);
   // const [profession, setProfession] = useState<string>("");
-  const isPodeTodos = false;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -483,7 +483,10 @@ function SearchResults() {
                 </button>
                 <button
                   onClick={() => {
-                    handleRequestQuote(selectedProfessional, false);
+                    handleRequestQuote(
+                      selectedProfessional,
+                      selectedProfessional == null
+                    );
                     handleAcceptTerms();
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -524,7 +527,9 @@ function SearchResults() {
                       Solicitar Orçamento
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {selectedProfessional && selectedProfessional.nome
+                      {isBulkRequest
+                        ? `Enviar para ${professionals.length} profissionais`
+                        : selectedProfessional && selectedProfessional.nome
                         ? `${selectedProfessional.nome}`
                         : `${selectedProfessional?.cidade.nome}, ${selectedProfessional?.cidade.uf}`}
                     </p>
@@ -724,16 +729,44 @@ function SearchResults() {
                 <ArrowLeft className="w-5 h-5" />
                 Nova Pesquisa
               </button>
-              {isPodeTodos && (
-                <button
-                  onClick={() => handleRequestQuote(null, true)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Solicitar Orçamento para Todos
-                </button>
-              )}
             </div>
           </div>
+
+          {/* Botão pra solicitar orçamento para todos os profissionais que veio do backend (com os filtros)*/}
+          {professionals.length > 0 && (
+            // <div className="mb-8 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50 border border-purple-100 p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+            <div className="mb-8 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+              {/* <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full text-center sm:text-left">
+                <div className="bg-white rounded-full p-3 shadow-sm flex-shrink-0">
+                  <Users className="w-7 h-7 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm sm:text-base font-semibold text-gray-800 leading-snug">
+                    Solicite uma única vez e receba orçamentos de todos os
+                    profissionais.
+                  </p>
+                  <div className="flex items-center justify-center sm:justify-start gap-1 text-xs text-gray-500 mt-1">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span>
+                      Envie para os {professionals.length} profissionais
+                      encontrados
+                    </span>
+                  </div>
+                </div>
+              </div> */}
+              <button
+                onClick={() => {
+                  setSelectedProfessional(null);
+                  setIsBulkRequest(true);
+                  setShowLGPDTerms(true);
+                }}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors whitespace-nowrap shadow-sm"
+              >
+                <Send className="w-5 h-5" />
+                Solicitar para TODOS DE UMA VEZ
+              </button>
+            </div>
+          )}
 
           {/* Professional List */}
           <div className="space-y-4">
@@ -747,7 +780,7 @@ function SearchResults() {
                     {/* Badge Premium - Mobile (acima) */}
                     {professional.isPremium && (
                       <div className="mb-3 sm:hidden">
-                        <span className="text-xs font-semibold text-white bg-green-500 py-1 px-3 rounded-full">
+                        <span className="whitespace-nowrap text-xs font-semibold text-white bg-green-500 py-1 px-3 rounded-full">
                           Profissional Premium
                         </span>
                       </div>
