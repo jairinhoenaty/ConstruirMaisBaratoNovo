@@ -295,8 +295,13 @@ func buildSolicitationEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.SolicitationAppService,
 	}
 
+	updateFeedbackParams := pkgsolicitationappuc.UpdateFeedbackUCParams{
+		Service: dependency.SolicitationAppService,
+	}
+
 	solicitationControllerParams := pkgcontrollers.SolicitationControllerParams{
 		SaveSolicitationUCParams: saveParams,
+		UpdateFeedbackUCParams:   updateFeedbackParams,
 	}
 
 	pkgcontrollers.NewSolicitationController(&solicitationControllerParams, g)

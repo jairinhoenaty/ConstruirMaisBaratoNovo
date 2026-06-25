@@ -22,3 +22,23 @@ func (r *repository) Save(solicitation pkgsolicitation.SolicitationApp) (*pkgsol
 	}
 	return &solicitation, nil
 }
+
+func (r *repository) UpdateFeedback(idFirebase string, rating int, feedback string) (*pkgsolicitation.SolicitationApp, error) {
+	var solicitation pkgsolicitation.SolicitationApp
+	if err := r.DB.
+		Where("id_firebase = ?", idFirebase).
+		First(&solicitation).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.DB.
+		Model(&solicitation).
+		Updates(map[string]interface{}{
+			"rating":   rating,
+			"feedback": feedback,
+		}).Error; err != nil {
+		return nil, err
+	}
+
+	return &solicitation, nil
+}

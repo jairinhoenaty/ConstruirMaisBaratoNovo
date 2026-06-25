@@ -16,4 +16,6 @@ type SolicitationApp struct {
 	Status         string
 	ProposalValue  float64
 	Distance       float64
+	Rating         int
+	Feedback       string
 }

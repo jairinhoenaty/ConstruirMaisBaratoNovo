@@ -14,3 +14,9 @@ type SaveSolicitationAssembler struct {
 	Distance       float64 `json:"distance"`
 	ProposalValue  float64 `json:"proposalValue"`
 }
+
+type UpdateFeedbackAssembler struct {
+	IdFirebase string `json:"idFirebase"`
+	Rating     int    `json:"rating"`
+	Feedback   string `json:"feedback"`
+}
