@@ -80,10 +80,13 @@ import (
 	pkgplaninfra "construir_mais_barato/infra/database/repositories/plan"
 
 	pkgexchangecodes "construir_mais_barato/app/domain/exchange-codes"
+	pkgpageview "construir_mais_barato/app/domain/pageview"
 	pkgsolicitationapp "construir_mais_barato/app/domain/solicitationAPP"
 	pkgsolicitationappuc "construir_mais_barato/app/usecase/solicitation"
+	pkgpageviewuc "construir_mais_barato/app/usecase/pageview"
 	pkgexchangecodeinfra "construir_mais_barato/infra/database/repositories/exchange-code"
 	pkgsolicitationappinfra "construir_mais_barato/infra/database/repositories/solicitationAPP"
+	pkgpageviewinfra "construir_mais_barato/infra/database/repositories/pageview"
 
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
 	pkgnotificationuc "construir_mais_barato/app/usecase/notification"
@@ -116,6 +119,7 @@ type dependenceParams struct {
 	RegionService               pkgregion.RegionService
 	PlanService                 pkgplan.PlanService
 	SolicitationAppService      pkgsolicitationapp.SolicitationAppService
+	PageViewService             pkgpageview.PageViewService
 	MercadoPagoClient           *mercadopago.MPClient
 	SendAppNotificationUCParams pkgnotificationuc.SendAppNotificationUCParams
 }
@@ -141,6 +145,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
 	params.PlanService = pkgplan.NewPlanService(pkgplaninfra.NewPlanRepositoryImpl(db))
 	params.SolicitationAppService = pkgsolicitationapp.NewSolicitationAppService(pkgsolicitationappinfra.NewSolicitationAppRepositoryImpl(db))
+	params.PageViewService = pkgpageview.NewPageViewService(pkgpageviewinfra.NewPageViewRepositoryImpl(db))
 	params.MercadoPagoClient = mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
 	params.SendAppNotificationUCParams = pkgnotificationuc.SendAppNotificationUCParams{
 		UserService:         params.UserService,
@@ -787,6 +792,10 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		PlanService: dependency.PlanService,
 	}
 
+	incrementPageViewUCParams := pkgpageviewuc.IncrementPageViewUCParams{
+		Service: dependency.PageViewService,
+	}
+
 	// parametros do userController
 	publicControllerParams := pkgcontrollers.PublicControllerParams{
 		FindRegionByCityIdUCParams:                          findRegionByCityUCParams,
@@ -816,6 +825,7 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		CheckoutProfessionalPremiumUCParams:                 checkoutProfessionalPremiumUCParams,
 		CheckoutStorePremiumUCParams:                        checkoutStorePremiumUCParams,
 		FindStoreByCategoryAndSubCategoryParams:             findByCategoryAndSubCategories,
+		IncrementPageViewUCParams:                           incrementPageViewUCParams,
 	}
 
 	pkgcontrollers.NewPublicController(&publicControllerParams, g)
@@ -963,6 +973,18 @@ func buildNotificationEndPoint(dependency *dependenceParams, g *echo.Group) {
 	pkgcontrollers.NewNotificationController(&notificationControllerParams, g)
 }
 
+func buildPageViewEndPoint(dependency *dependenceParams, g *echo.Group) {
+	findAllPageViewsUCParams := pkgpageviewuc.FindAllPageViewsUCParams{
+		Service: dependency.PageViewService,
+	}
+
+	pageViewControllerParams := pkgcontrollers.PageViewControllerParams{
+		FindAllPageViewsUCParams: findAllPageViewsUCParams,
+	}
+
+	pkgcontrollers.NewPageViewController(&pageViewControllerParams, g)
+}
+
 func Start(db *gorm.DB) {
 
 	dependency := buildDependenciesParams(db)
@@ -1008,6 +1030,7 @@ func Start(db *gorm.DB) {
 	buildRegionEndPoint(&dependency, routerGroup)
 	buildNotificationEndPoint(&dependency, routerGroup)
 	buildSolicitationEndPoint(&dependency, routerGroup)
+	buildPageViewEndPoint(&dependency, routerGroup)
 
 	// Adicione a rotina de desativação de orçamentos
 	go deactivateExpiredBudgetsRoutine(dependency.BudgetService)

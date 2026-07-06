@@ -8,6 +8,7 @@ import (
 	pkgclientuc "construir_mais_barato/app/usecase/client"
 	pkgpcontactuc "construir_mais_barato/app/usecase/contact"
 	pkgplanuc "construir_mais_barato/app/usecase/plan"
+	pkgpageviewuc "construir_mais_barato/app/usecase/pageview"
 	pkgpproductuc "construir_mais_barato/app/usecase/product"
 	pkgproductuc "construir_mais_barato/app/usecase/product"
 	pkgprofessionuc "construir_mais_barato/app/usecase/profession"
@@ -57,6 +58,7 @@ type PublicController struct {
 	FindPlanByUserTypeUCParams                          pkgplanuc.FindByUserTypeUCParams
 	CheckoutProfessionalPremiumUCParams                 pkgprofessionaluc.CheckoutPremiumUCParams
 	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
+	IncrementPageViewUCParams                           pkgpageviewuc.IncrementPageViewUCParams
 }
 
 type PublicControllerParams struct {
@@ -87,6 +89,7 @@ type PublicControllerParams struct {
 	FindPlanByUserTypeUCParams                          pkgplanuc.FindByUserTypeUCParams
 	CheckoutProfessionalPremiumUCParams                 pkgprofessionaluc.CheckoutPremiumUCParams
 	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
+	IncrementPageViewUCParams                           pkgpageviewuc.IncrementPageViewUCParams
 }
 
 func NewPublicController(params *PublicControllerParams, g *echo.Group) {
@@ -118,6 +121,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 		CheckoutProfessionalPremiumUCParams:                 params.CheckoutProfessionalPremiumUCParams,
 		CheckoutStorePremiumUCParams:                        params.CheckoutStorePremiumUCParams,
 		FindStoreByCategoryAndSubCategoryParams:             params.FindStoreByCategoryAndSubCategoryParams,
+		IncrementPageViewUCParams:                           params.IncrementPageViewUCParams,
 	}
 
 	g.GET("/plans", controller.GetActivePlans)
@@ -150,6 +154,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.POST("/category-and-sub", controller.FindStoreByCategoryAndSubCategory)
 	g.POST("/save/client", controller.SaveClient)
 	g.POST("/upload/image", controller.uploadFile)
+	g.POST("/page-view", controller.TrackPageView)
 
 }
 
@@ -305,6 +310,24 @@ func (c *PublicController) SaveBudget(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, budget)
 
+}
+
+func (c *PublicController) TrackPageView(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+	usecase := pkgpageviewuc.NewIncrementPageViewUC(c.IncrementPageViewUCParams)
+	assembler := pkgpageviewuc.IncrementPageViewAssembler{}
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusPreconditionFailed, err)
+	}
+	if assembler.Path == "" {
+		assembler.Path = "/"
+	}
+	usecase.Assembler = &assembler
+	pageView, err := usecase.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return ctx.JSON(http.StatusOK, pageView)
 }
 
 func (c *PublicController) FindProfessionsWithCount(ctx echo.Context) error {
