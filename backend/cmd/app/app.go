@@ -1012,8 +1012,11 @@ func Start(db *gorm.DB) {
 	// Adicione a rotina de desativação de orçamentos
 	go deactivateExpiredBudgetsRoutine(dependency.BudgetService)
 
-	// server := newServer(os.Getenv("APP_PORT"), router)
-	server := newServer("5000", router)
+	appPort := os.Getenv("APP_PORT")
+	if appPort == "" {
+		appPort = "5000"
+	}
+	server := newServer(appPort, router)
 	server.ListenAndServe()
 
 	stopChan := make(chan os.Signal)
@@ -1035,7 +1038,7 @@ func newServer(port string, handler http.Handler) *Server {
 
 func (s *Server) ListenAndServe() {
 	go func() {
-		fmt.Println("Server runing in port 5000")
+		fmt.Printf("Server runing in port %s\n", s.server.Addr)
 		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Printf("erro: %s", err)
 		}
