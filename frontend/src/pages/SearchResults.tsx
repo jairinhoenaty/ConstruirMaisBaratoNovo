@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   // Star,
   Phone,
-  Mail,
   User,
   MessageSquare,
   X,
@@ -12,30 +11,18 @@ import {
   ShieldCheck,
   Building2,
   MapPin,
-  Brain,
-  Check,
-  BadgeCheck,
   Send,
-  // Crown,
-  // Trophy,
-  // Diamond,
-  // Award,
-  // BadgeCheck,
+  BadgeCheck,
 } from "lucide-react";
 import InputMask from "react-input-mask";
 import { BudgetService } from "../services/Budget";
 import Swal from "sweetalert2";
-import Login from "./Login";
-import { states } from "../data";
 import Navigation from "../components/Navigation";
-import { ClientService } from "../services/ClientService";
-import { CityService } from "../services/CityService";
 import { ProfessionalService } from "../services/ProfessionalService";
 import { useLocation, useNavigate } from "react-router-dom";
-import Select from "react-select";
+import PrivacyPolicyCheckbox from "../components/PrivacyPolicyCheckbox";
 import {
   IBudget,
-  ICitySearchProfessionals,
   IProfissional,
 } from "../interfaces";
 //import { useNavigate } from "react-router-dom";
@@ -53,11 +40,8 @@ interface Professional {
 
 interface FormData {
   name: string;
-  email: string;
   phone: string;
   message: string;
-  clientId: number;
-  cityId: number;
 }
 
 // interface SearchResultsProps {
@@ -95,34 +79,23 @@ function SearchResults() {
   professionals,
   onNewSearch,
 }: SearchResultsProps*/
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [selectedCity, setSelectedCity] = useState<string>("");
-  const [citiesByState, setcitiesByState] = useState<
-    ICitySearchProfessionals[]
-  >([]);
-  const [showLGPDTerms, setShowLGPDTerms] = useState(false);
-  const [modalInfoProfissional, setModalInfoProfissional] = useState(false);
-  const [showExpandedImage, setShowExpandedImage] = useState(false);
-  // const [selectedProfessional, setProfessionalForModal] = useState<IProfissional | null>(null);
-  // const [showLogin, setShowLogin] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [showProfessionalSearch, setShowProfessionalSearch] = useState(true);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [searchCityId, setSearchCityId] = useState<number>(0);
   const [selectedProfessional, setSelectedProfessional] =
     useState<IProfissional | null>(null);
   const [isBulkRequest, setIsBulkRequest] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
-    email: "",
     phone: "",
     message: "",
-    clientId: 0,
-    cityId: 0,
   });
 
   const [showPhoneNumbers, setShowPhoneNumbers] = useState<boolean>(false);
-  const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
+  const [modalInfoProfissional, setModalInfoProfissional] = useState(false);
+  const [showExpandedImage, setShowExpandedImage] = useState(false);
   const [currentPage, setCurrentPage] = useState<string>("search-results");
-  // const [isClient, setIsClient] = useState<boolean>(false);
   const [professionals, setProfessionals] = useState<IProfissional[]>([]);
   // const [profession, setProfession] = useState<string>("");
   const navigate = useNavigate();
@@ -189,8 +162,12 @@ function SearchResults() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const selectedCity = location.state.selectedCity;
-      const selectedProfessional = location.state.selectedProfessional;
+      const selectedCity = location.state?.selectedCity;
+      const selectedProfessional = location.state?.selectedProfessional;
+
+      if (selectedCity) {
+        setSearchCityId(parseInt(selectedCity));
+      }
 
       const res = await ProfessionalService.getProfessionalsRandomPublic({
         professionId: parseInt(selectedProfessional),
@@ -208,78 +185,42 @@ function SearchResults() {
     fetchData();
   }, []);
 
-  // Busca cidades e profissões ao mudar estado
-  useEffect(() => {
-    setSelectedCity("");
-    const fetchData = async () => {
-      if (!selectedState) return;
-
-      try {
-        const citiesRes = await CityService.citiesByStatePublic({
-          uf: selectedState,
-        });
-        if (citiesRes.status === 200) setcitiesByState(citiesRes.data);
-      } catch (error) {
-        console.error("Erro ao buscar cidades ou profissões:", error);
-      }
-    };
-
-    fetchData();
-  }, [selectedState]);
-
-  const handleRequestQuote = async (
+  const openQuoteForm = (
     professional: IProfissional | null = null,
     bulk = false
   ) => {
-    // if (localStorage.getItem("id") != null) {
-    setSelectedProfessional(professional as IProfissional | null);
+    setSelectedProfessional(professional);
     setIsBulkRequest(bulk);
-    // setShowLGPDTerms(true);
-    // const result = await ClientService.getClientbyID(
-    //   parseInt(localStorage.getItem("id") ?? "0")
-    // );
-    // console.log(result);
-
-    // if ((result.status == 200)) {
-    //   const json = await result.data;
-    //   formData.name = json.nome;
-    //   formData.email = json.email;
-    //   formData.phone = json.telefone;
-    //   formData.clientId = json.oid;
-    // }
-    // setIsClient(true);
-    // } else {
+    setPrivacyAccepted(false);
     setShowProfessionalSearch(false);
-    // setShowLogin(true);
-    //      setCurrentPage("login");
-    //onNavigate && onNavigate("login");
-  };
-
-  const handleAcceptTerms = () => {
-    setShowLGPDTerms(false);
     setShowContactForm(true);
-    // console.log("Selected_Professionals");
-    // console.log(selectedProfessional);
-    // console.log("------");
   };
 
-  const handleRejectTerms = () => {
-    setShowLGPDTerms(false);
-    setShowErrorMessage(true);
-    setSelectedProfessional(null);
-    setIsBulkRequest(false);
-    setTimeout(() => {
-      setShowErrorMessage(false);
-    }, 3000);
+  const getBudgetCityId = (): number => {
+    if (searchCityId > 0) return searchCityId;
+    if (selectedProfessional?.cidade?.oid) return selectedProfessional.cidade.oid;
+    if (professionals.length > 0 && professionals[0].cidade?.oid) {
+      return professionals[0].cidade.oid;
+    }
+    return 0;
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // console.log("Form submitted:", formData);
-    // console.log(selectedProfessional);
+
+    if (!privacyAccepted) {
+      Swal.fire({
+        position: "center",
+        icon: "warning",
+        title: "Aceite a política de privacidade",
+        text: "É necessário aceitar a política de privacidade para continuar.",
+        showConfirmButton: true,
+      });
+      return;
+    }
+
     let profs: string[];
     if (selectedProfessional == null) {
-      // console.log(professionals);
       profs = professionals.map((prof) => prof.oid.toString());
     } else {
       profs = [selectedProfessional.oid.toString()];
@@ -287,16 +228,13 @@ function SearchResults() {
 
     const budget: IBudget = {
       name: formData.name,
-      email: formData.email,
+      email: "",
       telephone: formData.phone,
-      // clientId: formData.clientId,
       description: formData.message,
-      termResponsabilityAccepted: true,
-      cityId: parseInt(selectedCity),
+      termResponsabilityAccepted: privacyAccepted,
+      cityId: getBudgetCityId(),
       professionalsId: [],
     };
-    // adicionar na lista o id do profissional selecionado
-    //  profs é um array de string, preciso converter para number
     budget.professionalsId = profs.map(Number);
 
     const postReturn = await BudgetService.saveBudget(budget);
@@ -304,22 +242,14 @@ function SearchResults() {
     if (postReturn.status == 200) {
       setShowContactForm(false);
       setShowProfessionalSearch(true);
-      //setShowPhoneNumbers(true);
 
-      // Limpar os campos do formulário após envio bem-sucedido
       setFormData({
         name: "",
-        email: "",
         phone: "",
         message: "",
-        clientId: 0,
-        cityId: 0,
       });
-      setSelectedState("");
-      setSelectedCity("");
-      setcitiesByState([]);
+      setPrivacyAccepted(false);
 
-      // Mostrar mensagem de sucesso com SweetAlert2
       Swal.fire({
         position: "center",
         icon: "success",
@@ -349,13 +279,6 @@ function SearchResults() {
     }));
   };
 
-    const cityOptions = citiesByState.map(
-    (city: ICitySearchProfessionals) => ({
-      value: city.id,
-      label: city.name,
-    })
-  );
-
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <Navigation
@@ -366,138 +289,6 @@ function SearchResults() {
           throw new Error("Function not implemented.");
         }}
       />
-      {/* Success Message - Removido pois agora usa SweetAlert2 */}
-      {/* Error Message */}
-      {showErrorMessage && (
-        <div className="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up">
-          <div className="flex items-center gap-2">
-            <Info className="w-5 h-5" />
-            <p>
-              É necessário aceitar os termos para prosseguir com a solicitação.
-            </p>
-          </div>
-        </div>
-      )}
-      {/* LGPD Terms Modal */}
-      {/* {showLogin && (
-        /*
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <button
-                onClick={() => {
-                  setShowLogin(false);
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <Login onNavigate="home"></Login>
-            </div>
-          </div>
-        </div>
-
-        // <Login onNavigate={setCurrentPage}></Login>
-      )} 
-      */}
-      {/* LGPD Terms Modal */}
-      {showLGPDTerms && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold text-gray-900">
-                  Termo de Responsabilidade e Isenção de Responsabilidade por
-                  Dados Fornecidos - LGPD
-                </h3>
-                <button
-                  onClick={handleRejectTerms}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="prose prose-sm max-w-none text-gray-600 space-y-4">
-                <p>
-                  Por favor, leia atentamente o seguinte termo antes de
-                  prosseguir:
-                </p>
-
-                <p>
-                  Eu, o Cliente, ao utilizar os serviços fornecidos pela plataforma digital HASSIS CONECTA, reconheço e concordo com os termos e condições estabelecidos neste documento.
-                </p>
-
-                <h4 className="font-semibold text-gray-900">
-                  Responsabilidade pelos Dados Fornecidos:
-                </h4>
-                <p>
-                  Eu reconheço e concordo que sou totalmente responsável por quaisquer dados pessoais, informações ou conteúdos que eu solicite, receba ou de qualquer forma obtenha através da plataforma HASSIS CONECTA.
-                </p>
-
-                <h4 className="font-semibold text-gray-900">
-                  Isenção de Responsabilidade da Plataforma:
-                </h4>
-                <p>
-                  A responsabilidade pela proteção e tratamento adequado dos
-                  dados pessoais é exclusivamente do Cliente.
-                </p>
-
-                <h4 className="font-semibold text-gray-900">
-                  Finalidade e Consentimento:
-                </h4>
-                <p>
-                  Eu reconheço que a HASSIS CONECTA pode coletar, armazenar e utilizar meus dados pessoais conforme necessário para a prestação de serviços ou cumprimento de obrigações contratuais, desde que em conformidade com as disposições da LGPD e mediante consentimento explícito do titular dos dados, quando aplicável.
-                </p>
-
-                <h4 className="font-semibold text-gray-900">
-                  Segurança dos Dados:
-                </h4>
-                <p>
-                  A HASSIS CONECTA adota medidas técnicas e organizacionais adequadas para proteger os dados pessoais contra acesso não autorizado, uso indevido, divulgação, alteração e destruição não autorizados, em conformidade com as disposições da LGPD.
-                </p>
-
-                <h4 className="font-semibold text-gray-900">
-                  Direitos dos Titulares dos Dados:
-                </h4>
-                <p>
-                  Eu reconheço e concordo em respeitar os direitos dos titulares dos dados, conforme previsto na LGPD, incluindo o direito de acesso, retificação, exclusão, anonimização, portabilidade e revogação do consentimento.
-                </p>
-
-                <h4 className="font-semibold text-gray-900">Indenização:</h4>
-                <p>
-                  Eu concordo em indenizar e isentar a HASSIS CONECTA, seus diretores, funcionários e agentes de qualquer responsabilidade, perda, reclamação ou despesa (incluindo honorários advocatícios razoáveis) decorrentes ou relacionados com o tratamento de dados pessoais pelo Cliente ou com o uso da plataforma.
-                </p>
-
-                <p>
-                  Ao clicar no botão "Concordo", eu confirmo que li, entendi e concordo com os termos e condições estabelecidos neste Termo de Responsabilidade e Isenção de Responsabilidade por Dados Fornecidos.
-                </p>
-              </div>
-
-              <div className="mt-6 flex justify-end gap-4">
-                <button
-                  onClick={handleRejectTerms}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-900"
-                >
-                  Recusar
-                </button>
-                <button
-                  onClick={() => {
-                    handleRequestQuote(
-                      selectedProfessional,
-                      selectedProfessional == null
-                    );
-                    handleAcceptTerms();
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Concordo
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Contact Form Modal */}
       {showContactForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -574,28 +365,6 @@ function SearchResults() {
 
                 <div>
                   <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Email
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      // disabled={isClient}
-                      required
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
                     htmlFor="phone"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
@@ -618,74 +387,11 @@ function SearchResults() {
                 </div>
 
                 <div>
-                  {/* Estado */}
-                  <div>
-                    <label
-                      htmlFor="state"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Estado
-                    </label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <select
-                        id="state"
-                        value={selectedState}
-                        onChange={(e) => setSelectedState(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white mb-4"
-                      >
-                        <option value="">Selecione o estado</option>
-                        {states.map((state) => (
-                          <option key={state.id} value={state.id}>
-                            {state.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Cidade */}
-                  <div>
-                    <label
-                      htmlFor="city"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Cidade
-                    </label>
-                    <div className="relative">
-                       <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5 z-10" />
-                      <Select
-                          options={cityOptions}
-                          value={
-                            cityOptions.find(
-                              (option) => option.value.toString() === selectedCity
-                            ) || null
-                          }
-                          onChange={(selectedOption) =>
-                            setSelectedCity(selectedOption?.value.toString() || "")
-                          }
-                          isDisabled={!selectedState}
-                          placeholder="Digite ou selecione a cidade"
-                          isSearchable
-                          className="text-sm"
-                          styles={{
-                            control: (base) => ({
-                              ...base,
-                              minHeight: "42px",
-                              paddingLeft: "30px",
-                            }),
-                          }}
-                        />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
                   <label
                     htmlFor="message"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Descreva com detalhes o serviço
+                    Descrição do orçamento
                   </label>
                   <div className="relative">
                     <MessageSquare className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
@@ -702,11 +408,17 @@ function SearchResults() {
                   </div>
                 </div>
 
+                <PrivacyPolicyCheckbox
+                  checked={privacyAccepted}
+                  onChange={setPrivacyAccepted}
+                />
+
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={!privacyAccepted}
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  Enviar Mensagem
+                  Solicitar Orçamento
                 </button>
               </form>
             </div>
@@ -755,11 +467,7 @@ function SearchResults() {
                 </div>
               </div> */}
               <button
-                onClick={() => {
-                  setSelectedProfessional(null);
-                  setIsBulkRequest(true);
-                  setShowLGPDTerms(true);
-                }}
+                onClick={() => openQuoteForm(null, true)}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors whitespace-nowrap shadow-sm"
               >
                 <Send className="w-5 h-5" />
@@ -850,10 +558,7 @@ function SearchResults() {
 
                     {/* Botão Solicitar Orçamento - Desktop */}
                     <button
-                      onClick={() => {
-                        setShowLGPDTerms(true);
-                        setSelectedProfessional(professional);
-                      }}
+                      onClick={() => openQuoteForm(professional, false)}
                       className={`hidden sm:flex items-center self-start ${
                         professional.isPremium
                           ? "bg-[#FF6B35] hover:bg-[#E55A2B]"
@@ -868,10 +573,7 @@ function SearchResults() {
                 {/* Botão Solicitar Orçamento - Mobile */}
                 <div className="sm:hidden mt-1">
                   <button
-                    onClick={() => {
-                      setShowLGPDTerms(true);
-                      setSelectedProfessional(professional);
-                    }}
+                    onClick={() => openQuoteForm(professional, false)}
                     className={`w-44 ${
                       professional.isPremium
                         ? "bg-[#FF6B35] hover:bg-[#E55A2B]"
@@ -1076,8 +778,7 @@ function SearchResults() {
                   onClick={() => {
                     setModalInfoProfissional(false);
                     setShowExpandedImage(false);
-                    setShowLGPDTerms(true);
-                    setSelectedProfessional(selectedProfessional);
+                    openQuoteForm(selectedProfessional, false);
                   }}
                   className={`${
                     selectedProfessional.telefone &&
