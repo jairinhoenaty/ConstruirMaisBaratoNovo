@@ -22,6 +22,11 @@ import { ProfessionalService } from "../services/ProfessionalService";
 import { useLocation, useNavigate } from "react-router-dom";
 import PrivacyPolicyCheckbox from "../components/PrivacyPolicyCheckbox";
 import {
+  BUDGET_FORM_DRAFT_KEYS,
+  clearBudgetFormDraft,
+  loadBudgetFormDraft,
+} from "../utils/budgetFormDraft";
+import {
   IBudget,
   IProfissional,
 } from "../interfaces";
@@ -42,6 +47,13 @@ interface FormData {
   name: string;
   phone: string;
   message: string;
+}
+
+interface SearchResultsFormDraft {
+  formData: FormData;
+  privacyAccepted: boolean;
+  isBulkRequest: boolean;
+  selectedProfessionalOid: number | null;
 }
 
 // interface SearchResultsProps {
@@ -185,6 +197,42 @@ function SearchResults() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (
+      location.state?.restoreFormDraft !==
+      BUDGET_FORM_DRAFT_KEYS.searchResults
+    ) {
+      return;
+    }
+
+    const draft = loadBudgetFormDraft<SearchResultsFormDraft>(
+      BUDGET_FORM_DRAFT_KEYS.searchResults
+    );
+    if (!draft) return;
+
+    setFormData(draft.formData);
+    setPrivacyAccepted(draft.privacyAccepted);
+    setIsBulkRequest(draft.isBulkRequest);
+    setShowContactForm(true);
+    setShowProfessionalSearch(false);
+
+    if (draft.selectedProfessionalOid && professionals.length > 0) {
+      const professional = professionals.find(
+        (item) => item.oid === draft.selectedProfessionalOid
+      );
+      setSelectedProfessional(professional ?? null);
+    } else {
+      setSelectedProfessional(null);
+    }
+
+    const { restoreFormDraft: _, ...preservedState } =
+      (location.state as Record<string, unknown>) ?? {};
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: preservedState,
+    });
+  }, [location.state?.restoreFormDraft, professionals, location.pathname, location.search, navigate]);
+
   const openQuoteForm = (
     professional: IProfissional | null = null,
     bulk = false
@@ -240,6 +288,7 @@ function SearchResults() {
     const postReturn = await BudgetService.saveBudget(budget);
 
     if (postReturn.status == 200) {
+      clearBudgetFormDraft(BUDGET_FORM_DRAFT_KEYS.searchResults);
       setShowContactForm(false);
       setShowProfessionalSearch(true);
 
@@ -411,6 +460,13 @@ function SearchResults() {
                 <PrivacyPolicyCheckbox
                   checked={privacyAccepted}
                   onChange={setPrivacyAccepted}
+                  formDraftKey={BUDGET_FORM_DRAFT_KEYS.searchResults}
+                  getFormDraft={() => ({
+                    formData,
+                    privacyAccepted,
+                    isBulkRequest,
+                    selectedProfessionalOid: selectedProfessional?.oid ?? null,
+                  })}
                 />
 
                 <button

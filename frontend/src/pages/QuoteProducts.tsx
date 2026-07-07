@@ -15,7 +15,7 @@ import { BannerService } from "../services/BannerService";
 import InputMask from "react-input-mask";
 import { ProductCategoryService, RegionService } from "../services";
 import { StoreService } from "../services/StoreService";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Select from "react-select";
 import {
   IBannerSearchProfessionals,
@@ -29,6 +29,11 @@ import Swal from "sweetalert2";
 import { BudgetService } from "../services/Budget";
 import { ArrowLeft } from "lucide-react";
 import PrivacyPolicyCheckbox from "../components/PrivacyPolicyCheckbox";
+import {
+  BUDGET_FORM_DRAFT_KEYS,
+  clearBudgetFormDraft,
+  loadBudgetFormDraft,
+} from "../utils/budgetFormDraft";
 
 interface SearchProductsProps {
   onNavigate?: (page: string) => void;
@@ -37,6 +42,15 @@ interface FormData {
   name: string;
   phone: string;
   message: string;
+}
+
+interface QuoteProductsFormDraft {
+  formData: FormData;
+  privacyAccepted: boolean;
+  selectedState: string;
+  selectedCity: string;
+  selectedCategoryProduct: string;
+  selectedSubcategories: number[];
 }
 
 // URL_IMAGES_WEB do .env
@@ -68,6 +82,7 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
   const [imageModal, setImageModal] =
     useState<IBannerSearchProfessionals | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Função para gerar número aleatório
   const gerarNumeroAleatorio = (min: number, max: number): number => {
@@ -136,6 +151,39 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
     fetchData();
   }, [selectedState]);
 
+  useEffect(() => {
+    if (
+      location.state?.restoreFormDraft !==
+      BUDGET_FORM_DRAFT_KEYS.quoteProducts
+    ) {
+      return;
+    }
+
+    const draft = loadBudgetFormDraft<QuoteProductsFormDraft>(
+      BUDGET_FORM_DRAFT_KEYS.quoteProducts
+    );
+    if (!draft) return;
+
+    setFormData(draft.formData);
+    setPrivacyAccepted(draft.privacyAccepted);
+    setSelectedState(draft.selectedState);
+    setSelectedCity(draft.selectedCity);
+    setSelectedCategoryProduct(draft.selectedCategoryProduct);
+    setSelectedSubcategories(draft.selectedSubcategories);
+
+    const { restoreFormDraft: _, ...preservedState } =
+      (location.state as Record<string, unknown>) ?? {};
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: preservedState,
+    });
+  }, [
+    location.state?.restoreFormDraft,
+    location.pathname,
+    location.search,
+    navigate,
+  ]);
+
   // Limpa subcategorias selecionadas quando mudar a categoria
   useEffect(() => {
     setSelectedSubcategories([]);
@@ -169,6 +217,7 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
   };
   
   const cleanForm = () => {
+    clearBudgetFormDraft(BUDGET_FORM_DRAFT_KEYS.quoteProducts);
     setFormData({
       name: "",
       phone: "",
@@ -723,6 +772,15 @@ function QuoteProducts({ onNavigate }: SearchProductsProps) {
                 <PrivacyPolicyCheckbox
                   checked={privacyAccepted}
                   onChange={setPrivacyAccepted}
+                  formDraftKey={BUDGET_FORM_DRAFT_KEYS.quoteProducts}
+                  getFormDraft={() => ({
+                    formData,
+                    privacyAccepted,
+                    selectedState,
+                    selectedCity,
+                    selectedCategoryProduct,
+                    selectedSubcategories,
+                  })}
                 />
 
                 <button

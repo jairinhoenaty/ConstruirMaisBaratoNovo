@@ -1,19 +1,48 @@
-import { Link } from "react-router-dom"
-import type { ChangeEvent } from "react"
+import type { ChangeEvent, MouseEvent } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
+import {
+  BudgetFormDraftKey,
+  saveBudgetFormDraft,
+} from "../utils/budgetFormDraft"
 
 interface PrivacyPolicyCheckboxProps {
   checked: boolean
   onChange: (checked: boolean) => void
   id?: string
+  formDraftKey?: BudgetFormDraftKey
+  getFormDraft?: () => Record<string, unknown>
 }
 
 function PrivacyPolicyCheckbox({
   checked,
   onChange,
   id = "privacy-policy-accept",
+  formDraftKey,
+  getFormDraft,
 }: PrivacyPolicyCheckboxProps) {
+  const navigate = useNavigate()
+  const location = useLocation()
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.checked)
+  }
+
+  const handlePrivacyClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (formDraftKey && getFormDraft) {
+      saveBudgetFormDraft(formDraftKey, getFormDraft())
+    }
+
+    navigate("/privacy", {
+      state: {
+        returnTo: `${location.pathname}${location.search}`,
+        returnLabel: "Voltar ao formulário",
+        formDraftKey,
+        returnState: location.state,
+      },
+    })
   }
 
   return (
@@ -32,14 +61,13 @@ function PrivacyPolicyCheckbox({
       />
       <span>
         Li e concordo com a{" "}
-        <Link
-          to="/privacy"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={handlePrivacyClick}
           className="text-blue-600 hover:text-blue-800 underline"
         >
           Política de Privacidade
-        </Link>
+        </button>
       </span>
     </label>
   )
