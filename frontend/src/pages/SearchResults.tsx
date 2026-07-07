@@ -54,6 +54,7 @@ interface SearchResultsFormDraft {
   privacyAccepted: boolean;
   isBulkRequest: boolean;
   selectedProfessionalOid: number | null;
+  professionalLabel: string | null;
 }
 
 // interface SearchResultsProps {
@@ -94,6 +95,9 @@ function SearchResults() {
   const [showContactForm, setShowContactForm] = useState(false);
   const [showProfessionalSearch, setShowProfessionalSearch] = useState(true);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [restoredProfessionalLabel, setRestoredProfessionalLabel] = useState<
+    string | null
+  >(null);
   const [searchCityId, setSearchCityId] = useState<number>(0);
   const [selectedProfessional, setSelectedProfessional] =
     useState<IProfissional | null>(null);
@@ -197,6 +201,35 @@ function SearchResults() {
     fetchData();
   }, []);
 
+  const clearRestoreNavigationState = () => {
+    const { restoreFormDraft: _, ...preservedState } =
+      (location.state as Record<string, unknown>) ?? {};
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: preservedState,
+    });
+  };
+
+  const getProfessionalLabel = (
+    professional: IProfissional | null
+  ): string | null => {
+    if (!professional) return null;
+    if (professional.nome) return professional.nome;
+    const cityName = professional.cidade?.nome;
+    const cityUf = professional.cidade?.uf;
+    if (cityName && cityUf) return `${cityName}, ${cityUf}`;
+    return null;
+  };
+
+  const getContactFormSubtitle = (): string => {
+    if (isBulkRequest) {
+      return `Enviar para ${professionals.length} profissionais`;
+    }
+    const label = getProfessionalLabel(selectedProfessional);
+    if (label) return label;
+    return restoredProfessionalLabel ?? "";
+  };
+
   useEffect(() => {
     if (
       location.state?.restoreFormDraft !==
@@ -213,25 +246,34 @@ function SearchResults() {
     setFormData(draft.formData);
     setPrivacyAccepted(draft.privacyAccepted);
     setIsBulkRequest(draft.isBulkRequest);
+    setRestoredProfessionalLabel(draft.professionalLabel);
     setShowContactForm(true);
     setShowProfessionalSearch(false);
+
+    if (draft.isBulkRequest) {
+      setSelectedProfessional(null);
+      clearRestoreNavigationState();
+      return;
+    }
+
+    if (draft.selectedProfessionalOid && professionals.length === 0) {
+      return;
+    }
 
     if (draft.selectedProfessionalOid && professionals.length > 0) {
       const professional = professionals.find(
         (item) => item.oid === draft.selectedProfessionalOid
       );
       setSelectedProfessional(professional ?? null);
+      if (professional) {
+        setRestoredProfessionalLabel(getProfessionalLabel(professional));
+      }
     } else {
       setSelectedProfessional(null);
     }
 
-    const { restoreFormDraft: _, ...preservedState } =
-      (location.state as Record<string, unknown>) ?? {};
-    navigate(`${location.pathname}${location.search}`, {
-      replace: true,
-      state: preservedState,
-    });
-  }, [location.state?.restoreFormDraft, professionals, location.pathname, location.search, navigate]);
+    clearRestoreNavigationState();
+  }, [location.state?.restoreFormDraft, professionals]);
 
   const openQuoteForm = (
     professional: IProfissional | null = null,
@@ -240,6 +282,7 @@ function SearchResults() {
     setSelectedProfessional(professional);
     setIsBulkRequest(bulk);
     setPrivacyAccepted(false);
+    setRestoredProfessionalLabel(null);
     setShowProfessionalSearch(false);
     setShowContactForm(true);
   };
@@ -298,6 +341,7 @@ function SearchResults() {
         message: "",
       });
       setPrivacyAccepted(false);
+      setRestoredProfessionalLabel(null);
 
       Swal.fire({
         position: "center",
@@ -367,11 +411,7 @@ function SearchResults() {
                       Solicitar Orçamento
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {isBulkRequest
-                        ? `Enviar para ${professionals.length} profissionais`
-                        : selectedProfessional && selectedProfessional.nome
-                        ? `${selectedProfessional.nome}`
-                        : `${selectedProfessional?.cidade.nome}, ${selectedProfessional?.cidade.uf}`}
+                      {getContactFormSubtitle()}
                     </p>
                   </div>
                 </div>
@@ -466,6 +506,9 @@ function SearchResults() {
                     privacyAccepted,
                     isBulkRequest,
                     selectedProfessionalOid: selectedProfessional?.oid ?? null,
+                    professionalLabel: isBulkRequest
+                      ? null
+                      : getProfessionalLabel(selectedProfessional),
                   })}
                 />
 
