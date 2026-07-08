@@ -30,6 +30,7 @@ import LoadingText from "../components/LoadingText";
 import DashboardProfessions from "./DashboardProfissions";
 import DashboardRegions from "./DashboardRegions";
 import ProductCategoriesAdmin from "./ProductCategoriesAdmin";
+import DashboardPageViews from "./DashboardPageViews";
 
 function Dashboard() {
 
@@ -206,6 +207,7 @@ function Dashboard() {
     { id: "professions", label: "Profissões" },
     { id: "regions", label: "Regiões" },
     { id: "categoryProducts", label: "Categorias de produtos" },
+    { id: "pageViews", label: "Acessos às Páginas" },
   ];
 
   const renderDashboard = () => {
@@ -775,6 +777,7 @@ function Dashboard() {
             {selectedDashboardSection === "categoryProducts" && (
               <ProductCategoriesAdmin />
             )}
+            {selectedDashboardSection === "pageViews" && <DashboardPageViews />}
           </div>
         </div>
       </>
