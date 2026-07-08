@@ -2,6 +2,13 @@ import { useEffect, useState } from "react"
 import { BarChart3 } from "lucide-react"
 import { IPageView, PageViewService } from "../services/PageViewService"
 
+const formatViewDate = (viewDate: string): string => {
+  if (!viewDate) return "-"
+  const [year, month, day] = viewDate.split("-")
+  if (!year || !month || !day) return viewDate
+  return `${day}/${month}/${year}`
+}
+
 function DashboardPageViews() {
   const [pageViews, setPageViews] = useState<IPageView[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -11,7 +18,12 @@ function DashboardPageViews() {
       try {
         const response = await PageViewService.getPageViews()
         if (response.status === 200) {
-          const sorted = [...response.data].sort((a, b) => b.count - a.count)
+          const sorted = [...response.data].sort((a, b) => {
+            if (a.viewDate !== b.viewDate) {
+              return b.viewDate.localeCompare(a.viewDate)
+            }
+            return b.count - a.count
+          })
           setPageViews(sorted)
         }
       } catch (error) {
@@ -39,8 +51,8 @@ function DashboardPageViews() {
             Acessos por Página
           </h3>
           <p className="text-sm text-gray-600">
-            Páginas com mais visitas podem indicar gargalos ou oportunidades.
-            Acessos de admin logado não são contabilizados.
+            Contagem diária por rota. Acessos de admin logado não são
+            contabilizados.
           </p>
         </div>
       </div>
@@ -53,6 +65,9 @@ function DashboardPageViews() {
             <thead className="bg-gray-50">
               <tr className="border-b border-gray-200">
                 <th className="px-4 py-3 text-left font-medium text-gray-500">
+                  Data
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">
                   Página
                 </th>
                 <th className="px-4 py-3 text-right font-medium text-gray-500">
@@ -63,6 +78,9 @@ function DashboardPageViews() {
             <tbody>
               {pageViews.map((pageView) => (
                 <tr key={pageView.id} className="border-b border-gray-100">
+                  <td className="px-4 py-3 text-gray-700">
+                    {formatViewDate(pageView.viewDate)}
+                  </td>
                   <td className="px-4 py-3 text-gray-900 font-mono">
                     {pageView.path}
                   </td>

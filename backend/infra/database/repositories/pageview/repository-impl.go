@@ -2,6 +2,7 @@ package pageview_repository_impl
 
 import (
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -18,13 +19,20 @@ func NewPageViewRepositoryImpl(db *gorm.DB) pkgpageview.PageViewRepository {
 	}
 }
 
+func getTodayDate() time.Time {
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+}
+
 func (r *repository) Increment(path string) (*pkgpageview.PageView, error) {
+	viewDate := getTodayDate()
 	var pageView pkgpageview.PageView
-	err := r.DB.Where("path = ?", path).First(&pageView).Error
+	err := r.DB.Where("path = ? AND view_date = ?", path, viewDate).First(&pageView).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		pageView = pkgpageview.PageView{
-			Path:  path,
-			Count: 1,
+			Path:     path,
+			ViewDate: viewDate,
+			Count:    1,
 		}
 		if createErr := r.DB.Create(&pageView).Error; createErr != nil {
 			return nil, createErr
@@ -43,7 +51,7 @@ func (r *repository) Increment(path string) (*pkgpageview.PageView, error) {
 
 func (r *repository) FindAll() ([]*pkgpageview.PageView, error) {
 	var pageViews []*pkgpageview.PageView
-	if err := r.DB.Order("count desc").Find(&pageViews).Error; err != nil {
+	if err := r.DB.Order("view_date desc, count desc").Find(&pageViews).Error; err != nil {
 		return nil, err
 	}
 	return pageViews, nil
