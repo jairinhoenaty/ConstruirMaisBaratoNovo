@@ -4,6 +4,7 @@ import ApiPublica from "../providers/ApiPublica"
 export interface IPageView {
   id: number
   path: string
+  viewDate: string
   count: number
 }
 
