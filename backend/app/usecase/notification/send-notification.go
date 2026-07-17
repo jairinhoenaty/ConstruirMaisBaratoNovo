@@ -55,8 +55,18 @@ func (uc *SendAppNotificationUC) Execute() error {
 		Tokens: tokens,
 		Android: &messaging.AndroidConfig{
 			Notification: &messaging.AndroidNotification{
-				ChannelID: "firebase_channel",
-				Priority:  messaging.PriorityHigh,
+				// Canal com som personalizado criado no app (ver main.dart).
+				ChannelID: "professional_alert_channel",
+				// Nome do recurso em android/app/src/main/res/raw (sem extensão).
+				Sound:    "notification_sound",
+				Priority: messaging.PriorityHigh,
+			},
+		},
+		APNS: &messaging.APNSConfig{
+			Payload: &messaging.APNSPayload{
+				Aps: &messaging.Aps{
+					Sound: "notification_sound.aiff",
+				},
 			},
 		},
 		Notification: &messaging.Notification{
