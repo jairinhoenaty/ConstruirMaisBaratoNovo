@@ -55,8 +55,7 @@ func (uc *SendAppNotificationUC) Execute() error {
 		Tokens: tokens,
 		Android: &messaging.AndroidConfig{
 			Notification: &messaging.AndroidNotification{
-				// Canal com som personalizado criado no app (ver main.dart).
-				ChannelID: "professional_alert_channel",
+				ChannelID: "professional_alert_channel_v2",
 				// Nome do recurso em android/app/src/main/res/raw (sem extensão).
 				Sound:    "notification_sound",
 				Priority: messaging.PriorityHigh,
