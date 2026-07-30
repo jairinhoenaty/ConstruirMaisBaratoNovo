@@ -42,6 +42,7 @@ type PublicController struct {
 	FindDayofferProductUCParams                         pkgproductuc.FindDayofferProductUCParams
 	FindAllProductUCParams                              pkgproductuc.FindAllProductUCParams
 	FindByUFUCParams                                    pkgcityuc.FindByUFUCParams
+	SearchCityByNameUCParams                            pkgcityuc.SearchCityByNameUCParams
 	FindRegionByCityIdUCParams                          pkgregionuc.FindByCityUCParams
 	SaveBudgetUCParams                                  pkgbudgetuc.SaveBudgetUCParams
 	UserSendEmailUCParams                               pkguseruc.UserSendEmailUCParams
@@ -74,6 +75,7 @@ type PublicControllerParams struct {
 	FindRegionByCityIdUCParams                          pkgregionuc.FindByCityUCParams
 	FindAllProductUCParams                              pkgproductuc.FindAllProductUCParams
 	FindByUFUCParams                                    pkgcityuc.FindByUFUCParams
+	SearchCityByNameUCParams                            pkgcityuc.SearchCityByNameUCParams
 	SaveBudgetUCParams                                  pkgbudgetuc.SaveBudgetUCParams
 	UserSendEmailUCParams                               pkguseruc.UserSendEmailUCParams
 	ResetPasswordUCParams                               pkguseruc.ResetPasswordUCParams
@@ -105,6 +107,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 		FindRegionByCityIdUCParams:                          params.FindRegionByCityIdUCParams,
 		FindAllProductUCParams:                              params.FindAllProductUCParams,
 		FindByUFUCParams:                                    params.FindByUFUCParams,
+		SearchCityByNameUCParams:                            params.SearchCityByNameUCParams,
 		SaveBudgetUCParams:                                  params.SaveBudgetUCParams,
 		UserSendEmailUCParams:                               params.UserSendEmailUCParams,
 		ResetPasswordUCParams:                               params.ResetPasswordUCParams,
@@ -135,6 +138,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.GET("/professions/all", controller.FindProfessionAll)
 	g.POST("/save/professional", controller.SaveProfessional)
 	g.POST("/cities-by-state", controller.PublicFindCitiesByState)
+	g.GET("/cities/search", controller.PublicSearchCities)
 	g.GET("/professions/:quantityProfession", controller.FindProfessions)
 	g.POST("/find/professions-with-count", controller.FindProfessionsWithCount)
 	g.POST("/find-banner-city-and-profession", controller.FindByCityAndProfession)
@@ -440,6 +444,24 @@ func (c *PublicController) PublicFindCitiesByState(ctx echo.Context) error {
 	}
 
 	usecase := pkgcityuc.NewFindByUFUC(c.FindByUFUCParams)
+	usecase.Assembler = &assembler
+	cities, err := usecase.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusPreconditionFailed, nil)
+	}
+	return ctx.JSON(http.StatusOK, cities)
+}
+
+// PublicSearchCities alimenta o autocomplete de cidades do site.
+// Ex.: GET /publica/cities/search?q=sao&limit=8
+func (c *PublicController) PublicSearchCities(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+	assembler := pkgcityuc.SearchCityAssembler{}
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusPreconditionFailed, err)
+	}
+
+	usecase := pkgcityuc.NewSearchCityByNameUC(c.SearchCityByNameUCParams)
 	usecase.Assembler = &assembler
 	cities, err := usecase.Execute()
 	if err != nil {

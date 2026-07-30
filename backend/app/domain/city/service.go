@@ -4,6 +4,7 @@ type CityService interface {
 	FindAll() ([]*City, error)
 	FindById(id uint) (*City, error)
 	FindByUF(uf string) ([]*City, error)
+	SearchByName(term string, limit int) ([]*City, error)
 	Save(City City) (*City, error)
 	Remove(id uint) error
 }
@@ -35,6 +36,14 @@ func (s *cityService) FindById(id uint) (*City, error) {
 
 func (s *cityService) FindByUF(uf string) ([]*City, error) {
 	cities, err := s.repository.FindByUF(uf)
+	if err != nil {
+		return nil, err
+	}
+	return cities, nil
+}
+
+func (s *cityService) SearchByName(term string, limit int) ([]*City, error) {
+	cities, err := s.repository.SearchByName(term, limit)
 	if err != nil {
 		return nil, err
 	}

@@ -723,6 +723,10 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		Service: dependency.CityService,
 	}
 
+	searchCityByNameUCParams := pkgcityuc.SearchCityByNameUCParams{
+		Service: dependency.CityService,
+	}
+
 	findByProfessionalByCityAndProfessionUCParamns := pkgprofessionaluc.FindByProfessionalByCityAndProfessionUCParamns{
 		Service: dependency.ProfessionalService,
 	}
@@ -809,6 +813,7 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		FindAllProductUCParams:                              findAllProductsUCParams,
 		FindDayofferProductUCParams:                         findDayOfferProductsUCParams,
 		FindByUFUCParams:                                    findByUFUCParams,
+		SearchCityByNameUCParams:                            searchCityByNameUCParams,
 		SaveBudgetUCParams:                                  saveBudgetUCParams,
 		UserSendEmailUCParams:                               userSendEmailUCParams,
 		ResetPasswordUCParams:                               resetPasswordUCParams,
