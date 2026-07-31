@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Building2, MapPin, HardHat } from "lucide-react";
-import { states } from "../data";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { MapPin, HardHat } from "lucide-react";
 import { CityService } from "../services/CityService";
 import { ProfessionalService } from "../services/ProfessionalService";
 import { ProfessionService } from "../services/ProfessionService";
-import { BannerService } from "../services/BannerService";
-import { RegionService } from "../services";
 import { useNavigate } from "react-router-dom";
-import Select from "react-select";
-import {
-  IBannerSearchProfessionals,
-  ICitySearchProfessionals,
-  IProfissional,
-} from "../interfaces";
+import AsyncSelect from "react-select/async";
+import { ICitySearchProfessionals, IProfissional } from "../interfaces";
 import { IProfessionSearchProfessionals } from "../interfaces/IProfession";
 import { ArrowLeft } from "lucide-react";
 
@@ -20,127 +13,50 @@ interface SearchProfessionalsProps {
   onNavigate?: (page: string) => void;
 }
 
-// URL_IMAGES_WEB do .env
-const URL_IMAGES_WEB = import.meta.env.VITE_URL_IMAGES_WEB;
+interface CityOption {
+  value: number;
+  label: string;
+}
+
+// Minimo de caracteres e intervalo de espera antes de consultar o backend.
+const CITY_SEARCH_MIN_LENGTH = 2;
+const CITY_SEARCH_DEBOUNCE_MS = 400;
 
 function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
-  const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedCityOption, setSelectedCityOption] =
+    useState<CityOption | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<string>("");
-  const [citiesByState, setcitiesByState] = useState<
-    ICitySearchProfessionals[]
-  >([]);
   const [professionals, setProfessionals] = useState<IProfissional[]>([]);
   const [professions, setProfessions] = useState<
     IProfessionSearchProfessionals[]
   >([]);
-  const [showModal, setShowModal] = useState(false);
-  const [imageModal, setImageModal] =
-    useState<IBannerSearchProfessionals | null>(null);
   const navigate = useNavigate();
+  const cityDebounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const cityAbortRef = useRef<AbortController>();
 
-  // Função para gerar número aleatório
-  const gerarNumeroAleatorio = (min: number, max: number): number => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
-  // Função para construir URL da imagem
-  function getImageUrl(encodedPath: string) {
-    try {
-      if (!encodedPath || encodedPath.trim() === "") return "";
-
-      // decodifica o Base64 para obter o path real
-      const decodedPath = atob(encodedPath); // ex: "/images/upload/upload-3341225764.png"
-
-      if (!decodedPath || decodedPath.trim() === "") return "";
-
-      const baseUrl = URL_IMAGES_WEB?.replace(/\/$/, ""); // remove barra final
-
-      if (!baseUrl) return "";
-
-      return `${baseUrl}${
-        decodedPath.startsWith("/") ? "" : "/"
-      }${decodedPath}`;
-    } catch (error) {
-      console.error("Erro ao decodificar path da imagem:", error);
-      return "";
-    }
-  }
-
-  // Função para validar se a imagem existe
-  const validateImageExists = (imageUrl: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (!imageUrl) {
-        resolve(false);
-        return;
-      }
-
-      const img = new Image();
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = imageUrl;
-    });
-  };
-
-  // Busca cidades e profissões ao mudar estado
+  // Busca as profissões ao montar a página. As cidades não são mais carregadas
+  // em lote: vêm do autocomplete conforme o usuário digita.
   useEffect(() => {
-    setSelectedCity("");
-    const fetchData = async () => {
-      if (!selectedState) return;
-
+    const fetchProfessions = async () => {
       try {
-        const citiesRes = await CityService.citiesByStatePublic({
-          uf: selectedState,
-        });
-        if (citiesRes.status === 200) setcitiesByState(citiesRes.data);
-
         const professionsRes = await ProfessionService.getProfessionsPublic();
         if (professionsRes.status === 200) setProfessions(professionsRes.data);
       } catch (error) {
-        console.error("Erro ao buscar cidades ou profissões:", error);
+        console.error("Erro ao buscar profissões:", error);
       }
     };
 
-    fetchData();
-  }, [selectedState]);
+    fetchProfessions();
+  }, []);
 
-  // Função para abrir modal e buscar imagem
-  const handleOpenModal = async () => {
-    if (!selectedCity) return;
-
-    try {
-      const regionRes = await RegionService.getRegionbyCity(
-        parseInt(selectedCity)
-      );
-      if (regionRes.status !== 200) return handleSearch();
-
-      const bannerRes = await BannerService.getBannerByPagePublic({
-        page: "B",
-        cityId: 0,
-        regionId: regionRes.data.id,
-      });
-
-      if (bannerRes.status === 200 && bannerRes.data.length > 0) {
-        const randomIndex = gerarNumeroAleatorio(0, bannerRes.data.length - 1);
-        const selectedBanner = bannerRes.data[randomIndex];
-        const imageUrl = getImageUrl(selectedBanner.image);
-
-        if (imageUrl) {
-          const imageExists = await validateImageExists(imageUrl);
-          if (imageExists) {
-            setShowModal(true);
-            setImageModal(selectedBanner);
-            return;
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao abrir modal:", error);
-    }
-
-    // Default: sempre executa a busca de profissionais se não conseguir mostrar o modal
-    handleSearch();
-  };
+  // Cancela requisições/timers pendentes do autocomplete ao desmontar
+  useEffect(() => {
+    return () => {
+      if (cityDebounceRef.current) clearTimeout(cityDebounceRef.current);
+      cityAbortRef.current?.abort();
+    };
+  }, []);
 
   // Função de busca de profissionais
   const handleSearch = async () => {
@@ -167,43 +83,50 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
     }
   };
 
-  const cityOptions = citiesByState.map(
-  (city: ICitySearchProfessionals) => ({
-    value: city.id,
-    label: city.name,
-  })
-);
+  // Autocomplete de cidades: aguarda o usuário parar de digitar, cancela a
+  // requisição anterior e devolve as sugestões no formato "Cidade - UF".
+  const loadCityOptions = useMemo(
+    () =>
+      (inputValue: string): Promise<CityOption[]> => {
+        const term = inputValue.trim();
+
+        if (cityDebounceRef.current) clearTimeout(cityDebounceRef.current);
+        cityAbortRef.current?.abort();
+
+        if (term.length < CITY_SEARCH_MIN_LENGTH) return Promise.resolve([]);
+
+        return new Promise<CityOption[]>((resolve) => {
+          cityDebounceRef.current = setTimeout(async () => {
+            const controller = new AbortController();
+            cityAbortRef.current = controller;
+
+            try {
+              const response = await CityService.searchCitiesPublic(
+                term,
+                8,
+                controller.signal
+              );
+              resolve(
+                response.data.map((city: ICitySearchProfessionals) => ({
+                  value: city.id,
+                  label: `${city.name} - ${city.uf}`,
+                }))
+              );
+            } catch (error) {
+              // Requisição cancelada por uma digitação mais recente não é erro
+              if (!controller.signal.aborted) {
+                console.error("Erro ao buscar cidades:", error);
+              }
+              resolve([]);
+            }
+          }, CITY_SEARCH_DEBOUNCE_MS);
+        });
+      },
+    []
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-          <div className="relative h-auto max-h-[95vh] rounded-lg overflow-hidden shadow-xl bg-black flex items-center justify-center">
-            <button
-              onClick={() => {
-                setShowModal(false);
-                handleSearch();
-              }}
-              className="absolute top-4 right-4 z-10 text-white text-2xl bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full w-10 h-10 flex items-center justify-center"
-            >
-              ✕
-            </button>
-
-            <img
-              src={getImageUrl(imageModal?.image || "")}
-              alt="Imagem de Construção"
-              onClick={() =>
-                imageModal?.link
-                  ? window.open(imageModal.link, "_blank")
-                  : undefined
-              }
-              className="max-h-full object-contain max-w-[100vw] sm:max-w-[90vw] lg:max-w-[80vw] xl:max-w-[70vw] w-auto sm:h-[95vh] xs:h-auto"
-              style={{ cursor: imageModal ? "pointer" : undefined }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Formulário de seleção */}
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="bg-white rounded-xl shadow-lg p-3">
@@ -219,53 +142,29 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
             Encontrar Profissional
           </h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Estado */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Estado
-              </label>
-              <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <select
-                  value={selectedState}
-                  onChange={(e) => setSelectedState(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
-                >
-                  <option value="">Selecione o estado</option>
-                  {states.map((state) => (
-                    <option key={state.id} value={state.id}>
-                      {state.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Cidade */}
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Cidade
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Select
-                  options={cityOptions}
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                <AsyncSelect
+                  loadOptions={loadCityOptions}
+                  cacheOptions
                   placeholder="Digite sua cidade"
-                  isSearchable
-                  isDisabled={!selectedState}
-                  noOptionsMessage={() => "Cidade não encontrada"}
-                  value={
-                    cityOptions.find(
-                      (option) =>
-                        option.value.toString() === selectedCity
-                    ) || null
+                  loadingMessage={() => "Buscando cidades..."}
+                  noOptionsMessage={({ inputValue }) =>
+                    inputValue.trim().length < CITY_SEARCH_MIN_LENGTH
+                      ? "Digite ao menos 2 letras da cidade"
+                      : "Cidade não encontrada"
                   }
-                  onChange={(selectedOption: any) =>
-                    setSelectedCity(
-                      selectedOption?.value?.toString() || ""
-                    )
-                  }
+                  value={selectedCityOption}
+                  onChange={(option) => {
+                    setSelectedCityOption(option);
+                    setSelectedCity(option ? option.value.toString() : "");
+                  }}
                   className="text-black"
                   styles={{
                     control: (base) => ({
@@ -304,8 +203,8 @@ function SearchProfessionals({ onNavigate }: SearchProfessionalsProps) {
           </div>
 
           <button
-            onClick={handleOpenModal}
-            disabled={!selectedState || !selectedCity || !selectedProfessional}
+            onClick={handleSearch}
+            disabled={!selectedCity || !selectedProfessional}
             className="mt-8 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Buscar Profissionais

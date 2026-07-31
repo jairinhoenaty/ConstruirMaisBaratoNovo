@@ -26,6 +26,11 @@ func (m *MockCityService) FindByUF(uf string) ([]*pkgcity.City, error) {
 	return args.Get(0).([]*pkgcity.City), args.Error(1)
 }
 
+func (m *MockCityService) SearchByName(term string, limit int) ([]*pkgcity.City, error) {
+	args := m.Called(term, limit)
+	return args.Get(0).([]*pkgcity.City), args.Error(1)
+}
+
 func (m *MockCityService) Save(city pkgcity.City) (*pkgcity.City, error) {
 	args := m.Called(city)
 	//fmt.Println(args...)
