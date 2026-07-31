@@ -645,10 +645,10 @@ function SearchResults() {
                           setSelectedProfessional(professional);
                           setModalInfoProfissional(true);
                         }}
-                        className="flex-shrink-0 rounded-lg hover:bg-[#fd7c4c1a] transition-colors"
+                        className="relative flex-shrink-0 rounded-lg hover:bg-[#fd7c4c1a] transition-colors sm:h-16 sm:w-20"
                       >
                         <img
-                          className="h-36 w-3h-36 -mt-3 sm:mt-0 sm:h-14 sm:w-14"
+                          className="h-36 w-36 -mt-3 sm:absolute sm:left-0 sm:top-1/2 sm:mt-0 sm:h-32 sm:w-32 sm:-translate-y-1/2"
                           src="images/saibaMais.png"
                           alt="Saiba Mais"
                         />
@@ -662,7 +662,7 @@ function SearchResults() {
                         professional.isPremium
                           ? "bg-[#FF6B35] hover:bg-[#E55A2B]"
                           : "bg-blue-600 hover:bg-blue-700"
-                      } py-1 px-4 text-white rounded-lg transition-colors whitespace-nowrap h-14`}
+                      } py-1 px-4 text-white rounded-lg transition-colors whitespace-nowrap h-16`}
                     >
                       Solicitar Orçamento
                     </button>
