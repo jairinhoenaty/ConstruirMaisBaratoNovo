@@ -648,7 +648,7 @@ function SearchResults() {
                         className="relative flex-shrink-0 rounded-lg hover:bg-[#fd7c4c1a] transition-colors sm:h-16 sm:w-20"
                       >
                         <img
-                          className="h-36 w-36 -mt-3 sm:absolute sm:left-0 sm:top-1/2 sm:mt-0 sm:h-32 sm:w-32 sm:-translate-y-1/2"
+                          className="h-28 w-28 -mt-3 sm:absolute sm:left-0 sm:top-1/2 sm:mt-0 sm:h-20 sm:w-32 sm:-translate-y-1/2"
                           src="images/saibaMais.png"
                           alt="Saiba Mais"
                         />
