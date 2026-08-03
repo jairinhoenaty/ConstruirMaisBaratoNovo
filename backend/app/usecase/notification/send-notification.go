@@ -74,9 +74,25 @@ func (uc *SendAppNotificationUC) Execute() error {
 		},
 	}
 
-	_, err = client.SendEachForMulticast(ctx, message)
+	response, err := client.SendEachForMulticast(ctx, message)
 	if err != nil {
 		return fmt.Errorf("erro ao enviar notificações FCM: %w", err)
+	}
+
+	// SendEachForMulticast só devolve erro em falha global. Token inválido ou
+	// já descadastrado vem como falha individual dentro do BatchResponse — sem
+	// isto, um aparelho parava de receber notificações sem deixar rastro.
+	if response != nil && response.FailureCount > 0 {
+		for i, r := range response.Responses {
+			if r.Success || i >= len(tokens) {
+				continue
+			}
+			token := tokens[i]
+			if len(token) > 12 {
+				token = token[:12] + "..."
+			}
+			fmt.Printf("FCM: falha ao entregar para o token %s: %v\n", token, r.Error)
+		}
 	}
 
 	return nil
