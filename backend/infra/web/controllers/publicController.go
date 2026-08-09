@@ -14,6 +14,7 @@ import (
 	pkgprofessionuc "construir_mais_barato/app/usecase/profession"
 	pkgprofessionaluc "construir_mais_barato/app/usecase/professional"
 	pkgregionuc "construir_mais_barato/app/usecase/region"
+	pkgsolicitationuc "construir_mais_barato/app/usecase/solicitation"
 	pkgstoreuc "construir_mais_barato/app/usecase/store"
 	pkguseruc "construir_mais_barato/app/usecase/user"
 	"fmt"
@@ -59,6 +60,7 @@ type PublicController struct {
 	FindPlanByUserTypeUCParams                          pkgplanuc.FindByUserTypeUCParams
 	CheckoutProfessionalPremiumUCParams                 pkgprofessionaluc.CheckoutPremiumUCParams
 	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
+	CheckoutSolicitationUCParams                        pkgsolicitationuc.CheckoutUCParams
 	IncrementPageViewUCParams                           pkgpageviewuc.IncrementPageViewUCParams
 }
 
@@ -91,6 +93,7 @@ type PublicControllerParams struct {
 	FindPlanByUserTypeUCParams                          pkgplanuc.FindByUserTypeUCParams
 	CheckoutProfessionalPremiumUCParams                 pkgprofessionaluc.CheckoutPremiumUCParams
 	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
+	CheckoutSolicitationUCParams                        pkgsolicitationuc.CheckoutUCParams
 	IncrementPageViewUCParams                           pkgpageviewuc.IncrementPageViewUCParams
 }
 
@@ -123,6 +126,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 		FindPlanByUserTypeUCParams:                          params.FindPlanByUserTypeUCParams,
 		CheckoutProfessionalPremiumUCParams:                 params.CheckoutProfessionalPremiumUCParams,
 		CheckoutStorePremiumUCParams:                        params.CheckoutStorePremiumUCParams,
+		CheckoutSolicitationUCParams:                        params.CheckoutSolicitationUCParams,
 		FindStoreByCategoryAndSubCategoryParams:             params.FindStoreByCategoryAndSubCategoryParams,
 		IncrementPageViewUCParams:                           params.IncrementPageViewUCParams,
 	}
@@ -143,6 +147,7 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.POST("/find/professions-with-count", controller.FindProfessionsWithCount)
 	g.POST("/find-banner-city-and-profession", controller.FindByCityAndProfession)
 	g.POST("/professional/checkout/premium", controller.CheckoutProfissionalPremium)
+	g.POST("/solicitation/checkout", controller.CheckoutSolicitation)
 	g.POST("/search-all-professionals-and-city-and-profession", controller.PublicFindAllProfessionalsByCityAndProfession)
 	g.POST("/search-professionals-by-name-and-city-and-profession", controller.FindByNameProfessinalsAndCityAndProfession)
 	g.POST("/products/dayoffer", controller.FindProductsByDayOffer)
@@ -221,6 +226,26 @@ func (c *PublicController) CheckoutProfissionalPremium(ctx echo.Context) error {
 	}
 
 	checkoutUC := pkgprofessionaluc.NewCheckoutPremiumUC(c.CheckoutProfessionalPremiumUCParams)
+	checkoutUC.Assembler = assembler
+	result, err := checkoutUC.Execute()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, result)
+}
+
+// CheckoutSolicitation gera o PIX da taxa por solicitação paga pelo cliente no
+// app. Usa um plano próprio, separado da assinatura premium do profissional.
+func (c *PublicController) CheckoutSolicitation(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+
+	var assembler pkgsolicitationuc.CheckoutPayerAssembler
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	checkoutUC := pkgsolicitationuc.NewCheckoutUC(c.CheckoutSolicitationUCParams)
 	checkoutUC.Assembler = assembler
 	result, err := checkoutUC.Execute()
 	if err != nil {

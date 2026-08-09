@@ -796,6 +796,10 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		PlanService: dependency.PlanService,
 	}
 
+	checkoutSolicitationUCParams := pkgsolicitationappuc.CheckoutUCParams{
+		PlanService: dependency.PlanService,
+	}
+
 	incrementPageViewUCParams := pkgpageviewuc.IncrementPageViewUCParams{
 		Service: dependency.PageViewService,
 	}
@@ -829,6 +833,7 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		FindPlanByUserTypeUCParams:                          findPlanByUserTypeUCParams,
 		CheckoutProfessionalPremiumUCParams:                 checkoutProfessionalPremiumUCParams,
 		CheckoutStorePremiumUCParams:                        checkoutStorePremiumUCParams,
+		CheckoutSolicitationUCParams:                        checkoutSolicitationUCParams,
 		FindStoreByCategoryAndSubCategoryParams:             findByCategoryAndSubCategories,
 		IncrementPageViewUCParams:                           incrementPageViewUCParams,
 	}

@@ -12,6 +12,7 @@ type UserType string
 const (
 	UserTypeProfessional UserType = "professional"
 	UserTypeStore        UserType = "store"
+	UserTypeSolicitation UserType = "solicitation"
 )
 
 // Plan representa um plano de assinatura premium

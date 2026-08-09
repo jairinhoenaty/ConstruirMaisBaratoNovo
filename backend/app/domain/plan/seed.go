@@ -16,6 +16,14 @@ func SeedPlans(db *gorm.DB) error {
 			IsActive:    true,
 		},
 		{
+			UserType:    UserTypeSolicitation,
+			Name:        "Taxa de Solicitação",
+			Price:       9.90,
+			Description: "Taxa de deslocamento cobrada por solicitação de profissional no app",
+			Features:    `[]`,
+			IsActive:    true,
+		},
+		{
 			UserType:    UserTypeStore,
 			Name:        "Premium Lojista",
 			Price:       29.90,
