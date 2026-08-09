@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  // Star,
   Phone,
   User,
   MessageSquare,
@@ -13,6 +12,8 @@ import {
   MapPin,
   Send,
   BadgeCheck,
+  Clock,
+  CheckCircle,
 } from "lucide-react";
 import InputMask from "react-input-mask";
 import { BudgetService } from "../services/Budget";
@@ -30,7 +31,6 @@ import {
   IBudget,
   IProfissional,
 } from "../interfaces";
-//import { useNavigate } from "react-router-dom";
 
 interface Professional {
   id: string;
@@ -57,28 +57,17 @@ interface SearchResultsFormDraft {
   professionalLabel: string | null;
 }
 
-// interface SearchResultsProps {
-//   profession: string;
-//   professionals: IProfissional[];
-//   onNewSearch: () => void;
-// }
-
-// Helper function para processar imagem (base64 ou URL)
 const getImageSrc = (imageData: string | null | undefined): string | null => {
   if (!imageData || imageData.trim() === "") return null;
 
-  // Se já é uma data URL (base64), retorna direto
   if (imageData.startsWith("data:image")) {
     return imageData;
   }
 
-  // Se é uma URL normal, retorna direto
   if (imageData.startsWith("http://") || imageData.startsWith("https://")) {
     return imageData;
   }
 
-  // Se é só o base64 sem o prefixo, adiciona o prefixo
-  // Assume JPEG por padrão, mas pode ser ajustado
   if (imageData.length > 100) {
     return `data:image/jpeg;base64,${imageData}`;
   }
@@ -87,11 +76,6 @@ const getImageSrc = (imageData: string | null | undefined): string | null => {
 };
 
 function SearchResults() {
-  /*{
-  profession,
-  professionals,
-  onNewSearch,
-}: SearchResultsProps*/
   const [showContactForm, setShowContactForm] = useState(false);
   const [showProfessionalSearch, setShowProfessionalSearch] = useState(true);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
@@ -113,68 +97,8 @@ function SearchResults() {
   const [showExpandedImage, setShowExpandedImage] = useState(false);
   const [currentPage, setCurrentPage] = useState<string>("search-results");
   const [professionals, setProfessionals] = useState<IProfissional[]>([]);
-  // const [profession, setProfession] = useState<string>("");
   const navigate = useNavigate();
   const location = useLocation();
-
-  //  console.log(professionals);
-  // Mock data for professionals
-  /*const mockProfessionals: Professional[] = [
-    {
-      id: "1",
-      name: "João Silva",
-      rating: 4.8,
-      reviews: 156,
-      city: "São Paulo",
-      state: "SP",
-      phone: "(11) 99999-9999",
-      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-    },
-    {
-      id: "2",
-      name: "Maria Santos",
-      rating: 4.9,
-      reviews: 203,
-      city: "Rio de Janeiro",
-      state: "RJ",
-      phone: "(21) 98888-8888",
-      photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-    },
-    {
-      id: "3",
-      name: "Pedro Oliveira",
-      rating: 4.7,
-      reviews: 89,
-      city: "Belo Horizonte",
-      state: "MG",
-      phone: "(31) 97777-7777",
-      photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-    },
-  ];
-  */
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     // console.log("Effect");
-  //     // console.log(location);
-  //     // console.log(location.state.selectedProfessional);
-  //     const selectedCity = location.state.selectedCity;
-  //     const selectedProfessional = location.state.selectedProfessional;
-  //     const return_professionals =
-  //       await ProfessionalService.getProfessionalByCityAndProfession({
-  //         cityID: parseInt(selectedCity),
-  //         professionID: parseInt(selectedProfessional),
-  //         limit: 1000,
-  //         offset: 0,
-  //       });
-
-  //     const json_professionals = await return_professionals.data.profissionais;
-  //     setProfessionals(json_professionals);
-  //     // setProfession(selectedProfessional);
-  //   };
-
-  //   fetchData();
-  // }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -382,35 +306,28 @@ function SearchResults() {
           throw new Error("Function not implemented.");
         }}
       />
-      {/* Contact Form Modal */}
+      
+      {/* Contact Form Modal Atualizado */}
       {showContactForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-lg md:rounded-none shadow-xl w-full max-w-md">
             <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex justify-between items-start mb-5">
                 <div className="flex items-center gap-3">
                   {isBulkRequest ? (
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
                       <Users className="w-6 h-6 text-blue-600" />
                     </div>
                   ) : (
-                    /*                    <img
-                      src={selectedProfessional?.photo}
-                      alt={selectedProfessional?.nome}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />*/
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
                       <User className="w-6 h-6 text-blue-600" />
                     </div>
                   )}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {/* {isBulkRequest
-                        ? "Solicitar Orçamento"
-                        : selectedProfessional?.nome} */}
+                    <h3 className="text-xl font-bold text-gray-900">
                       Solicitar Orçamento
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 mt-0.5">
                       {getContactFormSubtitle()}
                     </p>
                   </div>
@@ -421,22 +338,37 @@ function SearchResults() {
                     setSelectedProfessional(null);
                     setShowProfessionalSearch(true);
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-6 h-6" />
                 </button>
+              </div>
+
+              {/* Box Informativo Azul */}
+              <div className="bg-[#f0f4ff] border border-blue-100 rounded-lg md:rounded-none p-4 mb-6 flex gap-3 items-start">
+                <div className="flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
+                    <Info className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-blue-800 mb-1">
+                    Gratuito e sem compromisso!
+                  </h4>
+                  <p className="text-sm text-blue-800/90 leading-snug">
+                    Seu pedido será enviado para os profissionais da sua região. Eles entrarão em contato com você pelo WhatsApp.
+                  </p>
+                </div>
               </div>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-bold text-gray-700 mb-1"
                   >
                     Nome Completo
-                    {/* {isClient} */}
                   </label>
-
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
@@ -445,9 +377,9 @@ function SearchResults() {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      // disabled={isClient}
                       required
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500  disabled:bg-gray-50"
+                      placeholder="Digite seu nome"
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg md:rounded-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 text-sm"
                     />
                   </div>
                 </div>
@@ -455,9 +387,9 @@ function SearchResults() {
                 <div>
                   <label
                     htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-bold text-gray-700 mb-1"
                   >
-                    Telefone
+                    Telefone (WhatsApp)
                   </label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -468,9 +400,9 @@ function SearchResults() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      // disabled={isClient}
                       required
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+                      placeholder="(xx) xxxxx-xxxx"
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg md:rounded-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 text-sm"
                     />
                   </div>
                 </div>
@@ -478,7 +410,7 @@ function SearchResults() {
                 <div>
                   <label
                     htmlFor="message"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-bold text-gray-700 mb-1"
                   >
                     Descrição do orçamento
                   </label>
@@ -490,10 +422,28 @@ function SearchResults() {
                       value={formData.message}
                       onChange={handleInputChange}
                       required
-                      rows={4}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={3}
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg md:rounded-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                       placeholder="Descreva o serviço que você precisa..."
                     />
+                  </div>
+                </div>
+
+                {/* Seção de Vantagens (Ícones Verdes) */}
+                <div className="flex items-center justify-between py-2 mb-2 mt-4">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                    <span className="text-[11px] sm:text-xs text-gray-700 font-medium">Gratuito</span>
+                  </div>
+                  <div className="w-px h-5 bg-gray-200"></div>
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                    <span className="text-[11px] sm:text-xs text-gray-700 font-medium">Sem compromisso</span>
+                  </div>
+                  <div className="w-px h-5 bg-gray-200"></div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                    <span className="text-[11px] sm:text-xs text-gray-700 font-medium">Resposta rápida</span>
                   </div>
                 </div>
 
@@ -515,15 +465,17 @@ function SearchResults() {
                 <button
                   type="submit"
                   disabled={!privacyAccepted}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="w-full bg-[#FF6B35] text-white py-3 px-4 rounded-lg md:rounded-none md:border md:border-[#FF6B35] hover:bg-[#E55A2B] hover:md:border-[#E55A2B] transition-colors disabled:bg-gray-300 disabled:md:border-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold mt-2"
                 >
-                  Solicitar Orçamento
+                  <Send className="w-5 h-5" />
+                  Enviar Solicitação
                 </button>
               </form>
             </div>
           </div>
         </div>
       )}
+      
       {showProfessionalSearch && (
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
@@ -543,28 +495,8 @@ function SearchResults() {
             </div>
           </div>
 
-          {/* Botão pra solicitar orçamento para todos os profissionais que veio do backend (com os filtros)*/}
           {professionals.length > 0 && (
-            // <div className="mb-8 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50 border border-purple-100 p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
             <div className="mb-8 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-              {/* <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full text-center sm:text-left">
-                <div className="bg-white rounded-full p-3 shadow-sm flex-shrink-0">
-                  <Users className="w-7 h-7 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm sm:text-base font-semibold text-gray-800 leading-snug">
-                    Solicite uma única vez e receba orçamentos de todos os
-                    profissionais.
-                  </p>
-                  <div className="flex items-center justify-center sm:justify-start gap-1 text-xs text-gray-500 mt-1">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>
-                      Envie para os {professionals.length} profissionais
-                      encontrados
-                    </span>
-                  </div>
-                </div>
-              </div> */}
               <button
                 onClick={() => openQuoteForm(null, true)}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors whitespace-nowrap shadow-sm"
@@ -575,7 +507,6 @@ function SearchResults() {
             </div>
           )}
 
-          {/* Professional List */}
           <div className="space-y-4">
             {professionals.map((professional: IProfissional) => (
               <div
@@ -584,7 +515,6 @@ function SearchResults() {
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-1 min-w-0">
-                    {/* Badge Premium - Mobile (acima) */}
                     {professional.isPremium && (
                       <div className="mb-3 sm:hidden">
                         <span className="whitespace-nowrap text-xs font-semibold text-white bg-green-500 py-1 px-3 rounded-full">
@@ -593,16 +523,13 @@ function SearchResults() {
                       </div>
                     )}
 
-                    {/* Desktop: Badge à esquerda, Nome e Cidade à direita */}
                     <div className="hidden sm:flex items-center gap-3">
-                      {/* Badge Premium - Desktop (à esquerda, centralizado) */}
                       {professional.isPremium && (
                         <span className="text-xs font-semibold text-white bg-green-500 py-1 px-3 rounded-full self-center flex-shrink-0">
                           Profissional Premium
                         </span>
                       )}
 
-                      {/* Nome e Cidade empilhados */}
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900">
                           {professional.nome}
@@ -615,7 +542,6 @@ function SearchResults() {
                       </div>
                     </div>
 
-                    {/* Mobile: Nome e Cidade sem badge */}
                     <div className="sm:hidden">
                       <h3 className="text-lg font-semibold text-gray-900">
                         {professional.nome}
@@ -638,7 +564,6 @@ function SearchResults() {
                   </div>
 
                   <div className="flex items-start gap-6">
-                    {/* Botão Saiba Mais - Mobile e Desktop */}
                     {professional.isPremium && (
                       <button
                         onClick={() => {
@@ -655,7 +580,6 @@ function SearchResults() {
                       </button>
                     )}
 
-                    {/* Botão Solicitar Orçamento - Desktop */}
                     <button
                       onClick={() => openQuoteForm(professional, false)}
                       className={`hidden sm:flex items-center self-start ${
@@ -669,7 +593,6 @@ function SearchResults() {
                   </div>
                 </div>
 
-                {/* Botão Solicitar Orçamento - Mobile */}
                 <div className="sm:hidden mt-1">
                   <button
                     onClick={() => openQuoteForm(professional, false)}
@@ -687,10 +610,10 @@ function SearchResults() {
           </div>
         </div>
       )}
+      
       {modalInfoProfissional && selectedProfessional && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            {/* Header do Modal */}
             <div className="relative bg-white">
               <div
                 className="absolute rounded-tl-sm top-0 right-0 z-50 bg-white h-8 md:w-96 w-44"
@@ -745,7 +668,6 @@ function SearchResults() {
                   onClick={() => {
                     setModalInfoProfissional(false);
                     setShowExpandedImage(false);
-                    // setProfessionalForModal(null);
                   }}
                   className="text-white hover:text-white/80 transition-colors"
                 >
@@ -754,7 +676,6 @@ function SearchResults() {
               </div>
             </div>
 
-            {/* Conteúdo do Modal */}
             <div className="space-y-6 p-6">
               <div className="border-b border-gray-200 pb-4">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">
@@ -891,11 +812,9 @@ function SearchResults() {
               </div>
             </div>
           </div>
-          {/* </div> */}
         </div>
       )}
 
-      {/* Modal de Imagem Expandida */}
       {showExpandedImage &&
         selectedProfessional &&
         getImageSrc(selectedProfessional.image) && (
