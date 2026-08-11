@@ -235,8 +235,7 @@ func (c *PublicController) CheckoutProfissionalPremium(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, result)
 }
 
-// CheckoutSolicitation gera o PIX da taxa por solicitação paga pelo cliente no
-// app. Usa um plano próprio, separado da assinatura premium do profissional.
+// CheckoutSolicitation gera o PIX da taxa por solicitação paga pelo cliente no app
 func (c *PublicController) CheckoutSolicitation(ctx echo.Context) error {
 	defer ctx.Request().Body.Close()
 
@@ -251,9 +250,11 @@ func (c *PublicController) CheckoutSolicitation(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
 	return ctx.JSON(http.StatusOK, result)
 }
+
+// TODO: Criar um endpoint que atualize alguma flag do firebase para indicar que o cliente pagou a taxa por solicitação
+// Esse endpoint deve ser chamado pelo próprio Mercado Livre
 
 func (c *PublicController) FindByCityAndProfession(ctx echo.Context) error {
 	defer ctx.Request().Body.Close()

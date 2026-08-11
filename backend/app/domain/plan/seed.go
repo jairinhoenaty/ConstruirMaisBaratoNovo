@@ -10,7 +10,7 @@ func SeedPlans(db *gorm.DB) error {
 		{
 			UserType:    UserTypeProfessional,
 			Name:        "Premium Profissional",
-			Price:       19.90,
+			Price:       9.90,
 			Description: "Plano premium para profissionais da construção civil",
 			Features:    `["Destaque nos resultados de busca","Badge Premium no perfil","Acesso ilimitado a orçamentos","Suporte prioritário","Verificação profissional"]`,
 			IsActive:    true,
@@ -26,7 +26,7 @@ func SeedPlans(db *gorm.DB) error {
 		{
 			UserType:    UserTypeStore,
 			Name:        "Premium Lojista",
-			Price:       29.90,
+			Price:       19.90,
 			Description: "Plano premium para lojistas parceiros",
 			Features:    `["Destaque na lista de fornecedores","Badge Premium na loja","Produtos em destaque","Suporte prioritário","Verificação comercial"]`,
 			IsActive:    true,
