@@ -14,19 +14,23 @@ import (
 
 type Store struct {
 	gorm.Model
-	Name              string
-	Company           string
-	Email             string `gorm:"unique"`
-	Telephone         string
-	LgpdAceito        string
-	CityID            uint
-	City              pkgcity.City `gorm:"foreignKey:CityID"`
-	Cep               string
-	Street            string
-	Neighborhood      string
-	Image             []byte    `gorm:"type:longblob"`
-	CreatedAt         time.Time `gorm:"<-:create"`
-	IsPremiumStore    *bool     `gorm:"default:false"`
+	Name           string
+	Company        string
+	Email          string `gorm:"unique"`
+	Telephone      string
+	LgpdAceito     string
+	CityID         uint
+	City           pkgcity.City `gorm:"foreignKey:CityID"`
+	Cep            string
+	Street         string
+	Neighborhood   string
+	Image          []byte    `gorm:"type:longblob"`
+	CreatedAt      time.Time `gorm:"<-:create"`
+	IsPremiumStore *bool     `gorm:"default:false"`
+	// PremiumExpiresAt é o fim da vigência do premium pago. Nulo significa
+	// premium sem prazo (ativado manualmente por um administrador), que a
+	// rotina de expiração não deve rebaixar.
+	PremiumExpiresAt  *time.Time
 	CategoryProductID uint
 	Category          *pkgcategory.ProductCategory `gorm:"foreignKey:CategoryProductID"`
 	SubCategories     UintSlice                    `gorm:"type:json"`

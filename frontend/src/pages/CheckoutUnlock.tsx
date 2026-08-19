@@ -2,8 +2,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { BudgetService } from "../services/Budget";
 import { IUnlockBudgetPaymentOutput } from "../interfaces/IUnlockedBudget";
-import { Copy, Check, Loader, Lock } from "lucide-react";
+import { Copy, Check, Loader, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import Swal from "sweetalert2";
+import { usePaymentStatus } from "../hooks/usePaymentStatus";
 
 interface CheckoutUnlockState {
   budgetId: number;
@@ -36,6 +37,10 @@ function CheckoutUnlock() {
   const hasCalledApi = useRef(false);
 
   const state = location.state as CheckoutUnlockState | null;
+
+  const paymentStatus = usePaymentStatus(checkoutData?.statusToken, () => {
+    setTimeout(() => navigate("/professional-panel"), 3000);
+  });
 
   useEffect(() => {
     if (!state || !state.budgetId) {
@@ -143,15 +148,44 @@ function CheckoutUnlock() {
 
           {/* Payment Status */}
           <div className="mb-6">
-            <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse mr-3"></div>
-                <p className="text-sm font-medium text-yellow-800">
-                  Aguardando pagamento
-                </p>
+            {paymentStatus === "approved" ? (
+              <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 mr-3" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">
+                      Pagamento confirmado!
+                    </p>
+                    <p className="text-xs text-green-700">
+                      Orçamento desbloqueado. Redirecionando...
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-600">ID: {checkoutData.paymentId}</p>
-            </div>
+            ) : paymentStatus === "timeout" ? (
+              <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-gray-500 mr-3" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Não identificamos seu pagamento
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Se já pagou, atualize a página. O código PIX continua válido.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse mr-3"></div>
+                  <p className="text-sm font-medium text-yellow-800">
+                    Aguardando pagamento
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Benefits */}

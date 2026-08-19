@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 )
 
 type paymentQueryResp struct {
@@ -38,8 +37,6 @@ func (c *MPClient) GetPayment(paymentID int64) (*PaymentQueryResult, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	c.AccessToken = os.Getenv("MERCADOPAGO_ACCESS_TOKEN")
 
 	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
 	req.Header.Set("Content-Type", "application/json")

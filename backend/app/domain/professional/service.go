@@ -1,6 +1,10 @@
 package professional
 
+import "time"
+
 type ProfessionalService interface {
+	SetPremium(id uint, isPremium bool, expiresAt *time.Time) error
+	ExpirePremiums(now time.Time) (int64, error)
 	FindAll(limit, offset int, filter string, uf string, professionID int, order string) ([]*Professional, int64, error)
 	FindById(id uint) (*Professional, error)
 	FindByEmail(email string) (*Professional, error)
@@ -35,6 +39,14 @@ func NewProfessionalService(repository ProfessionalRepository) ProfessionalServi
 	return &professionalService{
 		repository: repository,
 	}
+}
+
+func (s *professionalService) SetPremium(id uint, isPremium bool, expiresAt *time.Time) error {
+	return s.repository.SetPremium(id, isPremium, expiresAt)
+}
+
+func (s *professionalService) ExpirePremiums(now time.Time) (int64, error) {
+	return s.repository.ExpirePremiums(now)
 }
 
 func (s *professionalService) ExportXLSX() ([]*Professional, error) {

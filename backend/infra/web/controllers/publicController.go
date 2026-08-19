@@ -8,6 +8,7 @@ import (
 	pkgclientuc "construir_mais_barato/app/usecase/client"
 	pkgpcontactuc "construir_mais_barato/app/usecase/contact"
 	pkgpageviewuc "construir_mais_barato/app/usecase/pageview"
+	pkgpaymentuc "construir_mais_barato/app/usecase/payment"
 	pkgplanuc "construir_mais_barato/app/usecase/plan"
 	pkgpproductuc "construir_mais_barato/app/usecase/product"
 	pkgproductuc "construir_mais_barato/app/usecase/product"
@@ -17,6 +18,8 @@ import (
 	pkgsolicitationuc "construir_mais_barato/app/usecase/solicitation"
 	pkgstoreuc "construir_mais_barato/app/usecase/store"
 	pkguseruc "construir_mais_barato/app/usecase/user"
+	"construir_mais_barato/infra/adapters/gateway-payment/mercadopago"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -62,6 +65,9 @@ type PublicController struct {
 	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
 	CheckoutSolicitationUCParams                        pkgsolicitationuc.CheckoutUCParams
 	IncrementPageViewUCParams                           pkgpageviewuc.IncrementPageViewUCParams
+	ProcessPaymentNotificationUCParams                  pkgpaymentuc.ProcessPaymentNotificationUCParams
+	GetPaymentStatusUCParams                            pkgpaymentuc.GetPaymentStatusUCParams
+	RegisterBypassUCParams                              pkgpaymentuc.RegisterBypassUCParams
 }
 
 type PublicControllerParams struct {
@@ -95,6 +101,9 @@ type PublicControllerParams struct {
 	CheckoutStorePremiumUCParams                        pkgstoreuc.CheckoutPremiumUCParams
 	CheckoutSolicitationUCParams                        pkgsolicitationuc.CheckoutUCParams
 	IncrementPageViewUCParams                           pkgpageviewuc.IncrementPageViewUCParams
+	ProcessPaymentNotificationUCParams                  pkgpaymentuc.ProcessPaymentNotificationUCParams
+	GetPaymentStatusUCParams                            pkgpaymentuc.GetPaymentStatusUCParams
+	RegisterBypassUCParams                              pkgpaymentuc.RegisterBypassUCParams
 }
 
 func NewPublicController(params *PublicControllerParams, g *echo.Group) {
@@ -129,6 +138,9 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 		CheckoutSolicitationUCParams:                        params.CheckoutSolicitationUCParams,
 		FindStoreByCategoryAndSubCategoryParams:             params.FindStoreByCategoryAndSubCategoryParams,
 		IncrementPageViewUCParams:                           params.IncrementPageViewUCParams,
+		ProcessPaymentNotificationUCParams:                  params.ProcessPaymentNotificationUCParams,
+		GetPaymentStatusUCParams:                            params.GetPaymentStatusUCParams,
+		RegisterBypassUCParams:                              params.RegisterBypassUCParams,
 	}
 
 	g.GET("/plans", controller.GetActivePlans)
@@ -148,6 +160,9 @@ func NewPublicController(params *PublicControllerParams, g *echo.Group) {
 	g.POST("/find-banner-city-and-profession", controller.FindByCityAndProfession)
 	g.POST("/professional/checkout/premium", controller.CheckoutProfissionalPremium)
 	g.POST("/solicitation/checkout", controller.CheckoutSolicitation)
+	g.POST("/webhooks/mercadopago", controller.MercadoPagoWebhook)
+	g.GET("/payment/status/:statusToken", controller.GetPaymentStatus)
+	g.POST("/payment/bypass", controller.RegisterPaymentBypass)
 	g.POST("/search-all-professionals-and-city-and-profession", controller.PublicFindAllProfessionalsByCityAndProfession)
 	g.POST("/search-professionals-by-name-and-city-and-profession", controller.FindByNameProfessinalsAndCityAndProfession)
 	g.POST("/products/dayoffer", controller.FindProductsByDayOffer)
@@ -253,8 +268,117 @@ func (c *PublicController) CheckoutSolicitation(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, result)
 }
 
-// TODO: Criar um endpoint que atualize alguma flag do firebase para indicar que o cliente pagou a taxa por solicitação
-// Esse endpoint deve ser chamado pelo próprio Mercado Livre
+// MercadoPagoWebhook recebe as notificações de mudança de status de pagamento.
+//
+// A rota é pública porque o MercadoPago não se autentica: a confiança vem da
+// assinatura HMAC do header x-signature e, principalmente, do fato de o status
+// ser sempre reconsultado na API do MercadoPago — o corpo da notificação traz
+// apenas o id do pagamento.
+func (c *PublicController) MercadoPagoWebhook(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+
+	var notification mercadopago.WebhookNotification
+	// Um corpo ausente ou inválido não é erro: o formato IPN antigo manda tudo
+	// por query string.
+	_ = ctx.Bind(&notification)
+
+	dataID := notification.Data.ID.String()
+	if dataID == "" {
+		dataID = ctx.QueryParam("data.id")
+	}
+	if notification.Type == "" {
+		notification.Type = ctx.QueryParam("type")
+	}
+
+	if secret := os.Getenv("MERCADOPAGO_WEBHOOK_SECRET"); secret != "" {
+		err := mercadopago.ValidateSignature(
+			ctx.Request().Header.Get("x-signature"),
+			ctx.Request().Header.Get("x-request-id"),
+			dataID,
+			secret,
+		)
+		if err != nil {
+			log.Printf("webhook mercadopago recusado (data.id=%s): %v", dataID, err)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "assinatura inválida"})
+		}
+	}
+
+	// Só tratamos pagamentos. Responder 200 nos demais tópicos faz o
+	// MercadoPago parar de reenviar.
+	if !notification.IsPayment() {
+		return ctx.JSON(http.StatusOK, map[string]string{"status": "ignorado"})
+	}
+
+	paymentID, err := strconv.ParseInt(dataID, 10, 64)
+	if err != nil {
+		log.Printf("webhook mercadopago com data.id inválido: %q", dataID)
+		return ctx.JSON(http.StatusOK, map[string]string{"status": "ignorado"})
+	}
+
+	uc := pkgpaymentuc.NewProcessPaymentNotificationUC(c.ProcessPaymentNotificationUCParams)
+	result, err := uc.Execute(paymentID)
+	if err != nil {
+		// 500 sinaliza falha transitória e faz o MercadoPago tentar de novo.
+		log.Printf("erro ao processar o pagamento %d: %v", paymentID, err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "falha ao processar a notificação"})
+	}
+
+	log.Printf("webhook mercadopago: pagamento=%d status=%s tratado=%t liberado=%t (%s)",
+		paymentID, result.Status, result.Handled, result.Activated, result.Description)
+
+	return ctx.JSON(http.StatusOK, map[string]any{
+		"status":    string(result.Status),
+		"handled":   result.Handled,
+		"activated": result.Activated,
+	})
+}
+
+// GetPaymentStatus informa se um pagamento já foi confirmado. É o endpoint que
+// o site e o app consultam enquanto o QR Code está na tela.
+//
+// A chave é o token opaco devolvido no checkout, não o id do MercadoPago: como
+// a rota é pública, um identificador adivinhável permitiria consultar
+// pagamentos de outras pessoas.
+func (c *PublicController) GetPaymentStatus(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+
+	uc := pkgpaymentuc.NewGetPaymentStatusUC(c.GetPaymentStatusUCParams)
+	result, err := uc.Execute(ctx.Param("statusToken"))
+	if err != nil {
+		if errors.Is(err, pkgpaymentuc.ErrPaymentNotFound) {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "pagamento não encontrado"})
+		}
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, result)
+}
+
+// RegisterPaymentBypass registra que o usuário seguiu no app sem confirmação de
+// pagamento. Serve apenas para auditoria e não libera nada.
+func (c *PublicController) RegisterPaymentBypass(ctx echo.Context) error {
+	defer ctx.Request().Body.Close()
+
+	var assembler pkgpaymentuc.BypassAssembler
+	if err := ctx.Bind(&assembler); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	uc := pkgpaymentuc.NewRegisterBypassUC(c.RegisterBypassUCParams)
+	uc.Assembler = assembler
+	result, err := uc.Execute()
+	if err != nil {
+		if errors.Is(err, pkgpaymentuc.ErrPaymentNotFound) {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "pagamento não encontrado"})
+		}
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	log.Printf("bypass de pagamento registrado: usuario=%d solicitacao=%q motivo=%q",
+		assembler.UserID, assembler.SolicitationID, assembler.Reason)
+
+	return ctx.JSON(http.StatusOK, result)
+}
 
 func (c *PublicController) FindByCityAndProfession(ctx echo.Context) error {
 	defer ctx.Request().Body.Close()

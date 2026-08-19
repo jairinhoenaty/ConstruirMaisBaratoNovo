@@ -27,12 +27,24 @@ export interface CheckoutPremiumInput {
   payer: Payer;
 }
 
+// O id do pagamento no MercadoPago não é devolvido ao cliente: o
+// acompanhamento é feito pelo statusToken, que é opaco e não permite deduzir
+// nem enumerar pagamentos de outras pessoas.
 export interface CheckoutPremiumOutput {
-  paymentId: number;
+  statusToken: string;
   amount: number;
   qr_code: string;
   qr_code_base64: string;
   status: string;
+}
+
+// Resposta de GET /publica/payment/status/:statusToken
+export interface PaymentStatusOutput {
+  status: string;
+  approved: boolean;
+  amount: number;
+  paidAt?: string;
+  expiresAt?: string;
 }
 
 export interface CheckoutState {

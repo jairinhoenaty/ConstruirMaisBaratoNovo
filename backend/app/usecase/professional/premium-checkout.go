@@ -1,19 +1,19 @@
 package professional_usecase
 
 import (
-	"fmt"
-	"os"
-	"time"
-
 	pkgplan "construir_mais_barato/app/domain/plan"
+	pkgprofessional "construir_mais_barato/app/domain/professional"
+	pkgsubscription "construir_mais_barato/app/domain/subscription"
+	pkgpaymentuc "construir_mais_barato/app/usecase/payment"
 	"construir_mais_barato/infra/adapters/gateway-payment/mercadopago"
-
-	"github.com/google/uuid"
 )
 
 type CheckoutPremiumUC struct {
-	Assembler   PayerAssembler
-	PlanService pkgplan.PlanService
+	Assembler           PayerAssembler
+	PlanService         pkgplan.PlanService
+	SubscriptionService pkgsubscription.SubscriptionService
+	ProfessionalService pkgprofessional.ProfessionalService
+	MercadoPagoClient   *mercadopago.MPClient
 }
 
 type PayerAssembler struct {
@@ -21,8 +21,11 @@ type PayerAssembler struct {
 	Payer  mercadopago.Payer `json:"payer"`
 }
 
+// CheckoutPremiumOutput não devolve o id do pagamento no MercadoPago: o site
+// acompanha o pagamento pelo statusToken, que é opaco e não permite deduzir
+// nem enumerar pagamentos de outras pessoas.
 type CheckoutPremiumOutput struct {
-	PaymentID    int64   `json:"paymentId"`
+	StatusToken  string  `json:"statusToken"`
 	Amount       float64 `json:"amount"`
 	QRCode       string  `json:"qr_code"`
 	QRCodeBase64 string  `json:"qr_code_base64"`
@@ -30,55 +33,63 @@ type CheckoutPremiumOutput struct {
 }
 
 type CheckoutPremiumUCParams struct {
-	PlanService pkgplan.PlanService
+	PlanService         pkgplan.PlanService
+	SubscriptionService pkgsubscription.SubscriptionService
+	ProfessionalService pkgprofessional.ProfessionalService
+	MercadoPagoClient   *mercadopago.MPClient
 }
 
 func NewCheckoutPremiumUC(params CheckoutPremiumUCParams) *CheckoutPremiumUC {
 	return &CheckoutPremiumUC{
-		PlanService: params.PlanService,
+		PlanService:         params.PlanService,
+		SubscriptionService: params.SubscriptionService,
+		ProfessionalService: params.ProfessionalService,
+		MercadoPagoClient:   params.MercadoPagoClient,
 	}
 }
 
 func (uc *CheckoutPremiumUC) Execute() (*CheckoutPremiumOutput, error) {
-	// Busca o plano de profissional do banco de dados
-	plan, err := uc.PlanService.FindByUserType(pkgplan.UserTypeProfessional)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find professional plan: %w", err)
-	}
+	checkout := pkgpaymentuc.NewPlanCheckout(pkgpaymentuc.PlanCheckoutParams{
+		MercadoPagoClient:   uc.MercadoPagoClient,
+		PlanService:         uc.PlanService,
+		SubscriptionService: uc.SubscriptionService,
+	})
 
-	if !plan.IsActive {
-		return nil, fmt.Errorf("professional plan is not active")
-	}
-
-	mpClient := mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
-
-	price := plan.Price
-	// appURL := os.Getenv("APP_PUBLIC_URL")
-	// notificationURL := fmt.Sprintf("%s/webhooks/mercadopago", appURL)
-
-	idem := uuid.NewString()
-	desc := plan.Name
-	extRef := fmt.Sprintf("professional:%d:%d", uc.Assembler.UserID, time.Now().Unix())
-
-	paymentInput := mercadopago.PixPaymentInput{
-		Amount:      price,
-		Description: desc,
-		ExternalRef: extRef,
-		// NotificationURL: notificationURL,
-		IdempotencyKey: idem,
-		Payer:          uc.Assembler.Payer,
-	}
-
-	res, err := mpClient.CreatePixPayment(paymentInput)
+	result, err := checkout.Execute(pkgpaymentuc.PlanCheckoutInput{
+		UserType: pkgplan.UserTypeProfessional,
+		TargetID: uc.resolveProfessionalID(),
+		Payer:    uc.Assembler.Payer,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &CheckoutPremiumOutput{
-		PaymentID:    res.PaymentID,
-		Amount:       price,
-		QRCode:       res.QRCode,
-		QRCodeBase64: res.QRCodeBase64,
-		Status:       res.Status,
+		StatusToken:  result.StatusToken,
+		Amount:       result.Amount,
+		QRCode:       result.QRCode,
+		QRCodeBase64: result.QRCodeBase64,
+		Status:       result.Status,
 	}, nil
+}
+
+// resolveProfessionalID descobre o id do profissional a partir do e-mail do
+// pagador.
+//
+// O userId que chega do cliente é ambíguo: parte das telas envia o id do
+// usuário logado e outra parte o id do profissional recém-cadastrado. Como é
+// esse id que o webhook usa para liberar o premium, resolvemos pelo e-mail, que
+// identifica o cadastro sem ambiguidade, e só caímos para o valor recebido
+// quando não há profissional com aquele e-mail.
+func (uc *CheckoutPremiumUC) resolveProfessionalID() uint {
+	if uc.ProfessionalService == nil || uc.Assembler.Payer.Email == "" {
+		return uc.Assembler.UserID
+	}
+
+	professional, err := uc.ProfessionalService.FindByEmail(uc.Assembler.Payer.Email)
+	if err != nil || professional == nil {
+		return uc.Assembler.UserID
+	}
+
+	return professional.ID
 }

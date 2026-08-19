@@ -76,6 +76,9 @@ import (
 	pkgproductCategoryinfra "construir_mais_barato/infra/database/repositories/productCategory"
 
 	pkgplan "construir_mais_barato/app/domain/plan"
+	pkgsubscription "construir_mais_barato/app/domain/subscription"
+	pkgpaymentuc "construir_mais_barato/app/usecase/payment"
+	pkgsubscriptioninfra "construir_mais_barato/infra/database/repositories/subscription"
 	pkgplanuc "construir_mais_barato/app/usecase/plan"
 	pkgplaninfra "construir_mais_barato/infra/database/repositories/plan"
 
@@ -118,6 +121,7 @@ type dependenceParams struct {
 	ClientService               pkgclient.ClientService
 	RegionService               pkgregion.RegionService
 	PlanService                 pkgplan.PlanService
+	SubscriptionService         pkgsubscription.SubscriptionService
 	SolicitationAppService      pkgsolicitationapp.SolicitationAppService
 	PageViewService             pkgpageview.PageViewService
 	MercadoPagoClient           *mercadopago.MPClient
@@ -144,6 +148,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.ClientService = pkgclient.NewClientService(pkgclientinfra.NewClientRepositoryImpl(db))
 	params.RegionService = pkgregion.NewRegionService(pkgregioninfra.NewRegionRepositoryImpl(db))
 	params.PlanService = pkgplan.NewPlanService(pkgplaninfra.NewPlanRepositoryImpl(db))
+	params.SubscriptionService = pkgsubscription.NewSubscriptionService(pkgsubscriptioninfra.NewSubscriptionRepositoryImpl(db))
 	params.SolicitationAppService = pkgsolicitationapp.NewSolicitationAppService(pkgsolicitationappinfra.NewSolicitationAppRepositoryImpl(db))
 	params.PageViewService = pkgpageview.NewPageViewService(pkgpageviewinfra.NewPageViewRepositoryImpl(db))
 	params.MercadoPagoClient = mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
@@ -789,15 +794,48 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	checkoutProfessionalPremiumUCParams := pkgprofessionaluc.CheckoutPremiumUCParams{
-		PlanService: dependency.PlanService,
+		PlanService:         dependency.PlanService,
+		SubscriptionService: dependency.SubscriptionService,
+		ProfessionalService: dependency.ProfessionalService,
+		MercadoPagoClient:   dependency.MercadoPagoClient,
 	}
 
 	checkoutStorePremiumUCParams := pkgstoreuc.CheckoutPremiumUCParams{
-		PlanService: dependency.PlanService,
+		PlanService:         dependency.PlanService,
+		SubscriptionService: dependency.SubscriptionService,
+		StoreService:        dependency.StoreService,
+		MercadoPagoClient:   dependency.MercadoPagoClient,
 	}
 
 	checkoutSolicitationUCParams := pkgsolicitationappuc.CheckoutUCParams{
-		PlanService: dependency.PlanService,
+		PlanService:         dependency.PlanService,
+		SubscriptionService: dependency.SubscriptionService,
+		MercadoPagoClient:   dependency.MercadoPagoClient,
+	}
+
+	processPaymentNotificationUCParams := pkgpaymentuc.ProcessPaymentNotificationUCParams{
+		MercadoPagoClient:     dependency.MercadoPagoClient,
+		SubscriptionService:   dependency.SubscriptionService,
+		UnlockedBudgetService: dependency.UnlockedBudgetService,
+		ProfessionalService:   dependency.ProfessionalService,
+		StoreService:          dependency.StoreService,
+		PlanService:           dependency.PlanService,
+	}
+
+	// O endpoint de status reconcilia pagamentos pendentes usando o mesmo
+	// processador do webhook, para que o fluxo destrave mesmo se a notificação
+	// não chegar.
+	getPaymentStatusUCParams := pkgpaymentuc.GetPaymentStatusUCParams{
+		SubscriptionService:   dependency.SubscriptionService,
+		UnlockedBudgetService: dependency.UnlockedBudgetService,
+		Processor:             pkgpaymentuc.NewProcessPaymentNotificationUC(processPaymentNotificationUCParams),
+		// Compartilhado entre requisições: limita as consultas ao MercadoPago
+		// disparadas pelo endpoint público de status.
+		Throttle: pkgpaymentuc.NewPollThrottle(),
+	}
+
+	registerBypassUCParams := pkgpaymentuc.RegisterBypassUCParams{
+		SubscriptionService: dependency.SubscriptionService,
 	}
 
 	incrementPageViewUCParams := pkgpageviewuc.IncrementPageViewUCParams{
@@ -836,6 +874,9 @@ func buildPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
 		CheckoutSolicitationUCParams:                        checkoutSolicitationUCParams,
 		FindStoreByCategoryAndSubCategoryParams:             findByCategoryAndSubCategories,
 		IncrementPageViewUCParams:                           incrementPageViewUCParams,
+		ProcessPaymentNotificationUCParams:                  processPaymentNotificationUCParams,
+		GetPaymentStatusUCParams:                            getPaymentStatusUCParams,
+		RegisterBypassUCParams:                              registerBypassUCParams,
 	}
 
 	pkgcontrollers.NewPublicController(&publicControllerParams, g)
@@ -1044,6 +1085,11 @@ func Start(db *gorm.DB) {
 
 	// Adicione a rotina de desativação de orçamentos
 	go deactivateExpiredBudgetsRoutine(dependency.BudgetService)
+	go expirePremiumsRoutine(pkgpaymentuc.ExpirePremiumsUCParams{
+		ProfessionalService: dependency.ProfessionalService,
+		StoreService:        dependency.StoreService,
+		SubscriptionService: dependency.SubscriptionService,
+	})
 
 	appPort := os.Getenv("APP_PORT")
 	if appPort == "" {
@@ -1113,6 +1159,24 @@ func setupStaticFileRoutes(router *echo.Echo) {
 	// Serve arquivos estáticos da pasta de upload
 	router.Static("/images/upload", absUploadDir)
 	fmt.Printf("Static files being served from: %s at /images/upload\n", absUploadDir)
+}
+
+// expirePremiumsRoutine rebaixa diariamente quem tinha premium pago e cuja
+// vigência terminou. Premium ativado manualmente no banco fica com
+// premium_expires_at nulo e não é afetado.
+func expirePremiumsRoutine(params pkgpaymentuc.ExpirePremiumsUCParams) {
+	for {
+		uc := pkgpaymentuc.NewExpirePremiumsUC(params)
+		result, err := uc.Execute()
+		if err != nil {
+			fmt.Println("Erro ao expirar assinaturas premium => ", err)
+		} else if result.Professionals > 0 || result.Stores > 0 || result.Subscriptions > 0 {
+			fmt.Printf("Premium expirado: %d profissionais, %d lojistas, %d assinaturas\n",
+				result.Professionals, result.Stores, result.Subscriptions)
+		}
+
+		time.Sleep(24 * time.Hour)
+	}
 }
 
 func deactivateExpiredBudgetsRoutine(budgetService pkgbudget.BudgetService) {
