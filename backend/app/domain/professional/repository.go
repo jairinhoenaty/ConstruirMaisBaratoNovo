@@ -1,6 +1,14 @@
 package professional
 
+import "time"
+
 type ProfessionalRepository interface {
+	// SetPremium liga/desliga o premium de um profissional sem tocar no resto
+	// do cadastro. expiresAt nulo deixa a vigência em aberto.
+	SetPremium(id uint, isPremium bool, expiresAt *time.Time) error
+	// ExpirePremiums rebaixa profissionais cuja vigência terminou e devolve
+	// quantos foram afetados. Ignora premium sem data (ativação manual).
+	ExpirePremiums(now time.Time) (int64, error)
 	FindAll(limit, offset int, filter string, uf string, professionalID int, order string) ([]*Professional, int64, error)
 	FindById(id uint) (*Professional, error)
 	FindByEmail(email string) (*Professional, error)

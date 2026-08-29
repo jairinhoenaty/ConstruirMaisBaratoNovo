@@ -94,12 +94,11 @@ func (c *MPClient) CreatePixPayment(input PixPaymentInput) (*PixCreateResult, er
 		return nil, err
 	}
 	defer resp.Body.Close()
-	fmt.Println(resp.StatusCode)
 
 	if resp.StatusCode >= 300 {
 		var dbg map[string]any
 		_ = json.NewDecoder(resp.Body).Decode(&dbg)
-		fmt.Println("mercadopago error: status=%d body=%v", resp.StatusCode, dbg)
+		fmt.Printf("mercadopago error: status=%d body=%v\n", resp.StatusCode, dbg)
 		return nil, fmt.Errorf("Erro ao processar pagamento. Por favor, tente novamente mais tarde.")
 	}
 

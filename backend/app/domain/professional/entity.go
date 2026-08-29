@@ -32,10 +32,14 @@ type Professional struct {
 	CreatedAt                 time.Time `gorm:"<-:create"`
 	Distance                  float64   `gorm:"->"` //`gorm:"-"`
 	IsPremium                 *bool     `gorm:"default:false"`
-	OnService                 *bool     `gorm:"default:false"`
-	CodeVerification          string    `json:"codeVerification"`
-	DateOfBirth               string
-	Experience                string
+	// PremiumExpiresAt é o fim da vigência do premium pago. Nulo significa
+	// premium sem prazo (ativado manualmente por um administrador), que a
+	// rotina de expiração não deve rebaixar.
+	PremiumExpiresAt *time.Time
+	OnService        *bool  `gorm:"default:false"`
+	CodeVerification string `json:"codeVerification"`
+	DateOfBirth      string
+	Experience       string
 	// CodeVerification string
 	MeiCnpj    string
 	YoutubeUrl string

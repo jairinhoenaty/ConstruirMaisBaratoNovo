@@ -61,6 +61,7 @@ func GenerateStorePresenter(store *pkgstore.Store) StorePresenter {
 		presenter.Neighborhood = store.Neighborhood
 		presenter.Image = store.Image
 		presenter.IsPremiumStore = store.IsPremiumStore
+		presenter.PremiumExpiresAt = store.PremiumExpiresAt
 		presenter.CategoryId = int(store.CategoryProductID)
 
 		if store.Category != nil {

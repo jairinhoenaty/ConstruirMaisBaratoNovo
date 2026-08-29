@@ -19,6 +19,7 @@ type ProfessionalPresenter struct {
 	OnLine                    *bool                 `json:"online"`
 	Verified                  *bool                 `json:"verified"`
 	IsPremium                 *bool                 `json:"isPremium"`
+	PremiumExpiresAt          *time.Time            `json:"premiumExpiresAt,omitempty"`
 	DateOfBirth               string                `json:"dateOfBirth"`
 	Experience                string                `json:"experience"`
 	CodeVerification          string                `json:"codeVerification"`

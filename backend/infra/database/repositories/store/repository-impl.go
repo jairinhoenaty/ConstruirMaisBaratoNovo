@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -17,6 +18,25 @@ func NewStoreRepositoryImpl(db *gorm.DB) pkgstore.StoreRepository {
 	return &repository{
 		DB: db,
 	}
+}
+
+func (r *repository) SetPremium(id uint, isPremium bool, expiresAt *time.Time) error {
+	return r.DB.Model(&pkgstore.Store{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"is_premium_store":   isPremium,
+			"premium_expires_at": expiresAt,
+		}).Error
+}
+
+func (r *repository) ExpirePremiums(now time.Time) (int64, error) {
+	// premium_expires_at NULL identifica ativação manual feita por um
+	// administrador direto no banco, que não deve ser rebaixada aqui.
+	result := r.DB.Model(&pkgstore.Store{}).
+		Where("is_premium_store = ? AND premium_expires_at IS NOT NULL AND premium_expires_at < ?", true, now).
+		Update("is_premium_store", false)
+
+	return result.RowsAffected, result.Error
 }
 
 func (r *repository) ExportXLSX() ([]*pkgstore.Store, error) {

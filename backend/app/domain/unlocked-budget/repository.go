@@ -13,6 +13,7 @@ type UnlockedBudgetRepository interface {
 
 	// Common methods
 	FindByPaymentID(paymentID string) (*UnlockedBudget, error)
+	FindByStatusToken(statusToken string) (*UnlockedBudget, error)
 	Save(unlockedBudget UnlockedBudget) (*UnlockedBudget, error)
 	Update(unlockedBudget *UnlockedBudget) error
 }

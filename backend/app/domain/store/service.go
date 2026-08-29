@@ -1,6 +1,10 @@
 package store
 
+import "time"
+
 type StoreService interface {
+	SetPremium(id uint, isPremium bool, expiresAt *time.Time) error
+	ExpirePremiums(now time.Time) (int64, error)
 	FindAll(limit, offset int) ([]*Store, int64, error)
 	FindById(id uint) (*Store, error)
 	FindByName(email string) ([]*Store, error)
@@ -34,6 +38,14 @@ func NewStoreService(repository StoreRepository) StoreService {
 	return &storeService{
 		repository: repository,
 	}
+}
+
+func (s *storeService) SetPremium(id uint, isPremium bool, expiresAt *time.Time) error {
+	return s.repository.SetPremium(id, isPremium, expiresAt)
+}
+
+func (s *storeService) ExpirePremiums(now time.Time) (int64, error) {
+	return s.repository.ExpirePremiums(now)
 }
 
 func (s *storeService) ExportXLSX() ([]*Store, error) {

@@ -13,6 +13,7 @@ type UnlockedBudgetService interface {
 
 	// Common methods
 	FindByPaymentID(paymentID string) (*UnlockedBudget, error)
+	FindByStatusToken(statusToken string) (*UnlockedBudget, error)
 	Save(unlockedBudget UnlockedBudget) (*UnlockedBudget, error)
 	Update(unlockedBudget *UnlockedBudget) error
 }
@@ -37,6 +38,10 @@ func (s *unlockedBudgetService) FindPaidByProfessionalAndBudget(professionalID u
 
 func (s *unlockedBudgetService) FindByPaymentID(paymentID string) (*UnlockedBudget, error) {
 	return s.repository.FindByPaymentID(paymentID)
+}
+
+func (s *unlockedBudgetService) FindByStatusToken(statusToken string) (*UnlockedBudget, error) {
+	return s.repository.FindByStatusToken(statusToken)
 }
 
 func (s *unlockedBudgetService) FindAllByProfessional(professionalID uint) ([]*UnlockedBudget, error) {

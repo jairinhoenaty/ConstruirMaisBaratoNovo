@@ -88,6 +88,7 @@ func GenerateProfessionalPresenter(professional *pkgprofessional.Professional) P
 		presenter.OnLine = professional.OnLine
 		presenter.Verified = professional.Verified
 		presenter.IsPremium = professional.IsPremium
+		presenter.PremiumExpiresAt = professional.PremiumExpiresAt
 		if professional.IsPremium != nil && *professional.IsPremium {
 			presenter.Image = professional.Image
 			presenter.MeiCnpj = professional.MeiCnpj

@@ -42,7 +42,8 @@ export interface IUnlockBudgetPaymentInput {
 
 export interface IUnlockBudgetPaymentOutput {
   unlockedBudgetId: number;
-  paymentId: string;
+  // Chave opaca de acompanhamento; o id do MercadoPago não chega ao cliente.
+  statusToken: string;
   amount: number;
   qrCode: string;
   qrCodeBase64: string;

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -41,9 +42,11 @@ type UnlockBudgetPaymentInput struct {
 	Payer          mercadopago.Payer `json:"payer"`
 }
 
+// UnlockBudgetPaymentOutput não devolve o id do pagamento no MercadoPago: o
+// acompanhamento é feito pelo statusToken, que é opaco.
 type UnlockBudgetPaymentOutput struct {
 	UnlockedBudgetID uint    `json:"unlockedBudgetId"`
-	PaymentID        string  `json:"paymentId"`
+	StatusToken      string  `json:"statusToken"`
 	Amount           float64 `json:"amount"`
 	QRCode           string  `json:"qrCode"`
 	QRCodeBase64     string  `json:"qrCodeBase64"`
@@ -163,9 +166,18 @@ func (uc *UnlockBudgetPaymentUC) Execute(input UnlockBudgetPaymentInput) (*Unloc
 			timeSinceCreation = time.Since(existingPending.UpdatedAt)
 		}
 		if timeSinceCreation < 30*time.Minute {
+			// Registros criados antes do token existir precisam ganhar um
+			// agora, senão o cliente fica sem como consultar o status.
+			if existingPending.StatusToken == "" {
+				existingPending.StatusToken = uuid.NewString()
+				if err := uc.UnlockedBudgetService.Update(existingPending); err != nil {
+					return nil, fmt.Errorf("erro ao gerar token de acompanhamento: %v", err)
+				}
+			}
+
 			return &UnlockBudgetPaymentOutput{
 				UnlockedBudgetID: existingPending.ID,
-				PaymentID:        existingPending.PaymentID,
+				StatusToken:      existingPending.StatusToken,
 				Amount:           existingPending.Amount,
 				QRCode:           existingPending.QRCode,
 				QRCodeBase64:     existingPending.QRCodeBase64,
@@ -196,6 +208,9 @@ func (uc *UnlockBudgetPaymentUC) Execute(input UnlockBudgetPaymentInput) (*Unloc
 		unlockedBudget.Amount = unlockPrice
 		unlockedBudget.QRCode = pixResult.QRCode
 		unlockedBudget.QRCodeBase64 = pixResult.QRCodeBase64
+		if unlockedBudget.StatusToken == "" {
+			unlockedBudget.StatusToken = uuid.NewString()
+		}
 	} else {
 		unlockedBudget = pkgunlockedbudget.UnlockedBudget{
 			UserType:       userType,
@@ -204,9 +219,12 @@ func (uc *UnlockBudgetPaymentUC) Execute(input UnlockBudgetPaymentInput) (*Unloc
 			BudgetID:       input.BudgetID,
 			Status:         "pending",
 			PaymentID:      fmt.Sprintf("%d", pixResult.PaymentID),
-			Amount:         unlockPrice,
-			QRCode:         pixResult.QRCode,
-			QRCodeBase64:   pixResult.QRCodeBase64,
+			// Chave opaca para o cliente acompanhar o pagamento sem conhecer o
+			// id do MercadoPago.
+			StatusToken:  uuid.NewString(),
+			Amount:       unlockPrice,
+			QRCode:       pixResult.QRCode,
+			QRCodeBase64: pixResult.QRCodeBase64,
 		}
 	}
 
@@ -217,7 +235,7 @@ func (uc *UnlockBudgetPaymentUC) Execute(input UnlockBudgetPaymentInput) (*Unloc
 
 	return &UnlockBudgetPaymentOutput{
 		UnlockedBudgetID: savedUnlock.ID,
-		PaymentID:        savedUnlock.PaymentID,
+		StatusToken:      savedUnlock.StatusToken,
 		Amount:           savedUnlock.Amount,
 		QRCode:           savedUnlock.QRCode,
 		QRCodeBase64:     savedUnlock.QRCodeBase64,

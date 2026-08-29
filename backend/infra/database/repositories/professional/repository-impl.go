@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -20,6 +21,25 @@ func NewProfessionalRepositoryImpl(db *gorm.DB) pkgprofessional.ProfessionalRepo
 	return &repository{
 		DB: db,
 	}
+}
+
+func (r *repository) SetPremium(id uint, isPremium bool, expiresAt *time.Time) error {
+	return r.DB.Model(&pkgprofessional.Professional{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"is_premium":         isPremium,
+			"premium_expires_at": expiresAt,
+		}).Error
+}
+
+func (r *repository) ExpirePremiums(now time.Time) (int64, error) {
+	// premium_expires_at NULL identifica ativação manual feita por um
+	// administrador direto no banco, que não deve ser rebaixada aqui.
+	result := r.DB.Model(&pkgprofessional.Professional{}).
+		Where("is_premium = ? AND premium_expires_at IS NOT NULL AND premium_expires_at < ?", true, now).
+		Update("is_premium", false)
+
+	return result.RowsAffected, result.Error
 }
 
 func (r *repository) ExportXLSX() ([]*pkgprofessional.Professional, error) {

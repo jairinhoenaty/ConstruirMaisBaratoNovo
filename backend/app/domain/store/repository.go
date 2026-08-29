@@ -1,6 +1,14 @@
 package store
 
+import "time"
+
 type StoreRepository interface {
+	// SetPremium liga/desliga o premium de uma loja sem tocar no resto do
+	// cadastro. expiresAt nulo deixa a vigência em aberto.
+	SetPremium(id uint, isPremium bool, expiresAt *time.Time) error
+	// ExpirePremiums rebaixa lojas cuja vigência terminou e devolve quantas
+	// foram afetadas. Ignora premium sem data (ativação manual).
+	ExpirePremiums(now time.Time) (int64, error)
 	FindAll(limit, offset int) ([]*Store, int64, error)
 	FindById(id uint) (*Store, error)
 	FindByEmail(email string) (*Store, error)

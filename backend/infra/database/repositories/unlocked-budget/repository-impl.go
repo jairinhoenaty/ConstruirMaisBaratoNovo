@@ -43,6 +43,15 @@ func (r *repository) FindByPaymentID(paymentID string) (*unlockedbudget.Unlocked
 	return &unlocked, nil
 }
 
+func (r *repository) FindByStatusToken(statusToken string) (*unlockedbudget.UnlockedBudget, error) {
+	var unlocked unlockedbudget.UnlockedBudget
+	err := r.DB.Where("status_token = ?", statusToken).First(&unlocked).Error
+	if err != nil {
+		return nil, err
+	}
+	return &unlocked, nil
+}
+
 func (r *repository) FindAllByProfessional(professionalID uint) ([]*unlockedbudget.UnlockedBudget, error) {
 	var unlocked []*unlockedbudget.UnlockedBudget
 	err := r.DB.Where("professional_id = ?", professionalID).Order("created_at DESC").Find(&unlocked).Error

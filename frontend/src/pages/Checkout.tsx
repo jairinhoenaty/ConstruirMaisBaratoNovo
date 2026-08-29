@@ -5,8 +5,9 @@ import { StoreService } from "../services/StoreService";
 import { PlanService } from "../services/PlanService";
 import { CheckoutState, CheckoutPremiumOutput } from "../interfaces";
 import { Plan } from "../interfaces/IPlan";
-import { Copy, Check, Loader } from "lucide-react";
+import { Copy, Check, Loader, CheckCircle2, AlertCircle } from "lucide-react";
 import Swal from "sweetalert2";
+import { usePaymentStatus } from "../hooks/usePaymentStatus";
 
 function Checkout() {
   const location = useLocation();
@@ -20,6 +21,14 @@ function Checkout() {
 
   const state = location.state as CheckoutState | null;
   const isUpgrade = (state as any)?.isUpgrade || false;
+
+  // Assim que o pagamento é confirmado, leva o usuário de volta ao painel, que
+  // relê o isPremium do perfil e já mostra os recursos liberados.
+  const paymentStatus = usePaymentStatus(checkoutData?.statusToken, () => {
+    setTimeout(() => {
+      navigate(state?.returnUrl || "/professional-panel");
+    }, 3000);
+  });
 
   useEffect(() => {
     if (!state || !state.userId) {
@@ -140,19 +149,48 @@ function Checkout() {
 
           {/* Payment Status */}
           <div className="mb-6">
-            <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse mr-3"></div>
-                <p className="text-sm font-medium text-yellow-800">
-                  Aguardando pagamento
-                </p>
+            {paymentStatus === "approved" ? (
+              <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 mr-3" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">
+                      Pagamento confirmado!
+                    </p>
+                    <p className="text-xs text-green-700">
+                      Seu plano já está ativo. Redirecionando...
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-600">ID: {checkoutData.paymentId}</p>
-            </div>
+            ) : paymentStatus === "timeout" ? (
+              <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-gray-500 mr-3" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Não identificamos seu pagamento
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Se já pagou, atualize a página. O código PIX continua válido.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse mr-3"></div>
+                  <p className="text-sm font-medium text-yellow-800">
+                    Aguardando pagamento
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* QR Code Section */}
-          <div className="border-t pt-6">
+          {/* QR Code Section — escondido após a confirmação */}
+          <div className={`border-t pt-6 ${paymentStatus === "approved" ? "hidden" : ""}`}>
             <h3 className="font-semibold text-gray-900 mb-4 text-center">
               Escaneie o QR Code com o app do seu banco
             </h3>
@@ -207,8 +245,18 @@ function Checkout() {
             )}
           </div>
 
+          {/* Botão de saída — a tela deixa de ser um beco sem saída */}
+          {paymentStatus === "approved" && (
+            <button
+              onClick={() => navigate(state?.returnUrl || "/professional-panel")}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors"
+            >
+              Ir para o painel agora
+            </button>
+          )}
+
           {/* Instructions */}
-          <div className="mt-6 bg-gray-50 rounded-lg p-4">
+          <div className={`mt-6 bg-gray-50 rounded-lg p-4 ${paymentStatus === "approved" ? "hidden" : ""}`}>
             <h4 className="font-semibold text-gray-900 mb-2">
               Como pagar com PIX:
             </h4>
