@@ -32,6 +32,7 @@ import {
   Calendar,
   Building,
   ExternalLink,
+  CheckCircle,
 } from "lucide-react";
 import InputMask from "react-input-mask";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -52,6 +53,7 @@ import { ContactService } from "../services/ContactService";
 import Pagination from "../components/Pagination";
 import EditProduct from "./EditProduct";
 import { IProduct } from "../interfaces";
+import { AccountDeletionService } from "../services/AccountDeletionService";
 
 interface Product {
   id: string;
@@ -73,7 +75,11 @@ function ProfessionalPanel() {
   const [profile, setProfile] = useState(localStorage.getItem("profile"));                              
   const [autenticando, setAutenticando] = useState(
     !!searchParams.get("code")                                                                          
-  );                            
+  );  
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [requestingDeletion, setRequestingDeletion] = useState(false);
+  const [deletionRequestSuccess, setDeletionRequestSuccess] = useState(false);
+  const [deletionRequestError, setDeletionRequestError] = useState("");                          
 
   const [professions, setProfessions] = useState([
     { id: "", name: "", description: "" },
@@ -742,6 +748,51 @@ function ProfessionalPanel() {
       </div>
     </div>
   );
+
+  const handleAccountDeletionRequest = async () => {
+    try {
+      setRequestingDeletion(true);
+      setDeletionRequestError("");
+
+    const email =
+      formData.email?.trim() ||
+      localStorage.getItem("email")?.trim() ||
+      "";
+
+    if (!email) {
+      setDeletionRequestError(
+        "Não foi possível identificar o e-mail da sua conta."
+      );
+      return;
+    }
+
+    if (!formData.fullName?.trim()) {
+      setDeletionRequestError(
+        "Não foi possível identificar o nome da sua conta."
+      );
+      return;
+    }
+
+    await AccountDeletionService.create({
+      name: formData.fullName.trim(),
+      email,
+      telephone: formData.whatsapp?.trim() || "",
+    });
+
+    setShowDeleteAccountModal(false);
+    setDeletionRequestSuccess(true);
+  } catch (error: any) {
+    console.error("Erro ao solicitar exclusão da conta:", error);
+
+    const message =
+      error?.response?.data?.error ||
+      "Não foi possível registrar sua solicitação. Tente novamente.";
+
+    setDeletionRequestError(message);
+  } finally {
+    setRequestingDeletion(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -1449,6 +1500,29 @@ function ProfessionalPanel() {
                   Atualizar Conta
                 </button>
               </div>
+              <div className="mt-10 pt-8 border-t border-gray-200">
+                <div className="border border-red-200 bg-red-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-red-700 mb-2">
+                    Excluir minha conta
+                  </h3>
+
+                  <p className="text-sm text-gray-600 mb-5">
+                    Solicite a exclusão permanente da sua conta e dos dados pessoais
+                    associados ao Hassis Conecta.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeletionRequestError("");
+                      setShowDeleteAccountModal(true);
+                    }}
+                    className="px-5 py-2.5 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white rounded-lg font-medium transition-colors"
+                  >
+                    Excluir minha conta
+                  </button>
+                </div>
+              </div>
             </form>
           </div>
         )}
@@ -1461,6 +1535,80 @@ function ProfessionalPanel() {
         {activeTab === "editproduct" && <EditProduct id={productID} />}
         {activeTab === "cashback" && renderCashback()}
       </div>
+      {showDeleteAccountModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+
+              <h2 className="text-xl font-bold text-gray-900 text-center mb-3">
+                Excluir minha conta
+              </h2>
+
+              <p className="text-gray-600 text-center mb-6">
+                Tem certeza de que deseja solicitar a exclusão da sua conta e dos
+                dados associados ao Hassis Conecta?
+              </p>
+
+              {deletionRequestError && (
+                <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700">
+                    {deletionRequestError}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <button
+                  type="button"
+                  disabled={requestingDeletion}
+                  onClick={() => {
+                    setShowDeleteAccountModal(false);
+                    setDeletionRequestError("");
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors disabled:opacity-50"
+                >
+                  CANCELAR
+                </button>
+
+                <button
+                  type="button"
+                  disabled={requestingDeletion}
+                  onClick={handleAccountDeletionRequest}
+                  className="w-full px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:bg-gray-400"
+                >
+                  {requestingDeletion ? "ENVIANDO..." : "CONTINUAR"}
+                </button>
+              </div>
+            </div>
+          </div>
+          )}
+      {deletionRequestSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 text-center">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mx-auto mb-4">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+
+            <h2 className="text-xl font-bold text-gray-900 mb-3">
+              Solicitação recebida
+            </h2>
+
+            <p className="text-gray-600 mb-6">
+              Recebemos sua solicitação de exclusão. Nossa equipe irá processá-la.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setDeletionRequestSuccess(false)}
+              className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            >
+              ENTENDI
+            </button>
+          </div>
+      </div>
+    )}
     </div>
   );
 }

@@ -78,18 +78,18 @@ import (
 	pkgplan "construir_mais_barato/app/domain/plan"
 	pkgsubscription "construir_mais_barato/app/domain/subscription"
 	pkgpaymentuc "construir_mais_barato/app/usecase/payment"
-	pkgsubscriptioninfra "construir_mais_barato/infra/database/repositories/subscription"
 	pkgplanuc "construir_mais_barato/app/usecase/plan"
 	pkgplaninfra "construir_mais_barato/infra/database/repositories/plan"
+	pkgsubscriptioninfra "construir_mais_barato/infra/database/repositories/subscription"
 
 	pkgexchangecodes "construir_mais_barato/app/domain/exchange-codes"
 	pkgpageview "construir_mais_barato/app/domain/pageview"
 	pkgsolicitationapp "construir_mais_barato/app/domain/solicitationAPP"
-	pkgsolicitationappuc "construir_mais_barato/app/usecase/solicitation"
 	pkgpageviewuc "construir_mais_barato/app/usecase/pageview"
+	pkgsolicitationappuc "construir_mais_barato/app/usecase/solicitation"
 	pkgexchangecodeinfra "construir_mais_barato/infra/database/repositories/exchange-code"
-	pkgsolicitationappinfra "construir_mais_barato/infra/database/repositories/solicitationAPP"
 	pkgpageviewinfra "construir_mais_barato/infra/database/repositories/pageview"
+	pkgsolicitationappinfra "construir_mais_barato/infra/database/repositories/solicitationAPP"
 
 	pkgauthenticateuc "construir_mais_barato/app/usecase/auth"
 	pkgnotificationuc "construir_mais_barato/app/usecase/notification"
@@ -97,6 +97,10 @@ import (
 	pkgcontrollers "construir_mais_barato/infra/web/controllers"
 
 	"construir_mais_barato/infra/adapters/gateway-payment/mercadopago"
+
+	pkgaccountdeletion "construir_mais_barato/app/domain/accountDeletion"
+	pkgaccountdeletionuc "construir_mais_barato/app/usecase/accountDeletion"
+	pkgaccountdeletioninfra "construir_mais_barato/infra/database/repositories/accountDeletion"
 )
 
 type Server struct {
@@ -126,6 +130,7 @@ type dependenceParams struct {
 	PageViewService             pkgpageview.PageViewService
 	MercadoPagoClient           *mercadopago.MPClient
 	SendAppNotificationUCParams pkgnotificationuc.SendAppNotificationUCParams
+	AccountDeletionService      pkgaccountdeletion.AccountDeletionService
 }
 
 func buildDependenciesParams(db *gorm.DB) dependenceParams {
@@ -152,6 +157,10 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.SolicitationAppService = pkgsolicitationapp.NewSolicitationAppService(pkgsolicitationappinfra.NewSolicitationAppRepositoryImpl(db))
 	params.PageViewService = pkgpageview.NewPageViewService(pkgpageviewinfra.NewPageViewRepositoryImpl(db))
 	params.MercadoPagoClient = mercadopago.NewMPClient(os.Getenv("MERCADOPAGO_ACCESS_TOKEN"), os.Getenv("MERCADOPAGO_BASE_URL_API"))
+	params.AccountDeletionService = pkgaccountdeletion.NewAccountDeletionService(
+		pkgaccountdeletioninfra.NewAccountDeletionRepositoryImpl(db),
+	)
+
 	params.SendAppNotificationUCParams = pkgnotificationuc.SendAppNotificationUCParams{
 		UserService:         params.UserService,
 		FirebaseCredentials: os.Getenv("FIREBASE_CREDENTIALS_PATH"),
@@ -1038,6 +1047,23 @@ func buildPageViewEndPoint(dependency *dependenceParams, g *echo.Group) {
 	pkgcontrollers.NewPageViewController(&pageViewControllerParams, g)
 }
 
+func buildPublicAccountDeletionEndPoint(
+	dependency *dependenceParams,
+	g *echo.Group,
+) {
+	createParams := pkgaccountdeletionuc.CreateAccountDeletionUCParams{
+		Service: dependency.AccountDeletionService,
+	}
+
+	controllerParams := pkgcontrollers.AccountDeletionControllerParams{
+		CreateAccountDeletionUCParams: createParams,
+	}
+
+	pkgcontrollers.NewPublicAccountDeletionController(
+		&controllerParams,
+		g,
+	)
+}
 func Start(db *gorm.DB) {
 
 	dependency := buildDependenciesParams(db)
@@ -1059,6 +1085,7 @@ func Start(db *gorm.DB) {
 	buildLoginEndPoint(&dependency, publicRouter)
 	buildPublicEndPoint(&dependency, publicRouter)
 	buildProductCategoryPublicEndPoint(&dependency, publicRouter)
+	buildPublicAccountDeletionEndPoint(&dependency, publicRouter)
 
 	// **************************************** Rotas privadas
 	routerGroup := router.Group("/api/v1")

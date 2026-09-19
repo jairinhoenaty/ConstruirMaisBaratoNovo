@@ -7,6 +7,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	pkgaccountdeletion "construir_mais_barato/app/domain/accountDeletion"
 	pkgbanner "construir_mais_barato/app/domain/banner"
 	pkgbudget "construir_mais_barato/app/domain/budget"
 	pkgchat "construir_mais_barato/app/domain/chat"
@@ -15,13 +16,13 @@ import (
 	pkgcontact "construir_mais_barato/app/domain/contact"
 	pkgsexchangecode "construir_mais_barato/app/domain/exchange-codes"
 	pkgjob "construir_mais_barato/app/domain/job"
+	pkgpageview "construir_mais_barato/app/domain/pageview"
 	pkgplan "construir_mais_barato/app/domain/plan"
 	pkgproduct "construir_mais_barato/app/domain/product"
 	pkgproductCategory "construir_mais_barato/app/domain/productCategory"
 	pkgprofession "construir_mais_barato/app/domain/profession"
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgregion "construir_mais_barato/app/domain/region"
-	pkgpageview "construir_mais_barato/app/domain/pageview"
 	pkgsolicitationapp "construir_mais_barato/app/domain/solicitationAPP"
 	pkgstore "construir_mais_barato/app/domain/store"
 	pkgsubscription "construir_mais_barato/app/domain/subscription"
@@ -96,6 +97,7 @@ func ConnectionDB(params *ConfigParams) *gorm.DB {
 	db.AutoMigrate(&pkgsolicitationapp.SolicitationApp{})
 	db.AutoMigrate(&pkgsexchangecode.ExchangeCode{})
 	db.AutoMigrate(&pkgpageview.PageView{})
+	db.AutoMigrate(&pkgaccountdeletion.AccountDeletionRequest{})
 
 	// Seed de planos (popula planos iniciais se não existirem)
 	if err := pkgplan.SeedPlans(db); err != nil {

@@ -17,6 +17,7 @@ import SearchResults from "./pages/SearchResults";
 import ResetPassword from "./pages/ResetPassword";
 import QuoteProducts from "./pages/QuoteProducts";
 import ProductCategoriesAdmin from "./pages/ProductCategoriesAdmin";
+import DataDeletion from "./pages/DataDeletion";
 
 function AppContent() {
   usePageViewTracker()
@@ -41,6 +42,7 @@ function AppContent() {
         <Route path="/professional-panel" element={<ProfessionalPanel />} />
         <Route path="/product-categories-admin" element={<ProductCategoriesAdmin />} />
         <Route path="/confirmar-senha/:token" element={<ResetPassword />} />
+        <Route path="/exclusao-de-dados"  element={<DataDeletion />} />
       </Routes>
     </>
   )
