@@ -58,6 +58,7 @@ func (uc *SaveClientUC) Execute() (*ClientPresenter, error) {
 		userAssembler.Email = clientSaved.Email
 		//userAssembler.Password = user.Password
 		userAssembler.Profile = "client"
+		userAssembler.IsCondoManager = uc.Assembler.IsCondoManager
 
 	} else {
 
@@ -65,6 +66,7 @@ func (uc *SaveClientUC) Execute() (*ClientPresenter, error) {
 		userAssembler.Name = uc.Assembler.Name
 		userAssembler.Email = uc.Assembler.Email
 		userAssembler.Profile = "client"
+		userAssembler.IsCondoManager = uc.Assembler.IsCondoManager
 		if uc.Assembler.Password == "" {
 
 			// Obtém a data e hora atual

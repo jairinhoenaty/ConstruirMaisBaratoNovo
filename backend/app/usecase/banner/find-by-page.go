@@ -28,7 +28,19 @@ func (uc FindByPageUC) Execute() ([]*BannerPresenter, error) {
 	// assemblerJson, _ := json.Marshal(uc.Assembler)
 	// fmt.Println("uc.Assembler ===> ", string(assemblerJson))
 
-	banners, err := uc.Service.FindByPage(uc.Assembler.Page,*uc.Assembler.CityId,*uc.Assembler.RegionId)
+	// CityId e RegionId sao ponteiros opcionais: o app manda apenas a pagina.
+	// Sem esta guarda um payload sem esses campos derrubava o handler com nil
+	// pointer dereference. Zero e o valor que o repositorio trata como "sem
+	// filtro", que e o mesmo que o painel web ja envia.
+	var cityId, regionId uint
+	if uc.Assembler.CityId != nil {
+		cityId = *uc.Assembler.CityId
+	}
+	if uc.Assembler.RegionId != nil {
+		regionId = *uc.Assembler.RegionId
+	}
+
+	banners, err := uc.Service.FindByPage(uc.Assembler.Page, cityId, regionId)
 
 	if err != nil {
 		return nil, err

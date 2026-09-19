@@ -15,6 +15,7 @@ type ClientPresenter struct {
 	Cidade       CidadePresenter       `json:"cidade"`
 	//Professions  []ProfissionPresenter `json:"profissoes"`
 	Image         []byte `json:"image"`	
+	IsCondoManager bool `json:"isCondoManager"`
 }
 
 type CidadePresenter struct {

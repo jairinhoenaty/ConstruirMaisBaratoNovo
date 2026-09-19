@@ -70,6 +70,21 @@ func (r *repository) FindTokensByIds(ids []uint, idType pkguser.IDType) ([]strin
 	return tokens, nil
 }
 
+// FindCondoManagerEmails devolve, entre os e-mails informados, os de usuários
+// marcados como síndico(a).
+func (r *repository) FindCondoManagerEmails(emails []string) ([]string, error) {
+	found := make([]string, 0)
+	if len(emails) == 0 {
+		return found, nil
+	}
+	if err := r.DB.Model(&pkguser.User{}).
+		Where("email IN ? AND is_condo_manager = ?", emails, true).
+		Pluck("email", &found).Error; err != nil {
+		return nil, err
+	}
+	return found, nil
+}
+
 func (r *repository) Save(user pkguser.User) (*pkguser.User, error) {
 	if err := r.DB.Save(&user).Error; err != nil {
 		return nil, err

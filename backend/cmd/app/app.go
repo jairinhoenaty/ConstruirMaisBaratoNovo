@@ -526,7 +526,8 @@ func buildStoreEndPoint(dependency *dependenceParams, g *echo.Group) {
 func buildClientEndPoint(dependency *dependenceParams, g *echo.Group) {
 	// parametros do caso de uso FindAll
 	findAllParams := pkgclientuc.FindAllClientUCParams{
-		Service: dependency.ClientService,
+		Service:     dependency.ClientService,
+		ServiceUser: dependency.UserService,
 	}
 
 	findByIdParams := pkgclientuc.FindByIdUCParamns{
@@ -545,7 +546,8 @@ func buildClientEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	findLastClientsUCParams := pkgclientuc.FindLastClientsUCParams{
-		Service: dependency.ClientService,
+		Service:     dependency.ClientService,
+		ServiceUser: dependency.UserService,
 	}
 
 	findByNamedUCParams := pkgclientuc.FindByNamedUCParams{

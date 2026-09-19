@@ -31,6 +31,7 @@ import DashboardProfessions from "./DashboardProfissions";
 import DashboardRegions from "./DashboardRegions";
 import ProductCategoriesAdmin from "./ProductCategoriesAdmin";
 import DashboardPageViews from "./DashboardPageViews";
+import CondoManagerTag from "../components/CondoManagerTag";
 
 function Dashboard() {
 
@@ -55,6 +56,7 @@ function Dashboard() {
     {
       oid: 0,
       cidade: { nome: "", uf: "" },
+      isCondoManager: false,
     },
   ]);
   const [recentStores, setRecentStores] = useState([
@@ -494,7 +496,10 @@ function Dashboard() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {prof.nome}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {prof.nome}
+                        {prof.isCondoManager && <CondoManagerTag />}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       <div className="flex items-center gap-1">

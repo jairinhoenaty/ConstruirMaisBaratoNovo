@@ -5,6 +5,7 @@ type UserService interface {
 	FindById(id uint) (*User, error)
 	FindByEmail(email string) (*User, error)
 	FindTokensByIds(ids []uint, idType IDType) ([]string, error)
+	FindCondoManagerEmails(emails []string) ([]string, error)
 	Save(user User) (*User, error)
 	Remove(id uint) error
 }
@@ -53,6 +54,10 @@ func (s *userService) Save(user User) (*User, error) {
 
 func (s *userService) FindTokensByIds(ids []uint, idType IDType) ([]string, error) {
 	return s.repository.FindTokensByIds(ids, idType)
+}
+
+func (s *userService) FindCondoManagerEmails(emails []string) ([]string, error) {
+	return s.repository.FindCondoManagerEmails(emails)
 }
 
 func (s *userService) Remove(id uint) error {

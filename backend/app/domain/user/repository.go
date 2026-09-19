@@ -12,6 +12,7 @@ type UserRepository interface {
 	FindById(id uint) (*User, error)
 	FindByEmail(email string) (*User, error)
 	FindTokensByIds(ids []uint, idType IDType) ([]string, error)
+	FindCondoManagerEmails(emails []string) ([]string, error)
 	Save(user User) (*User, error)
 	Remove(id uint) error
 }

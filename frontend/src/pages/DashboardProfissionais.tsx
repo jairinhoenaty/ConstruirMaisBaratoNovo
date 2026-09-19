@@ -11,6 +11,7 @@ import { StoreService } from "../services/StoreService";
 import { ClientService } from "../services/ClientService";
 import Pagination from "../components/Pagination";
 import EditProfileDashboard from "./EditProfileDashboard";
+import CondoManagerTag from "../components/CondoManagerTag";
 
 function DashboardProfessional() {
   const [professionalsList, setProfessionalList] = useState([]);
@@ -333,7 +334,12 @@ function DashboardProfessional() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {prof.nome}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {prof.nome}
+                        {selectedTipo === "client" && prof.isCondoManager && (
+                          <CondoManagerTag />
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       <div className="flex items-center gap-1">

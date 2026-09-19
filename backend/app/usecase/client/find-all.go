@@ -2,20 +2,25 @@ package client_usecase
 
 import (
 	pkgclient "construir_mais_barato/app/domain/client"
+	pkguser "construir_mais_barato/app/domain/user"
+	"fmt"
 )
 
 type FindAllClientUC struct {
-	Service   pkgclient.ClientService
-	Assembler FindWithPaginationClientAssembler
+	Service     pkgclient.ClientService
+	ServiceUser pkguser.UserService
+	Assembler   FindWithPaginationClientAssembler
 }
 
 type FindAllClientUCParams struct {
-	Service pkgclient.ClientService
+	Service     pkgclient.ClientService
+	ServiceUser pkguser.UserService
 }
 
 func NewFindAllClientUC(params FindAllClientUCParams) FindAllClientUC {
 	return FindAllClientUC{
-		Service: params.Service,
+		Service:     params.Service,
+		ServiceUser: params.ServiceUser,
 	}
 }
 
@@ -32,6 +37,11 @@ func (uc *FindAllClientUC) Execute() (*[]ClientPresenter, int64, error) {
 			clientPresenter := GenerateClientPresenter(client)
 			presenters = append(presenters, clientPresenter)
 		}
+	}
+
+	// A tag de síndico é informativa: sem ela a lista ainda deve sair.
+	if err := markCondoManagers(uc.ServiceUser, presenters); err != nil {
+		fmt.Println("Erro ao marcar síndicos na lista de clientes => " + err.Error())
 	}
 
 	return &presenters, total, nil

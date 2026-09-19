@@ -17,10 +17,13 @@ func SeedPlans(db *gorm.DB) error {
 			DurationDays: 30,
 		},
 		{
-			UserType:     UserTypeSolicitation,
-			Name:         "Taxa de Solicitação",
-			Price:        9.90,
-			Description:  "Taxa de deslocamento cobrada por solicitação de profissional no app",
+			UserType: UserTypeSolicitation,
+			Name:     "Taxa de Solicitação",
+			// Preço de lançamento: metade dos R$ 9,90 originais, que o app
+			// mostra riscados ao lado deste valor. A plataforma banca a outra
+			// metade na própria cobrança — não há reembolso depois.
+			Price:        4.95,
+			Description:  "Taxa de deslocamento cobrada por solicitação de profissional no app (preço de lançamento)",
 			Features:     `[]`,
 			IsActive:     true,
 			DurationDays: 0, // cobrança avulsa, não expira

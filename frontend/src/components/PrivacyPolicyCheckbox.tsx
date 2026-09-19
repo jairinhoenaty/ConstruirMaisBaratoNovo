@@ -57,7 +57,7 @@ function PrivacyPolicyCheckbox({
         onChange={handleChange}
         required
         className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-        aria-label="Aceitar política de privacidade"
+        aria-label="Aceitar política de privacidade e termos de uso"
       />
       <span>
         Li e concordo com a{" "}
@@ -66,7 +66,7 @@ function PrivacyPolicyCheckbox({
           onClick={handlePrivacyClick}
           className="text-blue-600 hover:text-blue-800 underline"
         >
-          Política de Privacidade
+          Política de Privacidade e os Termos de Uso
         </button>
       </span>
     </label>

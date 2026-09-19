@@ -13,6 +13,9 @@ type ClientAssembler struct {
 	Street        string `json:"street"`
 	Neighborhood  string `json:"neighborhood"`
 	Image         []byte `json:"image"`
+	// Enviado pelo app no cadastro de cliente. É gravado no usuário, não no
+	// cliente — ver SaveClientUC.
+	IsCondoManager bool `json:"isCondoManager"`
 }
 
 type CityAssembler struct {

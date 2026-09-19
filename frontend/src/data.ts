@@ -71,6 +71,16 @@ export const carouselSections = [
     type: "B",
     route: "",
   },
+  // Banners da tela principal do aplicativo. O app busca por este type em
+  // POST /banners/page e embaralha as imagens a cada login. O valor precisa
+  // continuar igual ao kAppHomeBannerPage do Flutter
+  // (lib/models/home_banner.dart), senão o carrossel do app fica vazio.
+  {
+    id: "app-home",
+    label: "App - Tela Principal",
+    type: "APP",
+    route: "",
+  },
 ];
 
 

@@ -14,6 +14,7 @@ func GenerateUser(assembler *UserAssembler) pkguser.User {
 		user.Profile = assembler.Profile
 		user.Password = assembler.Password
 		user.GoogleToken = assembler.GoogleToken
+		user.IsCondoManager = assembler.IsCondoManager
 
 	}
 	return user
@@ -28,6 +29,7 @@ func GenerateUserPresenter(user *pkguser.User) UserPresenter {
 		presenter.Profile = user.Profile
 		presenter.Password = user.Password
 		presenter.GoogleToken = user.GoogleToken
+		presenter.IsCondoManager = user.IsCondoManager
 	}
 	return presenter
 }
