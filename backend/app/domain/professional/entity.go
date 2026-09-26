@@ -11,21 +11,26 @@ import (
 
 type Professional struct {
 	gorm.Model
-	Name                      string
-	Email                     string //`gorm:"unique"`
-	Company                   string
-	Telephone                 string
-	LgpdAceito                string
-	CityID                    uint
-	City                      pkgcity.City               `gorm:"foreignKey:CityID"`
-	Professions               []pkgprofession.Profession `gorm:"many2many:professional_professions;"`
-	ProfessionIDs             []uint                     `gorm:"-"`
-	Cep                       string
-	Street                    string
-	Neighborhood              string
-	Image                     []byte  `gorm:"type:longblob"`
-	Latitude                  float64 `gorm:"type:decimal(10,8)"`
-	Longitude                 float64 `gorm:"type:decimal(11,8)"`
+	Name          string
+	Email         string //`gorm:"unique"`
+	Company       string
+	Telephone     string
+	LgpdAceito    string
+	CityID        uint
+	City          pkgcity.City               `gorm:"foreignKey:CityID"`
+	Professions   []pkgprofession.Profession `gorm:"many2many:professional_professions;"`
+	ProfessionIDs []uint                     `gorm:"-"`
+	Cep           string
+	Street        string
+	Neighborhood  string
+	Image         []byte  `gorm:"type:longblob"`
+	Latitude      float64 `gorm:"type:decimal(10,8)"`
+	Longitude     float64 `gorm:"type:decimal(11,8)"`
+	// Coordenadas do endereço do cadastro. Latitude/Longitude são sobrescritas
+	// pelo GPS toda vez que o profissional fica online; estas não, e é delas
+	// que o cliente precisa quando é ele quem se desloca.
+	AddressLatitude           float64 `gorm:"type:decimal(10,8)"`
+	AddressLongitude          float64 `gorm:"type:decimal(11,8)"`
 	Verified                  *bool   `gorm:"default:false"`
 	NegativeCertificateNumber int64
 	OnLine                    *bool
@@ -43,6 +48,16 @@ type Professional struct {
 	// CodeVerification string
 	MeiCnpj    string
 	YoutubeUrl string
+}
+
+// ServiceLocation é o ponto de atendimento do profissional. Cai na última
+// posição conhecida enquanto o cadastro não tiver coordenadas próprias, o que
+// vale para todo profissional anterior aos campos de endereço.
+func (p Professional) ServiceLocation() (float64, float64) {
+	if p.AddressLatitude != 0 || p.AddressLongitude != 0 {
+		return p.AddressLatitude, p.AddressLongitude
+	}
+	return p.Latitude, p.Longitude
 }
 
 type ProfessionCount struct {

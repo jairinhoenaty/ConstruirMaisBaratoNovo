@@ -23,16 +23,6 @@ func (uc *FindAllProfessionUC) Execute() (*[]ProfessionPresenter, int64, error) 
 	if err != nil {
 		return nil, 0, err
 	}
-	presenters := make([]ProfessionPresenter, 0)
-	if len(professions) > 0 {
-		for _, profession := range professions {
-			presenters = append(presenters, ProfessionPresenter{
-				ID:          profession.ID,
-				Name:        profession.Name,
-				Description: profession.Description,
-				Icon:        profession.Icon,
-			})
-		}
-	}
+	presenters := GenerateProfessionPresenters(professions)
 	return &presenters, total, nil
 }

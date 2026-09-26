@@ -28,6 +28,7 @@ import SearchProfessionalsByUF from "./SearchProfessionalsByUF";
 import Pagination from "../components/Pagination";
 import LoadingText from "../components/LoadingText";
 import DashboardProfessions from "./DashboardProfissions";
+import DashboardProfessionCategories from "./DashboardProfessionCategories";
 import DashboardRegions from "./DashboardRegions";
 import ProductCategoriesAdmin from "./ProductCategoriesAdmin";
 import DashboardPageViews from "./DashboardPageViews";
@@ -206,6 +207,7 @@ function Dashboard() {
     { id: "carrousel", label: "Gerenciar Imagens do Carrossel" },
     { id: "products", label: "Produtos Recebidos" },
     { id: "professionalbyCiity", label: "Profissionais por Estado" },
+    { id: "professionCategories", label: "Categorias de Profissões" },
     { id: "professions", label: "Profissões" },
     { id: "regions", label: "Regiões" },
     { id: "categoryProducts", label: "Categorias de produtos" },
@@ -773,6 +775,9 @@ function Dashboard() {
               <SearchProfessionalsByUF />
             )}
             {selectedDashboardSection === "dashboard" && renderDashboard()}
+            {selectedDashboardSection === "professionCategories" && (
+              <DashboardProfessionCategories />
+            )}
             {selectedDashboardSection === "professions" && (
               <DashboardProfessions />
             )}

@@ -25,8 +25,11 @@ import (
 	pkgregioninfra "construir_mais_barato/infra/database/repositories/region"
 
 	pkgprofession "construir_mais_barato/app/domain/profession"
+	pkgprofessionCategory "construir_mais_barato/app/domain/professionCategory"
 	pkgprofessionuc "construir_mais_barato/app/usecase/profession"
+	pkgprofessionCategoryuc "construir_mais_barato/app/usecase/professionCategory"
 	pkgprofessioninfra "construir_mais_barato/infra/database/repositories/profession"
+	pkgprofessionCategoryinfra "construir_mais_barato/infra/database/repositories/professionCategory"
 
 	pkgcity "construir_mais_barato/app/domain/city"
 	pkgcityuc "construir_mais_barato/app/usecase/city"
@@ -111,6 +114,7 @@ type dependenceParams struct {
 	UserService                 pkguser.UserService
 	ExchangeCodeService         pkgexchangecodes.ExchangeCodeService
 	ProfessionService           pkgprofession.ProfessionService
+	ProfessionCategoryService   pkgprofessionCategory.ProfessionCategoryService
 	CityService                 pkgcity.CityService
 	ContactService              pkgcontact.ContactService
 	ChatService                 pkgchat.ChatService
@@ -139,6 +143,7 @@ func buildDependenciesParams(db *gorm.DB) dependenceParams {
 	params.UserService = pkguser.NewUserService(pkguserinfra.NewUserRepositoryImpl(db))
 	params.ExchangeCodeService = pkgexchangecodes.NewExchangeCodeService(pkgexchangecodeinfra.NewExchangeCodeRepositoryImpl(db))
 	params.ProfessionService = pkgprofession.NewProfessionService(pkgprofessioninfra.NewProfessionRepositoryImpl(db))
+	params.ProfessionCategoryService = pkgprofessionCategory.NewProfessionCategoryService(pkgprofessionCategoryinfra.NewProfessionCategoryRepositoryImpl(db))
 	params.CityService = pkgcity.NewCityService(pkgcityinfra.NewCityRepositoryImpl(db))
 	params.ContactService = pkgcontact.NewContactService(pkgcontactinfra.NewContactRepositoryImpl(db))
 	params.ChatService = pkgchat.NewChatService(pkgchatinfra.NewChatRepositoryImpl(db))
@@ -246,6 +251,41 @@ func buildProfessionEndPoint(dependency *dependenceParams, g *echo.Group) {
 	}
 
 	pkgcontrollers.NewProfessionController(&professionControllerParams, g)
+}
+
+func professionCategoryControllerParams(dependency *dependenceParams) pkgcontrollers.ProfessionCategoryControllerParams {
+	return pkgcontrollers.ProfessionCategoryControllerParams{
+		FindAllUCParams: pkgprofessionCategoryuc.FindAllUCParams{
+			Service: dependency.ProfessionCategoryService,
+		},
+		FindActiveUCParams: pkgprofessionCategoryuc.FindActiveUCParams{
+			Service: dependency.ProfessionCategoryService,
+		},
+		FindByIdUCParams: pkgprofessionCategoryuc.FindByIdUCParams{
+			Service: dependency.ProfessionCategoryService,
+		},
+		FindProfessionsUCParams: pkgprofessionCategoryuc.FindProfessionsUCParams{
+			Service:           dependency.ProfessionCategoryService,
+			ProfessionService: dependency.ProfessionService,
+		},
+		SaveUCParams: pkgprofessionCategoryuc.SaveUCParams{
+			Service: dependency.ProfessionCategoryService,
+		},
+		DeleteUCParams: pkgprofessionCategoryuc.DeleteUCParams{
+			Service:           dependency.ProfessionCategoryService,
+			ProfessionService: dependency.ProfessionService,
+		},
+	}
+}
+
+func buildProfessionCategoryEndPoint(dependency *dependenceParams, g *echo.Group) {
+	params := professionCategoryControllerParams(dependency)
+	pkgcontrollers.NewProfessionCategoryController(&params, g)
+}
+
+func buildProfessionCategoryPublicEndPoint(dependency *dependenceParams, g *echo.Group) {
+	params := professionCategoryControllerParams(dependency)
+	pkgcontrollers.NewProfessionCategoryPublicController(&params, g)
 }
 
 func buildRegionEndPoint(dependency *dependenceParams, g *echo.Group) {
@@ -1086,6 +1126,7 @@ func Start(db *gorm.DB) {
 	buildPublicEndPoint(&dependency, publicRouter)
 	buildProductCategoryPublicEndPoint(&dependency, publicRouter)
 	buildPublicAccountDeletionEndPoint(&dependency, publicRouter)
+	buildProfessionCategoryPublicEndPoint(&dependency, publicRouter)
 
 	// **************************************** Rotas privadas
 	routerGroup := router.Group("/api/v1")
@@ -1095,6 +1136,7 @@ func Start(db *gorm.DB) {
 
 	buildUserEndPoint(&dependency, routerGroup)
 	buildProfessionEndPoint(&dependency, routerGroup)
+	buildProfessionCategoryEndPoint(&dependency, routerGroup)
 	buildCityEndPoint(&dependency, routerGroup)
 	buildChatEndPoint(&dependency, routerGroup)
 	buildContactEndPoint(&dependency, routerGroup)

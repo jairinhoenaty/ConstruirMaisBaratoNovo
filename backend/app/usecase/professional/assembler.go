@@ -17,6 +17,8 @@ type ProfessionalAssembler struct {
 	OnLine                    *bool   `json:"online"`
 	Latitude                  float64 `json:"latitude"`
 	Longitude                 float64 `json:"longitude"`
+	AddressLatitude           float64 `json:"addressLatitude"`
+	AddressLongitude          float64 `json:"addressLongitude"`
 	IsPremium                 *bool   `json:"isPremium"`
 	DateOfBirth               string  `json:"dateOfBirth"`
 	Experience                string  `json:"experience"`

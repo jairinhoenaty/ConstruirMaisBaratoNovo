@@ -21,6 +21,7 @@ import (
 	pkgproduct "construir_mais_barato/app/domain/product"
 	pkgproductCategory "construir_mais_barato/app/domain/productCategory"
 	pkgprofession "construir_mais_barato/app/domain/profession"
+	pkgprofessionCategory "construir_mais_barato/app/domain/professionCategory"
 	pkgprofessional "construir_mais_barato/app/domain/professional"
 	pkgregion "construir_mais_barato/app/domain/region"
 	pkgsolicitationapp "construir_mais_barato/app/domain/solicitationAPP"
@@ -79,6 +80,7 @@ func ConnectionDB(params *ConfigParams) *gorm.DB {
 	db.AutoMigrate(&pkguser.User{})
 	db.AutoMigrate(&pkgcontact.Contact{})
 	db.AutoMigrate(&pkgchat.Chat{})
+	db.AutoMigrate(&pkgprofessionCategory.ProfessionCategory{})
 	db.AutoMigrate(&pkgprofession.Profession{})
 	db.AutoMigrate(&pkgprofessional.Professional{})
 	db.AutoMigrate(&pkgbudget.Budget{})
@@ -102,6 +104,12 @@ func ConnectionDB(params *ConfigParams) *gorm.DB {
 	// Seed de planos (popula planos iniciais se não existirem)
 	if err := pkgplan.SeedPlans(db); err != nil {
 		fmt.Printf("Warning: Failed to seed plans: %v\n", err)
+	}
+
+	// Sem a categoria padrão as profissões já cadastradas ficariam invisíveis
+	// para o app, que só lista profissão dentro de uma categoria.
+	if err := pkgprofessionCategory.SeedDefaultCategory(db); err != nil {
+		fmt.Printf("Warning: Failed to seed profession categories: %v\n", err)
 	}
 
 	return db

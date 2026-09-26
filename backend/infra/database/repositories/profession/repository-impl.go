@@ -18,7 +18,7 @@ func NewProfessionRepositoryImpl(db *gorm.DB) pkgprofession.ProfessionRepository
 
 func (r *repository) FindAllWithoutPagination() ([]*pkgprofession.Profession, error) {
 	var professions []*pkgprofession.Profession
-	if err := r.DB.Order("name").Find(&professions).Error; err != nil {
+	if err := r.DB.Preload("Category").Order("name").Find(&professions).Error; err != nil {
 		return nil, err
 	}
 	return professions, nil
@@ -41,7 +41,7 @@ func (r *repository) FindAll(limit, offset int) ([]*pkgprofession.Profession, in
 	}
 
 	var professions []*pkgprofession.Profession
-	if err := r.DB.Limit(limit).Offset(offset).Order("name").Find(&professions).Error; err != nil {
+	if err := r.DB.Preload("Category").Limit(limit).Offset(offset).Order("name").Find(&professions).Error; err != nil {
 		return nil, 0, err
 	}
 	return professions, total, nil
@@ -66,10 +66,21 @@ func (r *repository) FindProfessionsWithCount() ([]map[string]interface{}, error
 
 func (r *repository) FindById(id uint) (*pkgprofession.Profession, error) {
 	profession := pkgprofession.Profession{}
-	if err := r.DB.First(&profession, id).Error; err != nil {
+	if err := r.DB.Preload("Category").First(&profession, id).Error; err != nil {
 		return nil, err
 	}
 	return &profession, nil
+}
+
+func (r *repository) FindByCategory(categoryID uint) ([]*pkgprofession.Profession, error) {
+	var professions []*pkgprofession.Profession
+	if err := r.DB.Preload("Category").
+		Where("category_id = ?", categoryID).
+		Order("name").
+		Find(&professions).Error; err != nil {
+		return nil, err
+	}
+	return professions, nil
 }
 
 func (r *repository) Save(profession pkgprofession.Profession) (*pkgprofession.Profession, error) {

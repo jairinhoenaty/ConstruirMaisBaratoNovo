@@ -9,6 +9,8 @@ type SaveSolicitationAssembler struct {
 	Latitude       float64 `json:"latitude"`
 	Longitude      float64 `json:"longitude"`
 	ProfessionId   int     `json:"professionId"`
+	CategoryId     int     `json:"categoryId"`
+	ClientTravels  bool    `json:"clientTravels"`
 	ProfessionalId int     `json:"idProfissional"`
 	Status         string  `json:"status"`
 	Distance       float64 `json:"distance"`

@@ -39,6 +39,7 @@ import { CheckoutState, Payer } from "../interfaces";
 import { Plan } from "../interfaces/IPlan";
 import ErrorAlert from "../components/ErrorAlert";
 import Swal from "sweetalert2";
+import { AddressService } from "../services/AddressService";
 import { useNavigate, useLocation, Form } from "react-router-dom";
 import LoadingText from "../components/LoadingText";
 import VideoPopup from "../components/VideoPopup";
@@ -65,6 +66,11 @@ function Register() {
     confirmPassword: "",
     state: "",
     city: "",
+    // Endereço de atendimento do profissional: é o destino do cliente nas
+    // categorias em que ele é quem se desloca.
+    cep: "",
+    street: "",
+    neighborhood: "",
     professions: [] as string[],
     acceptTerms: false,
     photo: "",
@@ -79,6 +85,10 @@ function Register() {
     isPremiumStore: false,
   });
   const [showProfessions, setShowProfessions] = useState(false);
+  const [searchingCep, setSearchingCep] = useState(false);
+  // Último CEP consultado: evita repetir a chamada a cada tecla depois que o
+  // campo já está completo.
+  const lastCepRef = useRef("");
   const [selectedCategoryProduct, setSelectedCategoryProduct] =
     useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
@@ -246,6 +256,21 @@ function Register() {
       [name]: type === "checkbox" ? checked : value,
       ...(name === "state" ? { city: "" } : {}),
     }));
+
+    const cepDigits = name === "cep" ? value.replace(/\D/g, "") : "";
+    if (cepDigits.length === 8 && cepDigits !== lastCepRef.current) {
+      lastCepRef.current = cepDigits;
+      setSearchingCep(true);
+      const address = await AddressService.lookupCep(value);
+      setSearchingCep(false);
+      if (address) {
+        setFormData((prev) => ({
+          ...prev,
+          street: address.street || prev.street,
+          neighborhood: address.neighborhood || prev.neighborhood,
+        }));
+      }
+    }
   };
 
   const handleGerarCertidao = (
@@ -525,6 +550,31 @@ function Register() {
     }
   };
 
+  /**
+   * Coordenadas do endereço informado, usadas como destino quando o cliente é
+   * quem se desloca. Zeradas quando o endereço não é reconhecido: o backend
+   * então cai na última posição conhecida do profissional.
+   */
+  const resolveAddressCoordinates = async () => {
+    const cityName =
+      (citiesByState as any[]).find(
+        (city) => String(city?.id) === String(formData.city)
+      )?.name ?? "";
+
+    const fullAddress = [
+      formData.street,
+      formData.neighborhood,
+      cityName,
+      formData.state,
+      formData.cep,
+    ]
+      .map((part) => (part ?? "").trim())
+      .filter(Boolean)
+      .join(", ");
+
+    return AddressService.geocodeAddress(fullAddress);
+  };
+
   const validateBasicForm = () => {
     let isValid = true;
     setErrorPass("");
@@ -534,6 +584,17 @@ function Register() {
     if (formData.password != formData.confirmPassword) {
       setErrorPass("Senhas não estão iguais!!!!");
       isValid = false;
+    }
+
+    // O cadastro gratuito é disparado pelo botão do modal, fora do submit do
+    // form, então a validação nativa dos campos não roda — daí a checagem aqui.
+    // No modo upgrade os campos básicos nem são exibidos: o profissional já
+    // existe e só está trocando de plano.
+    if (selectedRole === "professional" && !isUpgradeMode) {
+      if (!formData.cep || !formData.street || !formData.neighborhood) {
+        setError("Informe o endereço de atendimento (CEP, endereço e bairro)");
+        isValid = false;
+      }
     }
 
     // Validações básicas apenas (sem campos premium)
@@ -550,6 +611,17 @@ function Register() {
     if (!isUpgradeMode) {
       if (formData.password != formData.confirmPassword) {
         setErrorPass("Senhas não coincidem");
+        isValid = false;
+      }
+    }
+
+    // O cadastro gratuito é disparado pelo botão do modal, fora do submit do
+    // form, então a validação nativa dos campos não roda — daí a checagem aqui.
+    // No modo upgrade os campos básicos nem são exibidos: o profissional já
+    // existe e só está trocando de plano.
+    if (selectedRole === "professional" && !isUpgradeMode) {
+      if (!formData.cep || !formData.street || !formData.neighborhood) {
+        setError("Informe o endereço de atendimento (CEP, endereço e bairro)");
         isValid = false;
       }
     }
@@ -663,15 +735,18 @@ function Register() {
             let postReturn: any;
             if (selectedRole == "professional") {
               try {
+                const coordinates = await resolveAddressCoordinates();
                 const professionalData = {
                   oid: parseInt(localStorage.getItem("id") ?? "0"),
                   Name: formData.name,
                   Email: formData.email,
                   Telephone: formData.phone,
                   Password: formData.password,
-                  cep: "",
-                  street: "",
-                  neighborhood: "",
+                  cep: formData.cep,
+                  street: formData.street,
+                  neighborhood: formData.neighborhood,
+                  addressLatitude: coordinates?.latitude ?? 0,
+                  addressLongitude: coordinates?.longitude ?? 0,
                   cityId: parseInt(formData.city),
                   professionIds: formData.professions,
                   image: base64image,
@@ -950,15 +1025,18 @@ function Register() {
             if (selectedRole == "professional") {
               try {
                 // Preparar dados base
+                const coordinates = await resolveAddressCoordinates();
                 const professionalData = {
                   oid: parseInt(localStorage.getItem("id") ?? "0"),
                   Name: formData.name,
                   Email: formData.email,
                   Telephone: formData.phone,
                   Password: formData.password,
-                  cep: "",
-                  street: "",
-                  neighborhood: "",
+                  cep: formData.cep,
+                  street: formData.street,
+                  neighborhood: formData.neighborhood,
+                  addressLatitude: coordinates?.latitude ?? 0,
+                  addressLongitude: coordinates?.longitude ?? 0,
                   cityId: parseInt(formData.city),
                   professionIds: formData.professions,
                   // Campos Premium
@@ -1899,6 +1977,95 @@ function Register() {
                     </div>
                   </div>
                 </div>
+
+                {/* Endereço de atendimento - só para profissional */}
+                {selectedRole === "professional" && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label
+                          htmlFor="cep"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          CEP
+                        </label>
+                        <div className="mt-1 relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <MapPin className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <InputMask
+                            mask="99999-999"
+                            id="cep"
+                            name="cep"
+                            type="text"
+                            required
+                            value={formData.cep}
+                            onChange={handleChange}
+                            className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="00000-000"
+                          />
+                        </div>
+                        {searchingCep && (
+                          <p className="mt-1 text-xs text-gray-500">
+                            Buscando endereço...
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="neighborhood"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Bairro
+                        </label>
+                        <div className="mt-1 relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <MapPin className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <input
+                            id="neighborhood"
+                            name="neighborhood"
+                            type="text"
+                            required
+                            value={formData.neighborhood}
+                            onChange={handleChange}
+                            className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Seu bairro"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="street"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Endereço
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <MapPin className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          id="street"
+                          name="street"
+                          type="text"
+                          required
+                          value={formData.street}
+                          onChange={handleChange}
+                          className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Rua e número"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        É para este endereço que o cliente vai quando o serviço
+                        é feito no seu local.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Profissões - Only show for professional role */}
                 {selectedRole === "professional" && (
