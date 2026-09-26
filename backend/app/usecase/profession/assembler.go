@@ -6,6 +6,9 @@ type ProfessionAssembler struct {
 	Description string `json:"description"`
 	Icon        string `json:"icon"`
 	CityIDs     []uint `json:"city_ids"`
+	CategoryID  *uint  `json:"category_id"`
+	// Nulo herda o flag da categoria.
+	ClientTravels *bool `json:"client_travels"`
 }
 
 type FindWithPaginationProfessionAssembler struct {

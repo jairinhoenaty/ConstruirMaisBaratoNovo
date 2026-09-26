@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	pkgauthuc "construir_mais_barato/app/usecase/auth"
 	pkguseruc "construir_mais_barato/app/usecase/user"
 	"net/http"
 	"strconv"
@@ -117,6 +118,20 @@ func (c *UserController) Delete(ctx echo.Context) error {
 		return ctx.JSON(http.StatusPreconditionFailed, err)
 	}
 	uintID := uint(id)
+
+	// Só o dono da conta pode excluí-la. Sem esta checagem, qualquer token
+	// válido apagava a conta de qualquer outro usuário pelo id da URL.
+	tokenUserID, err := pkgauthuc.GetUserIDFromToken(getTokenFromHeader(ctx))
+	if err != nil {
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Token inválido",
+		})
+	}
+	if tokenUserID != uintID {
+		return ctx.JSON(http.StatusForbidden, map[string]string{
+			"error": "Você só pode excluir a própria conta",
+		})
+	}
 
 	usecase.ID = &uintID
 	err = usecase.Execute()

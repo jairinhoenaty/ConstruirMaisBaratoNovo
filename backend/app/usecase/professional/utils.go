@@ -36,6 +36,8 @@ func GenerateProfessional(assembler *ProfessionalAssembler) pkgprofessional.Prof
 		professional.OnLine = assembler.OnLine
 		professional.Latitude = assembler.Latitude
 		professional.Longitude = assembler.Longitude
+		professional.AddressLatitude = assembler.AddressLatitude
+		professional.AddressLongitude = assembler.AddressLongitude
 		professional.IsPremium = assembler.IsPremium
 		professional.DateOfBirth = assembler.DateOfBirth
 		professional.Experience = assembler.Experience
@@ -85,6 +87,7 @@ func GenerateProfessionalPresenter(professional *pkgprofessional.Professional) P
 		presenter.Neighborhood = professional.Neighborhood
 		presenter.Image = professional.Image
 		presenter.Distance = professional.Distance
+		presenter.Latitude, presenter.Longitude = professional.ServiceLocation()
 		presenter.OnLine = professional.OnLine
 		presenter.Verified = professional.Verified
 		presenter.IsPremium = professional.IsPremium

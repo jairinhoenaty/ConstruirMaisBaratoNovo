@@ -5,6 +5,7 @@ type ProfessionRepository interface {
 	FindAll(limit, offset int) ([]*Profession, int64, error)
 	FindAllWithoutPagination() ([]*Profession, error)
 	FindById(id uint) (*Profession, error)
+	FindByCategory(categoryID uint) ([]*Profession, error)
 	FindProfessionsWithCount() ([]map[string]interface{}, error)
 	Save(Profession Profession) (*Profession, error)
 	Remove(id uint) error

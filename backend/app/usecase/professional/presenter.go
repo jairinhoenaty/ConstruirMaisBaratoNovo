@@ -16,6 +16,8 @@ type ProfessionalPresenter struct {
 	Professions               []ProfissionPresenter `json:"profissoes"`
 	Image                     []byte                `json:"image"`
 	Distance                  float64               `json:"distance"`
+	Latitude                  float64               `json:"latitude"`
+	Longitude                 float64               `json:"longitude"`
 	OnLine                    *bool                 `json:"online"`
 	Verified                  *bool                 `json:"verified"`
 	IsPremium                 *bool                 `json:"isPremium"`

@@ -9,4 +9,5 @@ export * from "./IStore";
 export * from "./IUser";
 export * from "./IProduct";
 export * from "./ICity";
+export * from "./IProfessionCategory";
 export * from "./ICheckout";

@@ -152,6 +152,9 @@ function DashboardProfessions() {
                     Descrição
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
+                    Deslocamento
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
                     Ações
                   </th>
                 </tr>
@@ -177,6 +180,11 @@ function DashboardProfessions() {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       {prof.description}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {prof.client_travels
+                        ? "Cliente vai até o profissional"
+                        : "Profissional vai até o cliente"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">

@@ -33,6 +33,8 @@ func (uc *SaveSolicitationUC) Execute() (*pkgsolicitation.SolicitationApp, error
 		Latitude:       uc.Assembler.Latitude,
 		Longitude:      uc.Assembler.Longitude,
 		ProfessionId:   uc.Assembler.ProfessionId,
+		CategoryId:     uc.Assembler.CategoryId,
+		ClientTravels:  uc.Assembler.ClientTravels,
 		Status:         uc.Assembler.Status,
 		IdFirebase:     uc.Assembler.IdFirebase,
 		ProfessionalId: uc.Assembler.ProfessionalId,

@@ -5,6 +5,7 @@ type ProfessionService interface {
 	FindAll(limit, offset int) ([]*Profession, int64, error)
 	FindAllWithoutPagination() ([]*Profession, error)
 	FindById(id uint) (*Profession, error)
+	FindByCategory(categoryID uint) ([]*Profession, error)
 	FindProfessionsWithCount() ([]map[string]interface{}, error)
 	Save(profession Profession) (*Profession, error)
 	Remove(id uint) error
@@ -58,6 +59,10 @@ func (s *professionService) FindById(id uint) (*Profession, error) {
 		return nil, err
 	}
 	return profession, nil
+}
+
+func (s *professionService) FindByCategory(categoryID uint) ([]*Profession, error) {
+	return s.repository.FindByCategory(categoryID)
 }
 
 func (s *professionService) Save(profession Profession) (*Profession, error) {
